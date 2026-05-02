@@ -1,6 +1,11 @@
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    jwt_required,
+    get_jwt
+)
 
 from ..extensions import db, bcrypt
 from ..models.user import User
@@ -60,14 +65,69 @@ def login():
 
     # Generate JWT access token
     access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     return jsonify({
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "user": {
             "id": str(user.id),
             "email": user.email,
             "full_name": user.full_name,
             "is_admin": user.is_admin,
             "is_demo": user.is_demo
+        }
+    }), 200
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """Revoke the current access token."""
+    from ..models.revoked_token import RevokedToken
+
+    jwt_data = get_jwt()
+    jti = jwt_data['jti']
+    token_type = jwt_data['type']
+    user_id = jwt_data['sub']
+
+    revoked = RevokedToken(
+        jti=jti,
+        token_type=token_type,
+        user_id=user_id
+    )
+    db.session.add(revoked)
+    db.session.commit()
+
+    return jsonify({"message": "Successfully logged out"}), 200
+
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    """Issue a new access token using a valid refresh token."""
+    user_id = get_jwt()['sub']
+    new_access_token = create_access_token(identity=user_id)
+
+    return jsonify({"access_token": new_access_token}), 200
+
+@auth_bp.route('/demo', methods=['POST'])
+def demo_login():
+    """Authenticate as the read-only demo user."""
+    demo_user = User.query.filter_by(is_demo=True, is_active=True).first()
+
+    if not demo_user:
+        return jsonify({"error": "Demo account is not available"}), 503
+
+    access_token = create_access_token(identity=str(demo_user.id))
+    refresh_token = create_refresh_token(identity=str(demo_user.id))
+
+    return jsonify({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": {
+            "id": str(demo_user.id),
+            "email": demo_user.email,
+            "full_name": demo_user.full_name,
+            "is_admin": demo_user.is_admin,
+            "is_demo": demo_user.is_demo
         }
     }), 200

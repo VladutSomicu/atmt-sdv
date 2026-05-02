@@ -14,6 +14,15 @@ def create_app(config_class=Config):
     cors.init_app(app)
     bcrypt.init_app(app)
 
+    # JWT blacklist callback - checks if token has been revoked
+    from .models.revoked_token import RevokedToken
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload['jti']
+        token = RevokedToken.query.filter_by(jti=jti).first()
+        return token is not None
+
     # Import models so Alembic can detect them
     from . import models
 
