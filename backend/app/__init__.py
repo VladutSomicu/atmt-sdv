@@ -1,11 +1,13 @@
 from flask import Flask
 from .config import Config
 from .extensions import db, migrate, jwt, cors, bcrypt
+from .routes.admin import admin_bp
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.register_blueprint(admin_bp)
 
     # Initialize extensions
     db.init_app(app)
