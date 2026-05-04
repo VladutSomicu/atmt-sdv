@@ -2,3 +2,6 @@ from .user import User
 from .project import Project
 from .project_member import ProjectMember
 from .revoked_token import RevokedToken
+from .ref_asset import RefAsset
+from .ref_threat import RefThreat
+from .control import Control

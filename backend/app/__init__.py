@@ -30,4 +30,11 @@ def create_app(config_class=Config):
     from .routes.auth import auth_bp
     app.register_blueprint(auth_bp)
 
+    # Register CLI commands
+    @app.cli.command("seed")
+    def seed_command():
+        """Populate the database with reference data."""
+        from .utils.seed import run_all_seeds
+        run_all_seeds()
+
     return app
