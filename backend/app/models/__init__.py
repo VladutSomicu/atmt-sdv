@@ -6,3 +6,4 @@ from .ref_asset import RefAsset
 from .ref_threat import RefThreat
 from .control import Control
 from .diagram import Diagram
+from .threat import Threat

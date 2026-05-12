@@ -4,6 +4,7 @@ from .extensions import db, migrate, jwt, cors, bcrypt
 from .routes.admin import admin_bp
 from .routes.projects import projects_bp
 from .routes.diagrams import diagrams_bp
+from .routes.analysis import analysis_bp
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -11,6 +12,7 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(projects_bp)
     app.register_blueprint(diagrams_bp)
+    app.register_blueprint(analysis_bp)
 
     # Initialize extensions
     db.init_app(app)
