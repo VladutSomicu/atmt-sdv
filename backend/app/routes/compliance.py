@@ -70,7 +70,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-01",
         "regulation": "UNECE R155",
         "title": "External communication channels must be encrypted",
-        "reference": "R155 Annex 5, Table A1, 4.3.1",
+        "reference": "R155 Annex 5, Table A1, 4.3.2",
         "status": "pass" if not unprotected_external else "fail",
         "details": (
             f"All {len(external_edges)} external channels are protected."
@@ -86,7 +86,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-02",
         "regulation": "UNECE R155",
         "title": "Internal vehicle network must have IDS/IPS monitoring",
-        "reference": "R155 Annex 5, Table A1, 7.1",
+        "reference": "R155 Annex 5, Part B, Table B1, M15",
         "status": "pass" if len(can_with_control) == len(can_edges) else "fail",
         "details": (
             f"All {len(can_edges)} CAN connections have security controls."
@@ -104,7 +104,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-03",
         "regulation": "UNECE R155",
         "title": "All critical risks must have treatment plans",
-        "reference": "R155 Article 7.2.2.3",
+        "reference": "R155 Article 7.3.3",
         "status": "pass" if not open_critical else "fail",
         "details": (
             "No unaddressed critical risks."
@@ -122,7 +122,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-04",
         "regulation": "UNECE R155",
         "title": "Trust boundary crossings must have security controls",
-        "reference": "R155 Annex 5, Table A1, 4.3.3",
+        "reference": "R155 Annex 5, Table A1, 4.3.7, item 29.2",
         "status": "pass" if not unsecured_crossings else "fail",
         "details": (
             "All trust boundary crossings are secured."
@@ -161,7 +161,7 @@ def _run_r156_checks(graph_json, threats, vehicle_profile):
         "id": "R156-01",
         "regulation": "UNECE R156",
         "title": "OTA update channels must use encrypted communication",
-        "reference": "R156 Article 7.1.2",
+        "reference": "R156 Article 7.1.3.1",
         "status": "pass" if len(ota_protected) == len(ota_edges) else "fail",
         "details": (
             f"All {len(ota_edges)} OTA-capable channels are protected."
@@ -201,7 +201,7 @@ def _run_r156_checks(graph_json, threats, vehicle_profile):
         "id": "R156-03",
         "regulation": "UNECE R156",
         "title": "OTA packages must have digital signature verification",
-        "reference": "R156 Article 7.1.3",
+        "reference": "R156 Article 7.2.1.1",
         "status": "pass" if has_signature_control else "fail",
         "details": (
             "OTA update signature verification control is applied."
