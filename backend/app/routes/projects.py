@@ -9,6 +9,8 @@ from ..models.project_member import ProjectMember
 from ..models.user import User
 from ..schemas.project import CreateProjectSchema, InviteMemberSchema
 from ..utils.auth_decorators import requires_project_role
+from ..models.audit_log import AuditLog
+from ..models.user import User
 
 projects_bp = Blueprint('projects', __name__, url_prefix='/api/projects')
 
@@ -232,3 +234,91 @@ def unlock_project(project_id):
     db.session.commit()
 
     return jsonify({"message": "Project unlocked successfully"}), 200
+
+
+@projects_bp.route('/<uuid:project_id>/audit', methods=['GET'])
+@jwt_required()
+@requires_project_role('engineer', 'manager', 'auditor')
+def get_audit_log(project_id):
+    """Return the audit log for a project."""
+    logs = AuditLog.query.filter_by(
+        project_id=str(project_id)
+    ).order_by(AuditLog.created_at.desc()).all()
+
+    result = []
+    for log in logs:
+        user = User.query.get(log.user_id)
+        result.append({
+            "id": str(log.id),
+            "action": log.action,
+            "user": user.full_name if user else "Unknown",
+            "old_value": log.old_value,
+            "new_value": log.new_value,
+            "justification": log.justification,
+            "created_at": log.created_at.isoformat()
+        })
+
+    return jsonify({
+        "audit_log": result,
+        "total": len(result)
+    }), 200
+
+
+from ..utils.audit import log_action
+
+@projects_bp.route('/<uuid:project_id>', methods=['PUT'])
+@jwt_required()
+@requires_project_role('manager')
+def update_project(project_id):
+    """Update project metadata. Only manager can edit."""
+    project = Project.query.get(str(project_id))
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    data = request.get_json() or {}
+
+    if 'name' in data and len(data['name']) >= 2:
+        project.name = data['name']
+    if 'description' in data:
+        project.description = data['description']
+    if 'vehicle_profile' in data:
+        project.vehicle_profile = data['vehicle_profile']
+    if 'business_objectives' in data:
+        project.business_objectives = data['business_objectives']
+
+    log_action(
+        user_id=get_jwt_identity(),
+        action='project_updated',
+        project_id=str(project_id),
+        new_value=data
+    )
+    db.session.commit()
+
+    return jsonify({
+        "message": "Project updated successfully",
+        "project": {
+            "id": str(project.id),
+            "name": project.name,
+            "status": project.status
+        }
+    }), 200
+
+
+@projects_bp.route('/<uuid:project_id>', methods=['DELETE'])
+@jwt_required()
+@requires_project_role('manager')
+def delete_project(project_id):
+    """Delete a project and all associated data. Only manager can delete."""
+    project = Project.query.get(str(project_id))
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    project_name = project.name
+
+    # CASCADE handles: project_members, diagrams, threats, audit_log
+    db.session.delete(project)
+    db.session.commit()
+
+    return jsonify({
+        "message": f"Project '{project_name}' deleted successfully"
+    }), 200

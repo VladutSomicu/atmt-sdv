@@ -7,6 +7,7 @@ from ..models.threat import Threat
 from ..models.diagram import Diagram
 from ..analysis_engine.engine import ThreatEngine
 from ..utils.auth_decorators import requires_project_role
+from ..utils.audit import log_action
 
 analysis_bp = Blueprint('analysis', __name__, url_prefix='/api')
 
@@ -74,6 +75,13 @@ def run_analysis():
 
     # Update project status
     project.status = 'in_analysis'
+
+    log_action(
+        user_id=get_jwt_identity(),
+        action='analysis_run',
+        project_id=project_id,
+        new_value={"threats_identified": len(saved_threats)}
+    )
     db.session.commit()
 
     # Build response

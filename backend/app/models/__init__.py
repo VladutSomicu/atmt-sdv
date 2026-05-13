@@ -7,3 +7,4 @@ from .ref_threat import RefThreat
 from .control import Control
 from .diagram import Diagram
 from .threat import Threat
+from .audit_log import AuditLog

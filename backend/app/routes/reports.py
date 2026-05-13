@@ -10,6 +10,7 @@ from ..models.user import User
 from ..utils.auth_decorators import requires_project_role
 from ..utils.report_generator import ReportGenerator
 from ..routes.compliance import _run_r155_checks, _run_r156_checks, _run_general_checks
+from ..utils.audit import log_action
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/api/reports')
 
@@ -74,6 +75,12 @@ def generate_report(project_id):
     # Update project status
     project.status = 'completed'
     from ..extensions import db
+
+    log_action(
+        user_id=get_jwt_identity(),
+        action='report_generated',
+        project_id=str(project_id)
+    )
     db.session.commit()
 
     # Return PDF file

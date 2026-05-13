@@ -8,6 +8,7 @@ from ..models.control import Control
 from ..models.project import Project
 from ..schemas.threat import UpdateThreatSchema
 from ..utils.auth_decorators import requires_project_role
+from ..utils.audit import log_action
 
 threats_bp = Blueprint('threats', __name__, url_prefix='/api/threats')
 
@@ -122,6 +123,9 @@ def update_threat(threat_id):
     if not threat:
         return jsonify({"error": "Threat not found"}), 404
 
+    old_risk_score = threat.risk_score
+    old_status = threat.status
+
     # Check that user is engineer on this project
     user_id = get_jwt_identity()
     from ..models.project_member import ProjectMember
@@ -208,6 +212,23 @@ def update_threat(threat_id):
         threat.impact_privacy
     ) * threat.feasibility
 
+    db.session.commit()
+
+    log_action(
+        user_id=user_id,
+        action='threat_updated',
+        project_id=threat.project_id,
+        threat_id=threat.id,
+        old_value={
+            "risk_score": old_risk_score,
+            "status": old_status
+        },
+        new_value={
+            "risk_score": threat.risk_score,
+            "status": threat.status
+        },
+        justification=threat.justification
+    )
     db.session.commit()
 
     return jsonify({
