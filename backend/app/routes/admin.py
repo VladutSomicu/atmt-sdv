@@ -174,3 +174,64 @@ def get_controls():
         ],
         "total": len(controls)
     }), 200
+
+@admin_bp.route('/public/assets', methods=['GET'])
+@jwt_required()
+def get_public_assets():
+    """Return ref_assets filtered by vehicle_type. Used by canvas sidebar."""
+    vehicle_type = request.args.get('vehicle_type')
+
+    query = RefAsset.query
+    if vehicle_type:
+        query = query.filter(RefAsset.vehicle_types.any(vehicle_type))
+
+    assets = query.order_by(RefAsset.category, RefAsset.name).all()
+
+    return jsonify({
+        "assets": [
+            {
+                "id": str(a.id),
+                "name": a.name,
+                "category": a.category,
+                "interface_types": a.interface_types,
+                "data_types": a.data_types,
+                "physical_accessibility": a.physical_accessibility,
+                "asil_level": a.asil_level,
+                "default_safety": a.default_safety,
+                "default_privacy": a.default_privacy,
+                "flags": a.flags,
+                "vehicle_types": a.vehicle_types
+            }
+            for a in assets
+        ],
+        "total": len(assets)
+    }), 200
+
+
+@admin_bp.route('/public/controls', methods=['GET'])
+@jwt_required()
+def get_public_controls():
+    """Return controls filtered by stride_category. Used by threat panel."""
+    stride = request.args.get('stride_category')
+
+    query = Control.query
+    if stride:
+        query = query.filter(Control.applies_to_stride.any(stride))
+
+    controls = query.order_by(Control.title).all()
+
+    return jsonify({
+        "controls": [
+            {
+                "id": str(c.id),
+                "title": c.title,
+                "description": c.description,
+                "applies_to_stride": c.applies_to_stride,
+                "applies_to_protocols": c.applies_to_protocols,
+                "feasibility_reduction": c.feasibility_reduction,
+                "source_ref": c.source_ref
+            }
+            for c in controls
+        ],
+        "total": len(controls)
+    }), 200
