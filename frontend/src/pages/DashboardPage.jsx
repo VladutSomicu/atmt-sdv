@@ -1,5 +1,36 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import AppLayout from '../components/layout/AppLayout';
+
+const riskBadge = (score) => {
+  if (score >= 16) return 'bg-red-900 text-red-300 border-red-800';
+  if (score >= 12) return 'bg-orange-900 text-orange-300 border-orange-800';
+  if (score >= 8)  return 'bg-yellow-900 text-yellow-300 border-yellow-800';
+  if (score >= 4)  return 'bg-blue-900 text-blue-300 border-blue-800';
+  return 'bg-gray-800 text-gray-400 border-gray-700';
+};
+
+const riskLabel = (score) => {
+  if (score >= 16) return 'CRITICAL';
+  if (score >= 12) return 'HIGH';
+  if (score >= 8)  return 'MEDIUM';
+  if (score >= 4)  return 'LOW';
+  return 'DRAFT';
+};
+
+const statusColor = {
+  draft:       'text-gray-400',
+  in_analysis: 'text-blue-400',
+  mitigating:  'text-yellow-400',
+  completed:   'text-green-400',
+};
+
+const roleColor = {
+  engineer:  'bg-blue-900 text-blue-300',
+  manager:   'bg-green-900 text-green-300',
+  architect: 'bg-purple-900 text-purple-300',
+  auditor:   'bg-yellow-900 text-yellow-300',
+};
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
@@ -9,149 +40,137 @@ export default function DashboardPage() {
   useEffect(() => {
     api.get('/api/projects')
       .then(res => setProjects(res.data.projects))
-      .catch(err => console.error(err))
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/api/auth/logout');
-    } finally {
-      localStorage.clear();
-      window.location.href = '/login';
-    }
-  };
-
-  const statusColor = (status) => {
-    const map = {
-      draft: 'bg-gray-700 text-gray-300',
-      in_analysis: 'bg-blue-900 text-blue-300',
-      mitigating: 'bg-yellow-900 text-yellow-300',
-      completed: 'bg-green-900 text-green-300',
-    };
-    return map[status] || 'bg-gray-700 text-gray-300';
+  const stats = {
+    total: projects.length,
+    critical: projects.filter(p => p.status === 'in_analysis').length,
+    completed: projects.filter(p => p.status === 'completed').length,
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <AppLayout breadcrumb={[{ label: 'Dashboard' }]}>
 
-      {/* Navbar */}
-      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-blue-400 font-bold text-xl tracking-wider">ATMT</span>
-          <span className="text-gray-600 text-xs">v0.9</span>
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-white text-2xl font-bold">Projects</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {projects.length} active - ISO 21434 workspace
+          </p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-sm">{user.full_name}</span>
-          {user.is_admin && (
-            <span className="bg-blue-900 text-blue-300 text-xs px-2 py-0.5 rounded-full">
-              ADMIN
-            </span>
-          )}
-          {user.is_demo && (
-            <span className="bg-yellow-900 text-yellow-300 text-xs px-2 py-0.5 rounded-full">
-              DEMO
-            </span>
-          )}
-          <button
-            onClick={handleLogout}
-            className="text-gray-500 hover:text-white text-sm transition-colors"
+        {!user.is_demo && (
+          <a
+            href="/projects/new"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
-            Sign out
-          </button>
-        </div>
-      </nav>
-
-      {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Projects</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Your TARA projects and analysis workspaces
-            </p>
-          </div>
-          {!user.is_demo && (
-            <button
-              onClick={() => window.location.href = '/projects/new'}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              + New Project
-            </button>
-          )}
-        </div>
-
-        {/* Projects list */}
-        {loading ? (
-          <div className="text-gray-500 text-center py-20">Loading...</div>
-        ) : projects.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No projects yet</p>
-            <p className="text-gray-600 text-sm mt-2">
-              Create your first TARA project to get started
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {projects.map(project => (
-              <div
-                key={project.id}
-                onClick={() => window.location.href = `/projects/${project.id}/editor`}
-                className="bg-gray-900 border border-gray-800 rounded-xl p-5 cursor-pointer hover:border-blue-700 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">{project.name}</h3>
-                    {project.description && (
-                      <p className="text-gray-500 text-sm mt-1">{project.description}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(project.status)}`}>
-                      {project.status.replace('_', ' ').toUpperCase()}
-                    </span>
-                    <span className="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full">
-                      {project.my_role}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Vehicle profile badges */}
-                {project.vehicle_profile && (
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    {project.vehicle_profile.propulsion && (
-                      <span className="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded">
-                        {project.vehicle_profile.propulsion}
-                      </span>
-                    )}
-                    {project.vehicle_profile.architecture && (
-                      <span className="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded">
-                        {project.vehicle_profile.architecture}
-                      </span>
-                    )}
-                    {project.vehicle_profile.sae_level !== undefined && (
-                      <span className="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded">
-                        SAE L{project.vehicle_profile.sae_level}
-                      </span>
-                    )}
-                    {project.vehicle_profile.ota_support && (
-                      <span className="bg-gray-800 text-blue-400 text-xs px-2 py-0.5 rounded">
-                        OTA
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="text-gray-600 text-xs mt-3">
-                  Updated {new Date(project.updated_at).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
+            + New project
+          </a>
         )}
       </div>
-    </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'ACTIVE PROJECTS', value: stats.total, sub: 'in workspace' },
+          { label: 'IN ANALYSIS', value: stats.critical, sub: 'running TARA' },
+          { label: 'COMPLETED', value: stats.completed, sub: 'reports generated' },
+          { label: 'STANDARDS', value: 'R155 / R156', sub: 'ISO 21434 compliant' },
+        ].map((card, i) => (
+          <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">
+              {card.label}
+            </p>
+            <p className="text-white text-3xl font-bold">{card.value}</p>
+            <p className="text-gray-600 text-xs mt-1">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Projects table */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
+          <h2 className="text-white text-sm font-medium">All projects</h2>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-16 text-gray-600">Loading...</div>
+        ) : projects.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-500">No projects yet</p>
+            <p className="text-gray-600 text-sm mt-1">Create your first TARA project</p>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800">
+                {['PROJECT', 'VEHICLE PROFILE', 'RISK', 'STATUS', 'ROLE', 'LAST UPDATE'].map(h => (
+                  <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((p, i) => {
+                const vp = p.vehicle_profile || {};
+                return (
+                  <tr
+                    key={p.id}
+                    onClick={() => window.location.href = `/projects/${p.id}/editor`}
+                    className="border-b border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 bg-blue-600 rounded text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          {vp.propulsion?.slice(0,2) || 'PR'}
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-medium">{p.name}</p>
+                          <p className="text-gray-600 text-xs">{p.description?.slice(0,40) || ''}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      <div className="flex flex-wrap gap-1">
+                        {vp.propulsion && <span className="text-gray-400 text-xs">{vp.propulsion}</span>}
+                        {vp.architecture && <span className="text-gray-600 text-xs">/ {vp.architecture}</span>}
+                        {vp.sae_level !== undefined && <span className="text-gray-600 text-xs">/ SAE {vp.sae_level}</span>}
+                        {vp.ota_support && <span className="text-blue-500 text-xs">/ OTA</span>}
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs px-2 py-0.5 rounded border font-medium ${riskBadge(0)}`}>
+                        {p.status === 'draft' ? 'DRAFT' : 'N/A'}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      <span className={`text-sm font-medium ${statusColor[p.status] || 'text-gray-400'}`}>
+                        {p.status.replace('_', ' ')}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${roleColor[p.my_role] || 'bg-gray-800 text-gray-400'}`}>
+                        {p.my_role}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-3.5 text-gray-500 text-xs">
+                      {new Date(p.updated_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </AppLayout>
   );
 }
