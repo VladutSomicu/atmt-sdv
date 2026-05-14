@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProjectSetupPage from './pages/ProjectSetupPage';
+import EditorPage from './pages/EditorPage';
 
 // Protected route — redirects to login if no token
 function ProtectedRoute({ children }) {
@@ -17,6 +19,16 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/new" element={
+          <ProtectedRoute>
+            <ProjectSetupPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/editor" element={
+          <ProtectedRoute>
+            <EditorPage />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />
