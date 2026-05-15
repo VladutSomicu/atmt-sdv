@@ -38,6 +38,9 @@ export default function ProjectSetupPage() {
   const [otaSupport, setOtaSupport] = useState(false);
   const [externalInterfaces, setExternalInterfaces] = useState([]);
 
+  // Step 4
+  const [members, setMembers] = useState([{ email: '', role: 'engineer' }]);
+
   const toggleObjective = (id) => {
     setSelectedObjectives(prev =>
       prev.includes(id) ? prev.filter(o => o !== id) : [...prev, id]
@@ -66,7 +69,21 @@ export default function ProjectSetupPage() {
         },
         business_objectives: selectedObjectives,
       });
-      window.location.href = `/projects/${res.data.project.id}/editor`;
+
+      const projectId = res.data.project.id;
+
+      // Invite initial members
+      for (const m of members) {
+        if (m.email.trim()) {
+          try {
+            await api.post(`/api/projects/${projectId}/members`, { email: m.email.trim(), role: m.role });
+          } catch (e) {
+            console.error('Failed to invite', m.email, e);
+          }
+        }
+      }
+
+      window.location.href = `/projects/${projectId}/editor`;
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create project');
       setLoading(false);
@@ -303,14 +320,52 @@ export default function ProjectSetupPage() {
                 <>
                   <h3 className="text-white text-xl font-bold mb-1">Team members</h3>
                   <p className="text-gray-500 text-sm mb-6">
-                    Members can be added after project creation from the project settings. You will be assigned as Manager.
+                    Invite users to collaborate. You will be automatically assigned as Manager.
                   </p>
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <p className="text-gray-400 text-sm">
-                      Members with specific roles can be invited after the project is created.
-                      Navigate to the project and use the Members section.
-                    </p>
+                  
+                  <div className="space-y-3 mb-4">
+                    {members.map((m, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <input
+                          type="email"
+                          placeholder="user@example.com"
+                          value={m.email}
+                          onChange={(e) => {
+                            const newM = [...members];
+                            newM[idx].email = e.target.value;
+                            setMembers(newM);
+                          }}
+                          className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        />
+                        <select
+                          value={m.role}
+                          onChange={(e) => {
+                            const newM = [...members];
+                            newM[idx].role = e.target.value;
+                            setMembers(newM);
+                          }}
+                          className="w-40 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="engineer">Engineer</option>
+                          <option value="architect">Architect</option>
+                          <option value="manager">Manager</option>
+                          <option value="auditor">Auditor</option>
+                        </select>
+                        <button
+                          onClick={() => setMembers(members.filter((_, i) => i !== idx))}
+                          className="text-gray-500 hover:text-red-400 p-2"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                  <button
+                    onClick={() => setMembers([...members, { email: '', role: 'engineer' }])}
+                    className="text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors"
+                  >
+                    + Add another member
+                  </button>
                 </>
               )}
 
@@ -335,6 +390,7 @@ export default function ProjectSetupPage() {
                       { label: 'OTA Support', value: otaSupport ? 'Yes' : 'No' },
                       { label: 'External interfaces', value: externalInterfaces.join(', ') || 'None' },
                       { label: 'Business objectives', value: `${selectedObjectives.length} selected` },
+                      { label: 'Initial members', value: `${members.filter(m => m.email.trim()).length} invited` },
                     ].map(row => (
                       <div key={row.label} className="flex items-center justify-between py-2 border-b border-gray-800">
                         <span className="text-gray-500 text-sm">{row.label}</span>

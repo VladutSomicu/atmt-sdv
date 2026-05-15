@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from ..extensions import db
+from ..models.user import User
 from ..models.project import Project
 from ..models.threat import Threat
 from ..models.diagram import Diagram
@@ -30,6 +31,19 @@ def run_analysis():
     project = Project.query.get(project_id)
     if not project:
         return jsonify({"error": "Project not found"}), 404
+
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    if not user.is_admin:
+        from ..models.project_member import ProjectMember
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=user_id
+        ).first()
+        
+        if not member or member.role not in ['engineer']:
+            return jsonify({"error": "Only engineers can run the analysis engine"}), 403
 
     # Get the latest diagram
     diagram = Diagram.query.filter_by(

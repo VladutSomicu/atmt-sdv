@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import AppLayout from '../components/layout/AppLayout';
 import { useAuth } from '../store/AuthContext';
-import Modal from '../components/shared/Modal';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import Modal from '../components/shared/Modal';
 
 /* ── Helpers ─────────────────────────────────────────── */
 const riskBadge = (score) => {
@@ -80,151 +80,6 @@ function ProjectContextMenu({ menu, onRename, onDelete, onClose }) {
   );
 }
 
-/* ── Admin Dashboard ──────────────────────────────────── */
-function AdminDashboard({ projects }) {
-  const navigate = useNavigate();
-
-  const adminStats = [
-    { label: 'Total Projects', value: projects.length, sub: 'across all teams', icon: '📁', color: 'text-blue-400' },
-    { label: 'In Analysis', value: projects.filter(p => p.status === 'in_analysis').length, sub: 'TARA in progress', icon: '🔍', color: 'text-yellow-400' },
-    { label: 'Completed', value: projects.filter(p => p.status === 'completed').length, sub: 'reports generated', icon: '✅', color: 'text-green-400' },
-    { label: 'Standards', value: 'R155 / R156', sub: 'ISO 21434 active', icon: '🛡', color: 'text-purple-400' },
-  ];
-
-  const adminActions = [
-    { label: 'User Management', desc: 'Add, remove, or adjust roles', href: '/admin', icon: '👥' },
-    { label: 'Asset Library', desc: 'Manage global vehicle components', href: '/assets', icon: '🗄' },
-    { label: 'Threat Catalog', desc: 'STRIDE / CAPEC / LINDDUN refs', href: '/threats', icon: '⚡' },
-    { label: 'Global Reports', desc: 'Aggregated compliance export', href: '/reports', icon: '📊' },
-  ];
-
-  return (
-    <>
-      {/* Admin header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-white text-2xl font-bold">Admin Dashboard</h1>
-            <span className="bg-purple-900/50 border border-purple-700 text-purple-300 text-xs px-2 py-0.5 rounded font-medium">ADMIN</span>
-          </div>
-          <p className="text-gray-500 text-sm">System overview — ISO 21434 workspace</p>
-        </div>
-        <a
-          href="/projects/new"
-          className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          + New project
-        </a>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {adminStats.map((card, i) => (
-          <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">{card.label}</p>
-              <span className="text-lg">{card.icon}</span>
-            </div>
-            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
-            <p className="text-gray-600 text-xs mt-1">{card.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Quick admin actions */}
-      <div className="mb-6">
-        <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Administration</h2>
-        <div className="grid grid-cols-4 gap-3">
-          {adminActions.map((action) => (
-            <a
-              key={action.label}
-              href={action.href}
-              className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-4 transition-colors group"
-            >
-              <span className="text-2xl block mb-2">{action.icon}</span>
-              <p className="text-white text-sm font-medium group-hover:text-blue-400 transition-colors">{action.label}</p>
-              <p className="text-gray-600 text-xs mt-0.5">{action.desc}</p>
-            </a>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end mt-4">
-        <a href="/projects" className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
-          View all projects →
-        </a>
-      </div>
-    </>
-  );
-}
-
-/* ── User Dashboard ───────────────────────────────────── */
-function UserDashboard({ projects, user }) {
-  const criticalOpen = projects.reduce((acc, p) => acc + (p.critical_threats_open || 0), 0);
-  const totalThreats = projects.reduce((acc, p) => acc + (p.total_threats || 0), 0);
-
-  const userStats = [
-    { label: 'My Projects', value: projects.length, sub: 'assigned to me', color: 'text-white' },
-    { label: 'Open Critical', value: criticalOpen, sub: 'need attention', color: criticalOpen > 0 ? 'text-red-400' : 'text-green-400' },
-    { label: 'Total Threats', value: totalThreats, sub: 'across all projects', color: 'text-white' },
-    { label: 'Standards', value: 'R155 / R156', sub: 'ISO 21434 active', color: 'text-purple-400' },
-  ];
-
-  return (
-    <>
-      {/* User header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-white text-2xl font-bold">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'there'} 👋
-          </h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            Your TARA workspace — {projects.length} project{projects.length !== 1 ? 's' : ''} assigned
-          </p>
-        </div>
-        {!user?.is_demo && (
-          <a
-            href="/projects/new"
-            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            + New project
-          </a>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {userStats.map((card, i) => (
-          <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">{card.label}</p>
-            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
-            <p className="text-gray-600 text-xs mt-1">{card.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Critical alert if any */}
-      {criticalOpen > 0 && (
-        <div className="bg-red-950 border border-red-800 rounded-xl px-5 py-3 mb-6 flex items-center gap-3">
-          <span className="text-red-400 text-lg">⚠️</span>
-          <div>
-            <p className="text-red-300 text-sm font-medium">
-              {criticalOpen} critical threat{criticalOpen !== 1 ? 's' : ''} open
-            </p>
-            <p className="text-red-500 text-xs">Open your projects and run analysis to address these risks.</p>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-end mt-4">
-        <a href="/projects" className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
-          View all projects →
-        </a>
-      </div>
-    </>
-  );
-}
-
 /* ── Projects Table (shared) ──────────────────────────── */
 function ProjectsTable({ projects, showAllColumns = false }) {
   const navigate = useNavigate();
@@ -234,7 +89,6 @@ function ProjectsTable({ projects, showAllColumns = false }) {
   const [newName, setNewName] = useState('');
   const [projects_, setProjects] = useState(projects);
 
-  // Keep in sync with parent
   useEffect(() => setProjects(projects), [projects]);
 
   const handleContextMenu = (e, project) => {
@@ -353,7 +207,6 @@ function ProjectsTable({ projects, showAllColumns = false }) {
         </tbody>
       </table>
 
-      {/* Context Menu */}
       <ProjectContextMenu
         menu={contextMenu}
         onClose={() => setContextMenu(null)}
@@ -368,7 +221,6 @@ function ProjectsTable({ projects, showAllColumns = false }) {
         }}
       />
 
-      {/* Rename Modal */}
       <Modal
         isOpen={!!renameTarget}
         title="Rename Project"
@@ -387,7 +239,6 @@ function ProjectsTable({ projects, showAllColumns = false }) {
         />
       </Modal>
 
-      {/* Delete Modal */}
       <Modal
         isOpen={!!deleteTarget}
         title="Delete Project"
@@ -405,8 +256,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
   );
 }
 
-/* ── Main export ──────────────────────────────────────── */
-export default function DashboardPage() {
+export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -419,18 +269,37 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <AppLayout breadcrumb={[{ label: user?.is_admin ? 'Admin Dashboard' : 'Dashboard' }]}>
+    <AppLayout breadcrumb={[{ label: 'Projects' }]}>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-white text-2xl font-bold">Projects</h1>
+          <p className="text-gray-500 text-sm">Manage all your TARA projects</p>
+        </div>
+        {!user?.is_demo && (
+          <a
+            href="/projects/new"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            + New project
+          </a>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-500 text-sm">Loading workspace...</span>
+            <span className="text-gray-500 text-sm">Loading projects...</span>
           </div>
         </div>
-      ) : user?.is_admin ? (
-        <AdminDashboard projects={projects} />
       ) : (
-        <UserDashboard projects={projects} user={user} />
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
+            <h2 className="text-white text-sm font-medium">All projects</h2>
+            <span className="text-gray-600 text-xs">{projects.length} total</span>
+          </div>
+          <ProjectsTable projects={projects} showAllColumns={user?.is_admin} />
+        </div>
       )}
     </AppLayout>
   );

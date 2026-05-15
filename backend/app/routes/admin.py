@@ -93,6 +93,15 @@ def update_user(user_id):
     if 'is_admin' in data:
         user.is_admin = bool(data['is_admin'])
 
+    if 'email' in data and data['email'].strip():
+        user.email = data['email'].strip()
+
+    if 'full_name' in data and data['full_name'].strip():
+        user.full_name = data['full_name'].strip()
+
+    if 'password' in data and data['password'].strip():
+        user.password_hash = bcrypt.generate_password_hash(data['password'].strip()).decode('utf-8')
+
     db.session.commit()
 
     return jsonify({
@@ -100,10 +109,31 @@ def update_user(user_id):
         "user": {
             "id": str(user.id),
             "email": user.email,
+            "full_name": user.full_name,
             "is_active": user.is_active,
             "is_admin": user.is_admin
         }
     }), 200
+
+
+@admin_bp.route('/users/<uuid:user_id>', methods=['DELETE'])
+@jwt_required()
+@admin_required
+def delete_user(user_id):
+    """Permanently delete a user account."""
+    user = User.query.get(str(user_id))
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    from flask_jwt_extended import get_jwt_identity
+    if str(user.id) == get_jwt_identity():
+        return jsonify({"error": "Cannot delete your own account"}), 400
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "User deleted successfully"}), 200
 
 
 @admin_bp.route('/library/assets', methods=['GET'])

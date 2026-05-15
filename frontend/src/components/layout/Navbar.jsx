@@ -1,4 +1,4 @@
-import { useAuth } from '../../../store/AuthContext';
+import { useAuth } from '../../store/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ breadcrumb = [] }) {
@@ -19,8 +19,6 @@ export default function Navbar({ breadcrumb = [] }) {
     auditor: 'bg-yellow-900 text-yellow-300',
     admin: 'bg-red-900 text-red-300',
   };
-
-  const userRole = user.is_admin ? 'admin' : 'engineer';
 
   return (
     <header className="h-12 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 sticky top-0 z-10">
@@ -43,9 +41,7 @@ export default function Navbar({ breadcrumb = [] }) {
       {/* Right side */}
       <div className="flex items-center gap-3">
         <span className="text-gray-400 text-sm">{user.full_name}</span>
-        <span className={`text-xs px-2 py-0.5 rounded font-medium uppercase tracking-wide ${roleColor[userRole]}`}>
-          {userRole}
-        </span>
+
         {user.is_demo && (
           <span className="bg-yellow-900 text-yellow-300 text-xs px-2 py-0.5 rounded">
             DEMO

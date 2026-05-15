@@ -4,6 +4,8 @@ import DashboardPage from './pages/DashboardPage';
 import ProjectSetupPage from './pages/ProjectSetupPage';
 import EditorPage from './pages/EditorPage';
 import AdminPage from './pages/AdminPage';
+import ProjectsPage from './pages/ProjectsPage';
+import ProjectMembersPage from './pages/ProjectMembersPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useAuth } from './store/AuthContext';
 import MobileGuard from './components/layout/MobileGuard';
@@ -60,7 +62,16 @@ function App() {
             <PlaceholderPage title="Global Reports" description="View and export aggregated compliance reports." />
           </ProtectedRoute>
         } />
-        <Route path="/projects" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/projects" element={
+          <ProtectedRoute>
+            <ProjectsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/members" element={
+          <ProtectedRoute>
+            <ProjectMembersPage />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
