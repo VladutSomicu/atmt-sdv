@@ -139,6 +139,7 @@ function DiagramTab({ projectId, project }) {
   const graphRef = useRef(null);
   const paperRef = useRef(null);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [assets, setAssets] = useState([]);
@@ -186,18 +187,47 @@ function DiagramTab({ projectId, project }) {
         background: { color: '#030712' },
         cellViewNamespace: shapes,
         interactive: true,
-        validateConnection: () => true,
+        defaultLink: () => new shapes.standard.Link({
+          attrs: { 
+            line: { stroke: '#374151', strokeWidth: 1.5, targetMarker: { type: 'path', fill: '#374151', stroke: 'none', d: 'M 7 -3 0 0 7 3 z' } }
+          },
+          protocol: 'CAN'
+        }),
+        validateConnection: (sourceView, sourceMagnet, targetView, targetMagnet) => {
+          // Prevent linking to self
+          return sourceView !== targetView;
+        },
       });
 
       paperRef.current = paper;
 
       paper.on('cell:pointerclick', (cellView) => {
         setSelectedCell(cellView.model);
+        setContextMenu(null);
       });
 
       paper.on('blank:pointerclick', () => {
         setSelectedCell(null);
+        setContextMenu(null);
       });
+
+      paper.on('cell:contextmenu', (cellView, evt) => {
+        evt.preventDefault();
+        setSelectedCell(cellView.model);
+        setContextMenu({
+          cell: cellView.model,
+          x: evt.clientX,
+          y: evt.clientY
+        });
+      });
+
+      paper.on('blank:contextmenu', (evt) => {
+        evt.preventDefault();
+        setContextMenu(null);
+      });
+
+      paper.on('blank:pointerdown', () => setContextMenu(null));
+      paper.on('cell:pointerdown', () => setContextMenu(null));
 
       // Load existing diagram
       api.get(`/api/diagrams/${projectId}`)
@@ -238,7 +268,21 @@ function DiagramTab({ projectId, project }) {
 
     const colors = categoryColors[asset.category] || { fill: '#111827', stroke: '#374151', text: '#9ca3af' };
 
-    const cell = new shapes.standard.Rectangle();
+    const cell = new shapes.standard.Rectangle({
+      ports: {
+        groups: {
+          'in': {
+            position: 'left',
+            attrs: { circle: { r: 4, magnet: true, stroke: colors.stroke, fill: '#030712', strokeWidth: 1.5 } }
+          },
+          'out': {
+            position: 'right',
+            attrs: { circle: { r: 4, magnet: true, stroke: colors.stroke, fill: '#030712', strokeWidth: 1.5 } }
+          }
+        },
+        items: [{ id: 'in', group: 'in' }, { id: 'out', group: 'out' }]
+      }
+    });
     cell.position(80 + Math.random() * 300, 80 + Math.random() * 200);
     cell.resize(150, 60);
     cell.attr({
@@ -401,32 +445,128 @@ function DiagramTab({ projectId, project }) {
           <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Inspector</span>
         </div>
         {selectedCell ? (
+          <div className="px-3 py-4 text-gray-600 text-xs">
+            {/* Same inspector as before */}
           <div className="px-3 py-3">
             <p className="text-white text-sm font-medium mb-3">
-              {selectedCell.get('data')?.label || 'Element'}
+              {selectedCell.isLink() ? 'Connection (Edge)' : (selectedCell.get('data')?.label || 'Node')}
             </p>
-            <div className="space-y-3">
-              {[
-                ['Category', selectedCell.get('data')?.category],
-                ['Interfaces', selectedCell.get('data')?.interface_types?.join(', ')],
-                ['Data types', selectedCell.get('data')?.data_types?.join(', ')],
-                ['Accessibility', selectedCell.get('data')?.physical_accessibility],
-                ['ASIL', selectedCell.get('data')?.asil_level || 'N/A'],
-                ['Flags', selectedCell.get('data')?.flags?.join(', ')],
-              ].map(([k, v]) => v && (
-                <div key={k}>
-                  <p className="text-gray-600 text-xs uppercase tracking-wider">{k}</p>
-                  <p className="text-gray-300 text-xs mt-0.5">{v}</p>
+            {selectedCell.isLink() ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-400 text-xs uppercase tracking-wider block mb-1">Protocol</label>
+                  <select
+                    className="w-full bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-xs focus:border-blue-500 outline-none"
+                    value={selectedCell.get('protocol') || 'CAN'}
+                    onChange={(e) => {
+                      selectedCell.set('protocol', e.target.value);
+                      selectedCell.label(0, { attrs: { text: { text: e.target.value } } });
+                      setSelectedCell(selectedCell.clone()); // trigger re-render hack
+                    }}
+                  >
+                    <option value="CAN">CAN</option>
+                    <option value="LIN">LIN</option>
+                    <option value="Ethernet">Ethernet</option>
+                    <option value="Bluetooth">Bluetooth</option>
+                    <option value="Wi-Fi">Wi-Fi</option>
+                    <option value="Cellular">Cellular</option>
+                    <option value="UWB">UWB</option>
+                  </select>
                 </div>
-              ))}
-            </div>
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="rounded bg-gray-800 border-gray-700 text-blue-600"
+                      checked={selectedCell.get('has_security_control') || false}
+                      onChange={(e) => {
+                        selectedCell.set('has_security_control', e.target.checked);
+                        selectedCell.attr('line/stroke', e.target.checked ? '#10b981' : '#374151');
+                        setSelectedCell(selectedCell.clone());
+                      }}
+                    />
+                    <span className="text-gray-300 text-xs">Security Control (SecOC/TLS)</span>
+                  </label>
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="rounded bg-gray-800 border-gray-700 text-blue-600"
+                      checked={selectedCell.get('crosses_trust_boundary') || false}
+                      onChange={(e) => {
+                        selectedCell.set('crosses_trust_boundary', e.target.checked);
+                        selectedCell.attr('line/strokeDasharray', e.target.checked ? '5 5' : '');
+                        setSelectedCell(selectedCell.clone());
+                      }}
+                    />
+                    <span className="text-gray-300 text-xs">Crosses Trust Boundary</span>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  ['Category', selectedCell.get('data')?.category],
+                  ['Interfaces', selectedCell.get('data')?.interface_types?.join(', ')],
+                  ['Data types', selectedCell.get('data')?.data_types?.join(', ')],
+                  ['Accessibility', selectedCell.get('data')?.physical_accessibility],
+                  ['ASIL', selectedCell.get('data')?.asil_level || 'N/A'],
+                  ['Flags', selectedCell.get('data')?.flags?.join(', ')],
+                ].map(([k, v]) => v && (
+                  <div key={k}>
+                    <p className="text-gray-600 text-xs uppercase tracking-wider">{k}</p>
+                    <p className="text-gray-300 text-xs mt-0.5">{v}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="px-3 py-4 text-gray-600 text-xs">
-            Click a node to inspect its properties.
+            Click a node or edge to inspect its properties.
           </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div 
+          className="fixed z-50 bg-gray-900 border border-gray-700 rounded shadow-lg overflow-hidden"
+          style={{ top: contextMenu.y, left: contextMenu.x, width: 140 }}
+          onClick={() => setContextMenu(null)}
+        >
+          <button 
+            onClick={() => {
+              const currentName = contextMenu.cell.isLink() ? contextMenu.cell.get('protocol') : (contextMenu.cell.get('data')?.label || contextMenu.cell.attr('label/text'));
+              const newLabel = prompt('Rename:', currentName);
+              if (newLabel) {
+                if (contextMenu.cell.isLink()) {
+                  contextMenu.cell.set('protocol', newLabel);
+                  contextMenu.cell.label(0, { attrs: { text: { text: newLabel } } });
+                } else {
+                  const data = contextMenu.cell.get('data');
+                  contextMenu.cell.set('data', { ...data, label: newLabel });
+                  contextMenu.cell.attr('label/text', newLabel);
+                }
+                setSelectedCell(contextMenu.cell.clone()); // force update
+              }
+            }}
+            className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 transition-colors"
+          >
+            Rename
+          </button>
+          <button 
+            onClick={() => {
+              contextMenu.cell.remove();
+              setSelectedCell(null);
+            }}
+            className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-gray-800 transition-colors border-t border-gray-800"
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }
