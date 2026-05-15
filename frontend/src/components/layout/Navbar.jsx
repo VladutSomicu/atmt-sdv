@@ -1,15 +1,16 @@
+import { useAuth } from '../../../store/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 export default function Navbar({ breadcrumb = [] }) {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      const { default: api } = await import('../../services/api');
-      await api.post('/api/auth/logout');
-    } finally {
-      localStorage.clear();
-      window.location.href = '/login';
-    }
+    await logout();
+    navigate('/login');
   };
+
+  if (!user) return null;
 
   const roleColor = {
     engineer: 'bg-blue-900 text-blue-300',

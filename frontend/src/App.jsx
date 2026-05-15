@@ -3,12 +3,16 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectSetupPage from './pages/ProjectSetupPage';
 import EditorPage from './pages/EditorPage';
+import AdminPage from './pages/AdminPage';
+import PlaceholderPage from './pages/PlaceholderPage';
+import { useAuth } from './store/AuthContext';
+import MobileGuard from './components/layout/MobileGuard';
 
 // Protected route — redirects to login if no token
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('access_token');
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <MobileGuard>{children}</MobileGuard>;
 }
 
 function App() {
@@ -31,6 +35,32 @@ function App() {
             <EditorPage />
           </ProtectedRoute>
         } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/assets" element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Asset Library" description="Manage global vehicle components and definitions." />
+          </ProtectedRoute>
+        } />
+        <Route path="/threats" element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Threat Catalog" description="Browse STRIDE, CAPEC, and LINDDUN references." />
+          </ProtectedRoute>
+        } />
+        <Route path="/team" element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Team Management" description="Manage organization members and global roles." />
+          </ProtectedRoute>
+        } />
+        <Route path="/reports" element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Global Reports" description="View and export aggregated compliance reports." />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
