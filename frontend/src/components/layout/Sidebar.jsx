@@ -20,7 +20,7 @@ export default function Sidebar() {
 
   const isActive = (href) => location.pathname === href;
 
-  const adminOnlyPaths = ['/assets', '/threats-catalog', '/controls-library', '/reports', '/admin'];
+  const adminOnlyPaths = ['/assets', '/threats-catalog', '/controls-library', '/admin'];
 
   return (
     <aside className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col h-screen sticky top-0">
@@ -45,11 +45,10 @@ export default function Sidebar() {
             <a
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
-                isActive(item.href)
+              className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
                   ? 'bg-blue-600/20 text-blue-400'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-              }`}
+                }`}
             >
               <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
               {item.label}
@@ -57,26 +56,29 @@ export default function Sidebar() {
           );
         })}
 
-        <p className="text-gray-600 text-xs font-medium uppercase tracking-widest px-2 mb-2 mt-6">
-          Org
-        </p>
-        {orgItems.map((item) => {
-          if (adminOnlyPaths.includes(item.href) && !user?.is_admin) return null;
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
-                isActive(item.href)
-                  ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-              }`}
-            >
-              <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
-              {item.label}
-            </a>
-          );
-        })}
+        {user?.is_admin && (
+          <>
+            <p className="text-gray-600 text-xs font-medium uppercase tracking-widest px-2 mb-2 mt-6">
+              Organization
+            </p>
+            {orgItems.map((item) => {
+              if (adminOnlyPaths.includes(item.href) && !user?.is_admin) return null;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
+                      ? 'bg-blue-600/20 text-blue-400'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    }`}
+                >
+                  <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
+                  {item.label}
+                </a>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* Bottom */}

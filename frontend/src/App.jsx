@@ -10,7 +10,7 @@ import ProjectAuditLogPage from './pages/ProjectAuditLogPage';
 import ThreatCatalogPage from './pages/ThreatCatalogPage';
 import AssetLibraryPage from './pages/AssetLibraryPage';
 import SecurityControlsPage from './pages/SecurityControlsPage';
-import PlaceholderPage from './pages/PlaceholderPage';
+import GlobalReportsPage from './pages/GlobalReportsPage';
 import { useAuth } from './store/AuthContext';
 import MobileGuard from './components/layout/MobileGuard';
 
@@ -64,7 +64,7 @@ function App() {
 
         <Route path="/reports" element={
           <ProtectedRoute>
-            <PlaceholderPage title="Global Reports" description="View and export aggregated compliance reports." />
+            <GlobalReportsPage />
           </ProtectedRoute>
         } />
         <Route path="/projects" element={

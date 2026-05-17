@@ -54,6 +54,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   const isRestoringRef = useRef(false);
   const undoFnRef = useRef(null);
   const redoFnRef = useRef(null);
+  const saveFnRef = useRef(null);
 
   const vp = project.vehicle_profile || {};
 
@@ -104,10 +105,12 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoFnRef.current?.(); }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redoFnRef.current?.(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveFnRef.current?.(); }
     };
     document.addEventListener('keydown', handleKeyDown);
 
     let wheelHandler = null;
+    let resizeObs = null;
 
     const timer = setTimeout(() => {
       const container = canvasRef.current;
@@ -125,7 +128,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         drawGrid: { name: 'mesh', args: { color: '#1f2937', thickness: 1 } },
         background: { color: '#030712' },
         cellViewNamespace: shapes,
-        interactive: true,
+        interactive: { linkMove: true, elementMove: true, arrowheadMove: true, addLinkFromMagnet: true },
         defaultLink: () => new shapes.standard.Link({
           attrs: {
             line: { stroke: '#4b5563', strokeWidth: 1.5, targetMarker: { type: 'path', fill: '#4b5563', stroke: 'none', d: 'M 7 -3 0 0 7 3 z' } }
@@ -138,7 +141,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         linkPinning: false,
         snapLinks: { radius: 30 },
         defaultConnectionPoint: { name: 'boundary' },
-        validateConnection: (srcView, srcMag, tgtView, tgtMag) => {
+        validateConnection: (srcView, srcMag, tgtView) => {
           if (srcView === tgtView) return false;
           if (tgtView.model.get('data')?.is_trust_boundary) return false;
           return true;
@@ -146,10 +149,92 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       });
       paperRef.current = paper;
 
+      // Auto-resize paper when container resizes
+      resizeObs = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (width > 0 && height > 0) paper.setDimensions(width, height);
+        }
+      });
+      resizeObs.observe(container);
+
+      // ── Canvas panning (middle-click or blank drag) ──
+      let isPanning = false;
+      let panStart = { x: 0, y: 0 };
+      let panOrigin = { x: 0, y: 0 };
+
+      paper.on('blank:pointerdown', (evt, x, y) => {
+        setContextMenu(null);
+        isPanning = true;
+        const scale = paper.scale().sx;
+        panStart = { x: evt.clientX, y: evt.clientY };
+        panOrigin = paper.translate();
+        container.style.cursor = 'grabbing';
+      });
+
+      const onPanMove = (e) => {
+        if (!isPanning) return;
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        paper.translate(panOrigin.x + dx, panOrigin.y + dy);
+      };
+      const onPanUp = () => {
+        if (isPanning) {
+          isPanning = false;
+          container.style.cursor = '';
+        }
+      };
+      document.addEventListener('mousemove', onPanMove);
+      document.addEventListener('mouseup', onPanUp);
+
       // Selection
-      paper.on('cell:pointerclick', (cv) => { setSelectedCell(cv.model); setContextMenu(null); });
-      paper.on('blank:pointerclick', () => { setSelectedCell(null); setContextMenu(null); });
-      paper.on('blank:pointerdown', () => setContextMenu(null));
+      paper.on('cell:pointerclick', (cv) => {
+        // Deselect previous
+        if (selectedRef.current && selectedRef.current !== cv.model) {
+          try {
+            const prev = selectedRef.current;
+            if (!prev.isLink() && prev.graph) {
+              const d = prev.get('data') || {};
+              if (!d.is_trust_boundary) {
+                const cat = d.category || '';
+                const origStroke = CAT_COLORS[cat]?.stroke || '#374151';
+                prev.attr('body/stroke', origStroke);
+                prev.attr('body/strokeWidth', 1.5);
+              }
+            }
+          } catch(e) {}
+        }
+        // Highlight new
+        if (!cv.model.isLink()) {
+          const d = cv.model.get('data') || {};
+          if (!d.is_trust_boundary) {
+            cv.model.attr('body/stroke', '#3b82f6');
+            cv.model.attr('body/strokeWidth', 2);
+          }
+        }
+        setSelectedCell(cv.model);
+        setContextMenu(null);
+      });
+
+      paper.on('blank:pointerclick', () => {
+        // Deselect current
+        if (selectedRef.current && !selectedRef.current.isLink()) {
+          try {
+            const prev = selectedRef.current;
+            if (prev.graph) {
+              const d = prev.get('data') || {};
+              if (!d.is_trust_boundary) {
+                const cat = d.category || '';
+                const origStroke = CAT_COLORS[cat]?.stroke || '#374151';
+                prev.attr('body/stroke', origStroke);
+                prev.attr('body/strokeWidth', 1.5);
+              }
+            }
+          } catch(e) {}
+        }
+        setSelectedCell(null);
+        setContextMenu(null);
+      });
 
       // Context menu
       paper.on('cell:contextmenu', (cv, evt) => {
@@ -209,14 +294,20 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           }
         })
         .catch(() => {});
+
+      // Store pan handlers for cleanup
+      container._panCleanup = () => {
+        document.removeEventListener('mousemove', onPanMove);
+        document.removeEventListener('mouseup', onPanUp);
+      };
     }, 150);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener('keydown', handleKeyDown);
-      if (canvasRef.current && wheelHandler) {
-        canvasRef.current.removeEventListener('wheel', wheelHandler);
-      }
+      if (canvasRef.current?.removeEventListener && wheelHandler) canvasRef.current.removeEventListener('wheel', wheelHandler);
+      if (canvasRef.current?._panCleanup) canvasRef.current._panCleanup();
+      if (resizeObs) resizeObs.disconnect();
       if (paperRef.current) { paperRef.current.remove(); paperRef.current = null; }
       if (graphRef.current) { graphRef.current.clear(); graphRef.current = null; }
     };
@@ -386,6 +477,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
   undoFnRef.current = undoHistory;
   redoFnRef.current = redoHistory;
+  saveFnRef.current = saveDiagram;
 
   // ── Toolbar helpers ──
   const handleZoom = (delta) => {
@@ -440,12 +532,13 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
               {items.map(asset => (
                 <div
                   key={asset.id}
-                  onDoubleClick={() => addNode(asset)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 transition-colors mb-0.5"
-                  title="Double-click to add to canvas"
+                  onClick={() => addNode(asset)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
+                  title="Click to add to canvas"
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
-                  <span className="text-gray-300 text-xs truncate">{asset.name}</span>
+                  <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
+                  <span className="text-gray-600 group-hover:text-gray-400 text-[10px]">+</span>
                 </div>
               ))}
             </div>
