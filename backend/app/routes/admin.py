@@ -7,6 +7,8 @@ from ..models.ref_threat import RefThreat
 from ..models.control import Control
 from ..utils.auth_decorators import admin_required
 from ..schemas.auth import RegisterSchema
+from ..schemas.auth import RegisterSchema
+from ..models.audit_log import AuditLog
 from pydantic import ValidationError
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
@@ -157,6 +159,42 @@ def get_assets():
         "total": len(assets)
     }), 200
 
+@admin_bp.route('/library/assets', methods=['POST'])
+@jwt_required()
+@admin_required
+def create_asset():
+    """Create a new reference asset."""
+    data = request.get_json() or {}
+    
+    required_fields = ['name', 'category']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+            
+    new_asset = RefAsset(
+        name=data['name'],
+        category=data['category'],
+        interface_types=data.get('interface_types', []),
+        data_types=data.get('data_types', []),
+        physical_accessibility=data.get('physical_accessibility', 'Internal'),
+        asil_level=data.get('asil_level'),
+        default_safety=int(data.get('default_safety', 3)),
+        default_privacy=int(data.get('default_privacy', 3)),
+        flags=data.get('flags', []),
+        vehicle_types=data.get('vehicle_types', ['ICE', 'EV'])
+    )
+    
+    db.session.add(new_asset)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Asset created successfully",
+        "asset": {
+            "id": str(new_asset.id),
+            "name": new_asset.name
+        }
+    }), 201
+
 
 @admin_bp.route('/library/threats', methods=['GET'])
 @jwt_required()
@@ -183,6 +221,39 @@ def get_threats():
         "total": len(threats)
     }), 200
 
+@admin_bp.route('/library/threats', methods=['POST'])
+@jwt_required()
+@admin_required
+def create_threat():
+    """Create a new reference threat."""
+    data = request.get_json() or {}
+    
+    required_fields = ['stride_category', 'title', 'description', 'source']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+            
+    new_threat = RefThreat(
+        stride_category=data['stride_category'],
+        title=data['title'],
+        description=data['description'],
+        source=data['source'],
+        source_ref=data.get('source_ref'),
+        default_impact=int(data.get('default_impact', 3)),
+        default_feasibility=int(data.get('default_feasibility', 3))
+    )
+    
+    db.session.add(new_threat)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Threat created successfully",
+        "threat": {
+            "id": str(new_threat.id),
+            "title": new_threat.title
+        }
+    }), 201
+
 
 @admin_bp.route('/library/controls', methods=['GET'])
 @jwt_required()
@@ -204,6 +275,36 @@ def get_controls():
         ],
         "total": len(controls)
     }), 200
+
+@admin_bp.route('/library/controls', methods=['POST'])
+@jwt_required()
+@admin_required
+def create_control():
+    """Create a new security control."""
+    data = request.get_json() or {}
+    
+    if not data.get('title'):
+        return jsonify({"error": "Missing required field: title"}), 400
+            
+    new_control = Control(
+        title=data['title'],
+        description=data.get('description'),
+        applies_to_stride=data.get('applies_to_stride', []),
+        applies_to_protocols=data.get('applies_to_protocols', []),
+        feasibility_reduction=int(data.get('feasibility_reduction', 1)),
+        source_ref=data.get('source_ref')
+    )
+    
+    db.session.add(new_control)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Control created successfully",
+        "control": {
+            "id": str(new_control.id),
+            "title": new_control.title
+        }
+    }), 201
 
 @admin_bp.route('/public/assets', methods=['GET'])
 @jwt_required()
@@ -237,6 +338,31 @@ def get_public_assets():
         "total": len(assets)
     }), 200
 
+@admin_bp.route('/public/threats', methods=['GET'])
+@jwt_required()
+def get_public_threats():
+    """Return all reference threats for the catalog."""
+    threats = RefThreat.query.order_by(
+        RefThreat.stride_category, RefThreat.title
+    ).all()
+
+    return jsonify({
+        "threats": [
+            {
+                "id": str(t.id),
+                "stride_category": t.stride_category,
+                "title": t.title,
+                "description": t.description,
+                "source": t.source,
+                "source_ref": t.source_ref,
+                "default_impact": t.default_impact,
+                "default_feasibility": t.default_feasibility
+            }
+            for t in threats
+        ],
+        "total": len(threats)
+    }), 200
+
 
 @admin_bp.route('/public/controls', methods=['GET'])
 @jwt_required()
@@ -264,4 +390,36 @@ def get_public_controls():
             for c in controls
         ],
         "total": len(controls)
+    }), 200
+
+@admin_bp.route('/audit', methods=['GET'])
+@jwt_required()
+@admin_required
+def get_global_audit_log():
+    """Return the global audit log across the platform."""
+    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(500).all()
+
+    result = []
+    for log in logs:
+        from ..models.user import User
+        user = User.query.get(log.user_id)
+        project = None
+        if log.project_id:
+            from ..models.project import Project
+            project = Project.query.get(log.project_id)
+            
+        result.append({
+            "id": str(log.id),
+            "action": log.action,
+            "user": user.full_name if user else "Unknown",
+            "project_name": project.name if project else "Global",
+            "old_value": log.old_value,
+            "new_value": log.new_value,
+            "justification": log.justification,
+            "created_at": log.created_at.isoformat()
+        })
+
+    return jsonify({
+        "audit_log": result,
+        "total": len(result)
     }), 200

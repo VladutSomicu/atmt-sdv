@@ -167,11 +167,18 @@ export default function AdminPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'audit'
+  
+  // Users tab state
   const [showCreate, setShowCreate] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deactivateTarget, setDeactivateTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [search, setSearch] = useState('');
+
+  // Audit log state
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
 
   // Guard: only admin can access this page
   if (!currentUser?.is_admin) return <Navigate to="/dashboard" replace />;
@@ -183,7 +190,15 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadUsers(); }, []);
+  const loadAuditLog = () => {
+    setLoadingAudit(true);
+    api.get('/api/admin/audit')
+      .then(res => setAuditLogs(res.data.audit_log || []))
+      .catch(() => toast.error('Failed to load global audit log'))
+      .finally(() => setLoadingAudit(false));
+  };
+
+  useEffect(() => { loadUsers(); loadAuditLog(); }, []);
 
   const toggleActive = async (u) => {
     try {
@@ -237,21 +252,47 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-white text-2xl font-bold">User Management</h1>
+            <h1 className="text-white text-2xl font-bold">Platform Administration</h1>
             <span className="bg-purple-900/50 border border-purple-700 text-purple-300 text-xs px-2 py-0.5 rounded font-medium">ADMIN</span>
           </div>
-          <p className="text-gray-500 text-sm">{stats.total} users registered in the workspace</p>
+          <p className="text-gray-500 text-sm">Manage users, view global logs, and configure the platform</p>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-6 border-b border-gray-800 mb-6">
         <button
-          onClick={() => setShowCreate(true)}
-          className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          onClick={() => setActiveTab('users')}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'users' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+          }`}
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add user
+          User Management
+        </button>
+        <button
+          onClick={() => setActiveTab('audit')}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'audit' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Global Audit Log
         </button>
       </div>
+
+      {activeTab === 'users' && (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white text-lg font-bold">Users</h2>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add user
+            </button>
+          </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -419,7 +460,83 @@ export default function AdminPage() {
           Are you sure you want to permanently delete <span className="text-white font-medium">{deleteTarget?.full_name}</span>?
           This action cannot be undone. All project memberships associated with this user will also be removed.
         </p>
-      </Modal>
+          </Modal>
+        </>
+      )}
+
+      {activeTab === 'audit' && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-white text-sm font-medium">Global Audit Log</h2>
+              <p className="text-gray-500 text-xs mt-0.5">Showing last 500 platform actions</p>
+            </div>
+            <button onClick={loadAuditLog} className="text-gray-400 hover:text-white transition-colors text-sm">
+              Refresh
+            </button>
+          </div>
+          
+          {loadingAudit ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : auditLogs.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">No actions recorded.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-800 bg-gray-900/50">
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-48">Timestamp</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">User</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">Project</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">Action</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800">
+                  {auditLogs.map(log => (
+                    <tr key={log.id} className="hover:bg-gray-800/30 transition-colors align-top">
+                      <td className="px-5 py-4">
+                        <span className="text-gray-400 text-xs whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-gray-300 text-sm font-medium">{log.user}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-gray-400 text-xs">{log.project_name || 'Global System'}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="text-xs px-2.5 py-1 rounded border font-medium whitespace-nowrap text-blue-400 bg-blue-400/10 border-blue-400/20">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm">
+                        {log.justification && (
+                          <div className="mb-2">
+                            <span className="text-gray-500 text-xs uppercase tracking-wider block mb-0.5">Justification</span>
+                            <span className="text-gray-300 italic">"{log.justification}"</span>
+                          </div>
+                        )}
+                        {log.new_value && (
+                          <div>
+                            <span className="text-gray-500 text-xs uppercase tracking-wider block mb-0.5">Payload Data</span>
+                            <pre className="text-gray-400 text-xs bg-gray-950 p-2 rounded border border-gray-800 overflow-x-auto max-h-32">
+                              {JSON.stringify(log.new_value, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </AppLayout>
   );
 }

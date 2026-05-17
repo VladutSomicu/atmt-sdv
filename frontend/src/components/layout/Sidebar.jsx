@@ -1,23 +1,26 @@
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../store/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: 'H' },
   { label: 'Projects', href: '/projects', icon: 'P' },
   { label: 'Asset library', href: '/assets', icon: 'A' },
   { label: 'Threat catalog', href: '/threats-catalog', icon: 'T' },
+  { label: 'Security controls', href: '/controls-library', icon: 'C' },
   { label: 'Reports', href: '/reports', icon: 'R' },
 ];
 
 const orgItems = [
-  { label: 'Team', href: '/team', icon: 'G' },
   { label: 'Admin', href: '/admin', icon: 'S' },
 ];
 
 export default function Sidebar() {
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user } = useAuth();
 
   const isActive = (href) => location.pathname === href;
+
+  const adminOnlyPaths = ['/assets', '/threats-catalog', '/controls-library', '/reports', '/admin'];
 
   return (
     <aside className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col h-screen sticky top-0">
@@ -37,7 +40,7 @@ export default function Sidebar() {
           Workspace
         </p>
         {navItems.map((item) => {
-          if ((item.label === 'Asset library' || item.label === 'Threat catalog') && !user.is_admin) return null;
+          if (adminOnlyPaths.includes(item.href) && !user?.is_admin) return null;
           return (
             <a
               key={item.href}
@@ -58,7 +61,7 @@ export default function Sidebar() {
           Org
         </p>
         {orgItems.map((item) => {
-          if (item.label === 'Admin' && !user.is_admin) return null;
+          if (adminOnlyPaths.includes(item.href) && !user?.is_admin) return null;
           return (
             <a
               key={item.href}

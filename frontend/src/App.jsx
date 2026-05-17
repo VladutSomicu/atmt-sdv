@@ -6,6 +6,10 @@ import EditorPage from './pages/EditorPage';
 import AdminPage from './pages/AdminPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectMembersPage from './pages/ProjectMembersPage';
+import ProjectAuditLogPage from './pages/ProjectAuditLogPage';
+import ThreatCatalogPage from './pages/ThreatCatalogPage';
+import AssetLibraryPage from './pages/AssetLibraryPage';
+import SecurityControlsPage from './pages/SecurityControlsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import { useAuth } from './store/AuthContext';
 import MobileGuard from './components/layout/MobileGuard';
@@ -44,19 +48,20 @@ function App() {
         } />
         <Route path="/assets" element={
           <ProtectedRoute>
-            <PlaceholderPage title="Asset Library" description="Manage global vehicle components and definitions." />
+            <AssetLibraryPage />
           </ProtectedRoute>
         } />
-        <Route path="/threats" element={
+        <Route path="/threats-catalog" element={
           <ProtectedRoute>
-            <PlaceholderPage title="Threat Catalog" description="Browse STRIDE, CAPEC, and LINDDUN references." />
+            <ThreatCatalogPage />
           </ProtectedRoute>
         } />
-        <Route path="/team" element={
+        <Route path="/controls-library" element={
           <ProtectedRoute>
-            <PlaceholderPage title="Team Management" description="Manage organization members and global roles." />
+            <SecurityControlsPage />
           </ProtectedRoute>
         } />
+
         <Route path="/reports" element={
           <ProtectedRoute>
             <PlaceholderPage title="Global Reports" description="View and export aggregated compliance reports." />
@@ -70,6 +75,11 @@ function App() {
         <Route path="/projects/:projectId/members" element={
           <ProtectedRoute>
             <ProjectMembersPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/projects/:projectId/audit" element={
+          <ProtectedRoute>
+            <ProjectAuditLogPage />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />

@@ -9,6 +9,15 @@ from ..utils.auth_decorators import requires_project_role
 compliance_bp = Blueprint('compliance', __name__, url_prefix='/api/compliance')
 
 
+@compliance_bp.route('/<uuid:project_id>/evaluate', methods=['POST'])
+@jwt_required()
+@requires_project_role('engineer', 'architect', 'manager', 'auditor')
+def post_compliance(project_id):
+    """Trigger a compliance re-evaluation (alias for GET)."""
+    # Since GET already runs the checks dynamically, we just return the same data here.
+    return get_compliance(project_id)
+
+
 @compliance_bp.route('/<uuid:project_id>', methods=['GET'])
 @jwt_required()
 @requires_project_role('engineer', 'architect', 'manager', 'auditor')

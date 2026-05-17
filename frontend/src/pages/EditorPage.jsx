@@ -105,9 +105,13 @@ export default function EditorPage() {
           ))}
 
           <p className="text-gray-600 text-xs uppercase tracking-widest px-2 mb-2 mt-4">Context</p>
-          <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
+          {user?.is_admin && (
+            <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
+          )}
           <a href={`/projects/${projectId}/audit`} className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Audit log</a>
-          <a href={`/projects/${projectId}/members`} className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Members</a>
+          {['admin', 'manager'].includes(myRole) && (
+            <a href={`/projects/${projectId}/members`} className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Members</a>
+          )}
         </nav>
 
         <div className="px-3 py-3 border-t border-gray-800">
@@ -144,7 +148,7 @@ export default function EditorPage() {
         </header>
 
         <main className="flex-1 overflow-hidden">
-          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} selectedAssetId={selectedAssetId} isReadOnly={!canEditDiagram} />}
+          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => {}} />}
           {activeTab === 'analysis' && <AnalysisTab projectId={projectId} onThreatsLoaded={setThreats} onSelectAsset={(id) => { setSelectedAssetId(id); setActiveTab('diagram'); }} isReadOnly={!canRunAnalysis} />}
           {activeTab === 'compliance' && <ComplianceTab projectId={projectId} />}
           {activeTab === 'report' && <ReportTab projectId={projectId} project={project} threats={threats} canApprove={canApproveReport} />}
