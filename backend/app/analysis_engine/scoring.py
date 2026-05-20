@@ -57,12 +57,12 @@ class ScoringEngine:
             RefThreat.title.ilike(f'%{threat_title.split("(")[0].strip()}%')
         ).first()
 
-        if ref and ref.default_impact and ref.default_feasibility:
-            # ref_threats stores a single impact value; distribute across SFOP
-            # based on the stride category
-            impact = ref.default_impact
-            feasibility = ref.default_feasibility
-            return impact, impact, impact, impact, feasibility
+        if ref and ref.default_feasibility:
+            s = ref.default_impact_safety or 1
+            f = ref.default_impact_financial or 1
+            o = ref.default_impact_operational or 1
+            p = ref.default_impact_privacy or 1
+            return s, f, o, p, ref.default_feasibility
 
         return None, None, None, None, None
 

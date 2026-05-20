@@ -21,13 +21,18 @@ def get_global_reports():
     """Return aggregated compliance and threat reports across all visible projects."""
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found or deleted"}), 401
 
     if user.is_admin:
         projects = Project.query.all()
     else:
         memberships = ProjectMember.query.filter_by(user_id=user_id).all()
         project_ids = [m.project_id for m in memberships]
-        projects = Project.query.filter(Project.id.in_(project_ids)).all()
+        if not project_ids:
+            projects = []
+        else:
+            projects = Project.query.filter(Project.id.in_(project_ids)).all()
 
     total_projects = len(projects)
     total_threats = 0

@@ -76,7 +76,11 @@ export default function ThreatCatalogPage() {
     description: '',
     source: 'MITRE CAPEC',
     source_ref: '',
-    default_impact: 3,
+    source_ref: '',
+    default_impact_safety: 3,
+    default_impact_financial: 3,
+    default_impact_operational: 3,
+    default_impact_privacy: 3,
     default_feasibility: 3
   });
 
@@ -109,7 +113,11 @@ export default function ThreatCatalogPage() {
         description: '',
         source: 'MITRE CAPEC',
         source_ref: '',
-        default_impact: 3,
+        source_ref: '',
+        default_impact_safety: 3,
+        default_impact_financial: 3,
+        default_impact_operational: 3,
+        default_impact_privacy: 3,
         default_feasibility: 3
       });
       loadThreats();
@@ -217,8 +225,11 @@ export default function ThreatCatalogPage() {
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Category</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3">Title / Description</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Source</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Standard Impact</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Standard Feasibility</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Safety (S)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Financial (F)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Operational (O)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Privacy (P)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Feasibility</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -253,7 +264,16 @@ export default function ThreatCatalogPage() {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          <span className={`text-xs font-medium ${scoreColor(t.default_impact)}`}>{scoreLabel(t.default_impact)}</span>
+                          <span className={`text-xs font-medium ${scoreColor(t.default_impact_safety)}`}>{scoreLabel(t.default_impact_safety)}</span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium ${scoreColor(t.default_impact_financial)}`}>{scoreLabel(t.default_impact_financial)}</span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium ${scoreColor(t.default_impact_operational)}`}>{scoreLabel(t.default_impact_operational)}</span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium ${scoreColor(t.default_impact_privacy)}`}>{scoreLabel(t.default_impact_privacy)}</span>
                         </td>
                         <td className="px-5 py-3">
                           <span className={`text-xs font-medium ${scoreColor(t.default_feasibility)}`}>{scoreLabel(t.default_feasibility)}</span>
@@ -329,7 +349,7 @@ export default function ThreatCatalogPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Source Ref</label>
               <input
@@ -340,20 +360,51 @@ export default function ThreatCatalogPage() {
                 placeholder="e.g., CAPEC-123"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Default Impact (1-5)</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Safety</label>
               <select
-                value={form.default_impact}
-                onChange={(e) => setForm({ ...form, default_impact: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                value={form.default_impact_safety}
+                onChange={(e) => setForm({ ...form, default_impact_safety: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value={1}>1 – Negligible</option>
-                <option value={2}>2 – Low</option>
-                <option value={3}>3 – Medium</option>
-                <option value={4}>4 – High</option>
-                <option value={5}>5 – Critical</option>
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Financial</label>
+              <select
+                value={form.default_impact_financial}
+                onChange={(e) => setForm({ ...form, default_impact_financial: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Operational</label>
+              <select
+                value={form.default_impact_operational}
+                onChange={(e) => setForm({ ...form, default_impact_operational: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Privacy</label>
+              <select
+                value={form.default_impact_privacy}
+                onChange={(e) => setForm({ ...form, default_impact_privacy: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Default Feasibility (1-5)</label>
               <select

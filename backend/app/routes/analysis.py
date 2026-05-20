@@ -34,6 +34,8 @@ def run_analysis():
 
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found or deleted"}), 401
     
     if not user.is_admin:
         from ..models.project_member import ProjectMember

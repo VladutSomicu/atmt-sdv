@@ -23,6 +23,8 @@ class RefAsset(db.Model):
     asil_level = db.Column(db.String(1), nullable=True)
     # Default impact scores pre-filled by the analysis engine
     default_safety = db.Column(db.SmallInteger, nullable=True)
+    default_financial = db.Column(db.SmallInteger, nullable=True)
+    default_operational = db.Column(db.SmallInteger, nullable=True)
     default_privacy = db.Column(db.SmallInteger, nullable=True)
     # Special flags: is_connected_to_cloud, is_virtualized, ota_capable, etc.
     flags = db.Column(db.ARRAY(db.Text), nullable=True)

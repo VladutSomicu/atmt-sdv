@@ -39,6 +39,8 @@ export default function AssetLibraryPage() {
     physical_accessibility: 'Internal',
     asil_level: 'None',
     default_safety: 3,
+    default_financial: 3,
+    default_operational: 3,
     default_privacy: 3,
     flags: [],
     vehicle_types: ['ICE', 'EV']
@@ -75,6 +77,8 @@ export default function AssetLibraryPage() {
         physical_accessibility: 'Internal',
         asil_level: 'None',
         default_safety: 3,
+        default_financial: 3,
+        default_operational: 3,
         default_privacy: 3,
         flags: [],
         vehicle_types: ['ICE', 'EV']
@@ -146,6 +150,8 @@ export default function AssetLibraryPage() {
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/4">Name</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Interfaces</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Safety (S)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Financial (F)</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Operational (O)</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Privacy (P)</th>
                   </tr>
                 </thead>
@@ -176,6 +182,12 @@ export default function AssetLibraryPage() {
                         </td>
                         <td className="px-5 py-3">
                           <span className={`text-xs font-medium ${scoreColor(a.default_safety)}`}>{scoreLabel(a.default_safety)}</span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium ${scoreColor(a.default_financial)}`}>{scoreLabel(a.default_financial)}</span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium ${scoreColor(a.default_operational)}`}>{scoreLabel(a.default_operational)}</span>
                         </td>
                         <td className="px-5 py-3">
                           <span className={`text-xs font-medium ${scoreColor(a.default_privacy)}`}>{scoreLabel(a.default_privacy)}</span>
@@ -256,25 +268,45 @@ export default function AssetLibraryPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Safety Impact (1-5)</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Safety</label>
               <select
                 value={form.default_safety}
                 onChange={(e) => setForm({ ...form, default_safety: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{scoreLabel(n)}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Privacy Impact (1-5)</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Financial</label>
+              <select
+                value={form.default_financial}
+                onChange={(e) => setForm({ ...form, default_financial: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Operational</label>
+              <select
+                value={form.default_operational}
+                onChange={(e) => setForm({ ...form, default_operational: parseInt(e.target.value) })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Privacy</label>
               <select
                 value={form.default_privacy}
                 onChange={(e) => setForm({ ...form, default_privacy: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{scoreLabel(n)}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>

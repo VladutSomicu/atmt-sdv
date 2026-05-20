@@ -19,7 +19,8 @@ export default function SecurityControlsPage() {
     description: '',
     applies_to_stride: [],
     applies_to_protocols: [],
-    feasibility_reduction: 2,
+    reduction_value: 2,
+    reduction_target: 'Feasibility',
     source_ref: ''
   });
 
@@ -51,7 +52,8 @@ export default function SecurityControlsPage() {
         description: '',
         applies_to_stride: [],
         applies_to_protocols: [],
-        feasibility_reduction: 2,
+        reduction_value: 2,
+        reduction_target: 'Feasibility',
         source_ref: ''
       });
       loadControls();
@@ -133,7 +135,8 @@ export default function SecurityControlsPage() {
                   <tr className="border-b border-gray-800 bg-gray-950">
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3">Control Title</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Applies To (STRIDE)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Target</th>
+                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Value</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reference</th>
                   </tr>
                 </thead>
@@ -159,7 +162,10 @@ export default function SecurityControlsPage() {
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="text-emerald-400 text-xs font-bold">-{c.feasibility_reduction} Level(s)</span>
+                          <span className="text-purple-400 text-xs font-medium">{c.reduction_target}</span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="text-emerald-400 text-xs font-bold">-{c.reduction_value} Level(s)</span>
                         </td>
                         <td className="px-5 py-4">
                           <span className="text-blue-400 text-xs font-mono">{c.source_ref || 'Internal'}</span>
@@ -223,12 +229,26 @@ export default function SecurityControlsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Feasibility Reduction</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Target Dimension</label>
               <select
-                value={form.feasibility_reduction}
-                onChange={(e) => setForm({ ...form, feasibility_reduction: parseInt(e.target.value) })}
+                value={form.reduction_target}
+                onChange={(e) => setForm({ ...form, reduction_target: e.target.value })}
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="Feasibility">Feasibility (Likelihood)</option>
+                <option value="Impact - Safety">Impact - Safety</option>
+                <option value="Impact - Financial">Impact - Financial</option>
+                <option value="Impact - Operational">Impact - Operational</option>
+                <option value="Impact - Privacy">Impact - Privacy</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Reduction Value</label>
+              <select
+                value={form.reduction_value}
+                onChange={(e) => setForm({ ...form, reduction_value: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value={1}>-1 Level (Partial)</option>

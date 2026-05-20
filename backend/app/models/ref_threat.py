@@ -24,7 +24,10 @@ class RefThreat(db.Model):
     # Special flags that trigger this threat: is_connected_to_cloud, etc.
     trigger_flags = db.Column(db.ARRAY(db.Text), nullable=True)
     # Default scores suggested by the engine
-    default_impact = db.Column(db.SmallInteger, nullable=True)
+    default_impact_safety = db.Column(db.SmallInteger, nullable=True)
+    default_impact_financial = db.Column(db.SmallInteger, nullable=True)
+    default_impact_operational = db.Column(db.SmallInteger, nullable=True)
+    default_impact_privacy = db.Column(db.SmallInteger, nullable=True)
     default_feasibility = db.Column(db.SmallInteger, nullable=True)
 
     def __repr__(self):

@@ -53,10 +53,14 @@ def create_user():
 
     hashed_password = bcrypt.generate_password_hash(data.password).decode('utf-8')
 
+    req_json = request.get_json() or {}
+    is_admin = bool(req_json.get('is_admin', False))
+
     new_user = User(
         email=data.email,
         password_hash=hashed_password,
-        full_name=data.full_name
+        full_name=data.full_name,
+        is_admin=is_admin
     )
 
     db.session.add(new_user)
@@ -179,6 +183,8 @@ def create_asset():
         physical_accessibility=data.get('physical_accessibility', 'Internal'),
         asil_level=data.get('asil_level'),
         default_safety=int(data.get('default_safety', 3)),
+        default_financial=int(data.get('default_financial', 3)),
+        default_operational=int(data.get('default_operational', 3)),
         default_privacy=int(data.get('default_privacy', 3)),
         flags=data.get('flags', []),
         vehicle_types=data.get('vehicle_types', ['ICE', 'EV'])
@@ -213,7 +219,10 @@ def get_threats():
                 "title": t.title,
                 "source": t.source,
                 "source_ref": t.source_ref,
-                "default_impact": t.default_impact,
+                "default_impact_safety": t.default_impact_safety,
+                "default_impact_financial": t.default_impact_financial,
+                "default_impact_operational": t.default_impact_operational,
+                "default_impact_privacy": t.default_impact_privacy,
                 "default_feasibility": t.default_feasibility
             }
             for t in threats
@@ -239,7 +248,10 @@ def create_threat():
         description=data['description'],
         source=data['source'],
         source_ref=data.get('source_ref'),
-        default_impact=int(data.get('default_impact', 3)),
+        default_impact_safety=int(data.get('default_impact_safety', 3)),
+        default_impact_financial=int(data.get('default_impact_financial', 3)),
+        default_impact_operational=int(data.get('default_impact_operational', 3)),
+        default_impact_privacy=int(data.get('default_impact_privacy', 3)),
         default_feasibility=int(data.get('default_feasibility', 3))
     )
     
@@ -268,7 +280,8 @@ def get_controls():
                 "id": str(c.id),
                 "title": c.title,
                 "applies_to_stride": c.applies_to_stride,
-                "feasibility_reduction": c.feasibility_reduction,
+                "reduction_value": c.reduction_value,
+                "reduction_target": c.reduction_target,
                 "source_ref": c.source_ref
             }
             for c in controls
@@ -291,7 +304,8 @@ def create_control():
         description=data.get('description'),
         applies_to_stride=data.get('applies_to_stride', []),
         applies_to_protocols=data.get('applies_to_protocols', []),
-        feasibility_reduction=int(data.get('feasibility_reduction', 1)),
+        reduction_value=int(data.get('reduction_value', 1)),
+        reduction_target=data.get('reduction_target', 'Feasibility'),
         source_ref=data.get('source_ref')
     )
     
@@ -329,6 +343,8 @@ def get_public_assets():
                 "physical_accessibility": a.physical_accessibility,
                 "asil_level": a.asil_level,
                 "default_safety": a.default_safety,
+                "default_financial": a.default_financial,
+                "default_operational": a.default_operational,
                 "default_privacy": a.default_privacy,
                 "flags": a.flags,
                 "vehicle_types": a.vehicle_types
@@ -355,7 +371,10 @@ def get_public_threats():
                 "description": t.description,
                 "source": t.source,
                 "source_ref": t.source_ref,
-                "default_impact": t.default_impact,
+                "default_impact_safety": t.default_impact_safety,
+                "default_impact_financial": t.default_impact_financial,
+                "default_impact_operational": t.default_impact_operational,
+                "default_impact_privacy": t.default_impact_privacy,
                 "default_feasibility": t.default_feasibility
             }
             for t in threats
@@ -384,7 +403,8 @@ def get_public_controls():
                 "description": c.description,
                 "applies_to_stride": c.applies_to_stride,
                 "applies_to_protocols": c.applies_to_protocols,
-                "feasibility_reduction": c.feasibility_reduction,
+                "reduction_value": c.reduction_value,
+                "reduction_target": c.reduction_target,
                 "source_ref": c.source_ref
             }
             for c in controls

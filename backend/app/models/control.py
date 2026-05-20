@@ -16,8 +16,10 @@ class Control(db.Model):
     applies_to_stride = db.Column(db.ARRAY(db.Text), nullable=True)
     # Protocols this control is relevant for
     applies_to_protocols = db.Column(db.ARRAY(db.Text), nullable=True)
-    # How much this control reduces the Feasibility score (0-4)
-    feasibility_reduction = db.Column(db.SmallInteger, nullable=True)
+    # How much this control reduces the score (0-4)
+    reduction_value = db.Column(db.SmallInteger, nullable=True)
+    # What it reduces: 'Feasibility', 'Impact - Safety', 'Impact - Financial', 'Impact - Operational', 'Impact - Privacy'
+    reduction_target = db.Column(db.String(50), nullable=True)
     # Reference: ISO_21434_AnnexC, NIST_SP800-53_SC-8, etc.
     source_ref = db.Column(db.String(200), nullable=True)
 

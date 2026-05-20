@@ -171,11 +171,10 @@ export default function GlobalReportsPage() {
                     </td>
                     <td className="p-4 text-gray-300">{p.sae_level}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded-full font-medium ${
-                        p.status === 'completed' 
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${p.status === 'completed'
                           ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
                           : 'bg-amber-950 text-amber-400 border border-amber-800'
-                      }`}>
+                        }`}>
                         {p.status}
                       </span>
                     </td>
@@ -188,14 +187,13 @@ export default function GlobalReportsPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <div className="w-12 bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              p.compliance_score >= 80 ? 'bg-emerald-500' : p.compliance_score >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                            }`} 
-                            style={{ width: `${p.compliance_score}%` }} 
+                          <div
+                            className={`h-full rounded-full ${p.compliance_score >= 80 ? 'bg-emerald-500' : p.compliance_score >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                              }`}
+                            style={{ width: `${p.compliance_score}%` }}
                           />
                         </div>
-                        <span className="font-mono font-medium">{p.compliance_score}%</span>
+                        <span className="font-mono font-medium text-gray-300">{p.compliance_score}%</span>
                       </div>
                     </td>
                     <td className="p-4 text-right space-x-2">

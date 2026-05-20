@@ -46,8 +46,8 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
-                  ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                ? 'bg-blue-600/20 text-blue-400'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
             >
               <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
@@ -68,8 +68,8 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
-                      ? 'bg-blue-600/20 text-blue-400'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-blue-600/20 text-blue-400'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                     }`}
                 >
                   <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
@@ -87,11 +87,11 @@ export default function Sidebar() {
           <p className="text-white text-xs font-medium">ATMT Workspace</p>
           <p className="text-gray-500 text-xs">ISO 21434 compliant</p>
         </div>
-        <div className="flex gap-1.5">
+        {/*<div className="flex gap-1.5">
           <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">ISO 21434</span>
           <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">R155</span>
           <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">R156</span>
-        </div>
+        </div>*/}
       </div>
     </aside>
   );

@@ -21,6 +21,8 @@ def get_my_projects():
     """Return all projects where the current user is a member."""
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found or deleted"}), 401
 
     # Admins see all projects
     if user.is_admin:
@@ -29,9 +31,12 @@ def get_my_projects():
         # Get projects through project_members
         memberships = ProjectMember.query.filter_by(user_id=user_id).all()
         project_ids = [m.project_id for m in memberships]
-        projects = Project.query.filter(
-            Project.id.in_(project_ids)
-        ).order_by(Project.updated_at.desc()).all()
+        if not project_ids:
+            projects = []
+        else:
+            projects = Project.query.filter(
+                Project.id.in_(project_ids)
+            ).order_by(Project.updated_at.desc()).all()
 
     # Build response with role info
     result = []

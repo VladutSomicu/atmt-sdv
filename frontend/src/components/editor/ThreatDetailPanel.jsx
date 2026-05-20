@@ -128,7 +128,9 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
               >
                 <div className="flex items-center justify-between">
                   <p className="text-white text-xs font-medium">{c.title}</p>
-                  <span className="text-green-400 text-xs ml-1">-{c.feasibility_reduction}</span>
+                  <span className="text-green-400 text-[10px] ml-1 font-mono">
+                    -{c.reduction_value || c.feasibility_reduction} {c.reduction_target || 'Feasibility'}
+                  </span>
                 </div>
                 <p className="text-gray-600 text-xs mt-0.5">{c.source_ref}</p>
               </div>

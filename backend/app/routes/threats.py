@@ -102,7 +102,9 @@ def get_threat_detail(threat_id):
                 "id": str(c.id),
                 "title": c.title,
                 "description": c.description,
-                "feasibility_reduction": c.feasibility_reduction,
+                "reduction_value": c.reduction_value,
+                "reduction_target": c.reduction_target,
+                "feasibility_reduction": c.reduction_value if c.reduction_target == 'Feasibility' else 0,
                 "source_ref": c.source_ref
             }
             for c in available_controls
@@ -126,11 +128,12 @@ def update_threat(threat_id):
     old_risk_score = threat.risk_score
     old_status = threat.status
 
-    # Check that user is engineer on this project
     user_id = get_jwt_identity()
     from ..models.project_member import ProjectMember
     from ..models.user import User
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found or deleted"}), 401
 
     if not user.is_admin:
         member = ProjectMember.query.filter_by(
@@ -173,22 +176,26 @@ def update_threat(threat_id):
             score_changed = True
         threat.feasibility = data.feasibility
 
-    # Apply controls — reduce feasibility
+    # Apply controls — reduce target dimensions
     if data.control_ids is not None:
         threat.control_ids = [c for c in data.control_ids]
 
-        # Calculate total feasibility reduction from controls
-        total_reduction = 0
         for control_id in data.control_ids:
             control = Control.query.get(control_id)
-            if control:
-                total_reduction += control.feasibility_reduction
-
-        # Reduce feasibility (minimum 1)
-        original_feasibility = threat.feasibility
-        threat.feasibility = max(1, threat.feasibility - total_reduction)
-        if threat.feasibility != original_feasibility:
-            score_changed = True
+            if control and control.reduction_value:
+                target = (control.reduction_target or 'Feasibility').lower()
+                val = control.reduction_value
+                if 'safety' in target:
+                    threat.impact_safety = max(1, threat.impact_safety - val)
+                elif 'financial' in target:
+                    threat.impact_financial = max(1, threat.impact_financial - val)
+                elif 'operational' in target:
+                    threat.impact_operational = max(1, threat.impact_operational - val)
+                elif 'privacy' in target:
+                    threat.impact_privacy = max(1, threat.impact_privacy - val)
+                else: # Feasibility
+                    threat.feasibility = max(1, threat.feasibility - val)
+                score_changed = True
 
     # Update treatment and status
     if data.treatment is not None:
