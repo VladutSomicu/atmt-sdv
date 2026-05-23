@@ -84,11 +84,24 @@ def login():
 def logout():
     """Revoke the current access token."""
     from ..models.revoked_token import RevokedToken
+    from ..models.project import Project
 
     jwt_data = get_jwt()
     jti = jwt_data['jti']
     token_type = jwt_data['type']
     user_id = jwt_data['sub']
+
+    # Unlock any projects locked by this user
+    import uuid
+    try:
+        user_uuid = uuid.UUID(user_id) if isinstance(user_id, str) else user_id
+        Project.query.filter_by(locked_by=user_uuid, is_locked=True).update({
+            "is_locked": False,
+            "locked_by": None,
+            "locked_at": None
+        }, synchronize_session=False)
+    except Exception as e:
+        pass
 
     revoked = RevokedToken(
         jti=jti,
@@ -130,4 +143,19 @@ def demo_login():
             "is_admin": demo_user.is_admin,
             "is_demo": demo_user.is_demo
         }
+    }), 200
+
+
+@auth_bp.route('/check-email', methods=['GET'])
+@jwt_required()
+def check_email():
+    """Check if a user with the given email exists. Used by project wizard."""
+    email = request.args.get('email', '').strip().lower()
+    if not email:
+        return jsonify({"error": "email parameter required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    return jsonify({
+        "exists": user is not None,
+        "full_name": user.full_name if user else None
     }), 200

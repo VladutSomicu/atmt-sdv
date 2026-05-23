@@ -25,7 +25,7 @@ export default function MobileGuard({ children }) {
           </div>
           <h2 className="text-white text-xl font-bold mb-2">Desktop Required</h2>
           <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            ATMT-SDV is a complex threat modeling tool that requires a larger screen for the JointJS canvas editor and data tables.
+            ATMT-SDV is a complex threat modeling tool that requires a larger screen for the canvas editor.
           </p>
           <p className="text-blue-400 text-xs font-mono uppercase tracking-widest">
             Please use a device with at least 1024px width.

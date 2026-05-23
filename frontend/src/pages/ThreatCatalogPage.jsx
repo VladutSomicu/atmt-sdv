@@ -67,8 +67,9 @@ export default function ThreatCatalogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // Add Threat State
-  const [showAddModal, setShowAddModal] = useState(false);
+  // Add/Edit Threat State
+  const [showThreatModal, setShowThreatModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     stride_category: 'Spoofing',
@@ -96,7 +97,7 @@ export default function ThreatCatalogPage() {
     loadThreats();
   }, []);
 
-  const handleAddThreat = async () => {
+  const handleSaveThreat = async () => {
     if (!form.title || !form.description) {
       toast.error('Title and description are required');
       return;
@@ -104,15 +105,20 @@ export default function ThreatCatalogPage() {
 
     setSaving(true);
     try {
-      await api.post('/api/admin/library/threats', form);
-      toast.success('Threat added to catalog');
-      setShowAddModal(false);
+      if (editingId) {
+        await api.put(`/api/admin/library/threats/${editingId}`, form);
+        toast.success('Threat updated successfully');
+      } else {
+        await api.post('/api/admin/library/threats', form);
+        toast.success('Threat added to catalog');
+      }
+      setShowThreatModal(false);
+      setEditingId(null);
       setForm({
         stride_category: 'Spoofing',
         title: '',
         description: '',
         source: 'MITRE CAPEC',
-        source_ref: '',
         source_ref: '',
         default_impact_safety: 3,
         default_impact_financial: 3,
@@ -122,9 +128,37 @@ export default function ThreatCatalogPage() {
       });
       loadThreats();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add threat');
+      toast.error(err.response?.data?.error || 'Failed to save threat');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEdit = (threat) => {
+    setForm({
+      stride_category: threat.stride_category,
+      title: threat.title,
+      description: threat.description || '',
+      source: threat.source || 'MITRE CAPEC',
+      source_ref: threat.source_ref || '',
+      default_impact_safety: threat.default_impact_safety || 3,
+      default_impact_financial: threat.default_impact_financial || 3,
+      default_impact_operational: threat.default_impact_operational || 3,
+      default_impact_privacy: threat.default_impact_privacy || 3,
+      default_feasibility: threat.default_feasibility || 3
+    });
+    setEditingId(threat.id);
+    setShowThreatModal(true);
+  };
+
+  const handleDelete = async (threat) => {
+    if (!window.confirm(`Are you sure you want to delete ${threat.title}?`)) return;
+    try {
+      await api.delete(`/api/admin/library/threats/${threat.id}`);
+      toast.success('Threat deleted successfully');
+      loadThreats();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete threat');
     }
   };
 
@@ -146,7 +180,16 @@ export default function ThreatCatalogPage() {
           </div>
           {user?.is_admin && (
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setEditingId(null);
+                setForm({
+                  stride_category: 'Spoofing', title: '', description: '',
+                  source: 'MITRE CAPEC', source_ref: '', default_impact_safety: 3,
+                  default_impact_financial: 3, default_impact_operational: 3,
+                  default_impact_privacy: 3, default_feasibility: 3
+                });
+                setShowThreatModal(true);
+              }}
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,6 +273,7 @@ export default function ThreatCatalogPage() {
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Operational (O)</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Privacy (P)</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Feasibility</th>
+                    {user?.is_admin && <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -278,6 +322,22 @@ export default function ThreatCatalogPage() {
                         <td className="px-5 py-3">
                           <span className={`text-xs font-medium ${scoreColor(t.default_feasibility)}`}>{scoreLabel(t.default_feasibility)}</span>
                         </td>
+                        {user?.is_admin && (
+                          <td className="px-5 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => handleEdit(t)} className="p-1 text-gray-400 hover:text-blue-400 transition-colors" title="Edit Threat">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button onClick={() => handleDelete(t)} className="p-1 text-gray-400 hover:text-red-400 transition-colors" title="Delete Threat">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -289,11 +349,11 @@ export default function ThreatCatalogPage() {
       </div>
 
       <Modal
-        isOpen={showAddModal}
-        title="Add New Threat"
-        onClose={() => setShowAddModal(false)}
-        onConfirm={handleAddThreat}
-        confirmText={saving ? 'Adding...' : 'Add Threat'}
+        isOpen={showThreatModal}
+        title={editingId ? "Edit Reference Threat" : "Add New Threat"}
+        onClose={() => setShowThreatModal(false)}
+        onConfirm={handleSaveThreat}
+        confirmText={saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Threat')}
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

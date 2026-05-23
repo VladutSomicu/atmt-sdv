@@ -75,7 +75,7 @@ def seed_ref_assets():
         RefAsset(
             name="OBD-II Port",
             category="Diagnostic",
-            interface_types=["CAN", "K-Line"],
+            interface_types=["CAN", "SOME/IP"],
             data_types=["Diagnostic Data"],
             physical_accessibility="OBD-II",
             asil_level=None,
@@ -237,7 +237,7 @@ def seed_ref_threats():
             description="Attacker connects malicious device to OBD-II port to reprogram ECUs.",
             source="UNECE_R155",
             source_ref="UNECE_R155_A5_T14",
-            trigger_protocols=["CAN", "K-Line"],
+            trigger_protocols=["CAN", "SOME/IP"],
             trigger_categories=["Diagnostic"],
             trigger_flags=[],
             default_impact=4,
@@ -334,7 +334,7 @@ def seed_controls():
             title="OBD-II Port Physical Security",
             description="Physical seal or access control on OBD-II port. Prevents unauthorized diagnostic device connection.",
             applies_to_stride=["Tampering", "Spoofing"],
-            applies_to_protocols=["CAN", "K-Line"],
+            applies_to_protocols=["CAN", "SOME/IP"],
             feasibility_reduction=2,
             source_ref="ISO_21434_AnnexC"
         ),

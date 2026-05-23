@@ -81,7 +81,8 @@ export default function ComplianceTab({ projectId }) {
   );
 
   const { checks, summary } = data;
-  const pct = summary.total > 0 ? Math.round((summary.passed / summary.total) * 100) : 0;
+  const applicableTotal = summary.total - (summary.not_applicable || 0);
+  const pct = applicableTotal > 0 ? Math.round((summary.passed / applicableTotal) * 100) : (summary.total > 0 ? 100 : 0);
 
   const statusBadge = (status) => {
     if (status === 'pass') return 'bg-green-900 text-green-300 border-green-800';
@@ -160,20 +161,24 @@ export default function ComplianceTab({ projectId }) {
       </div>
 
       {/* Checks by regulation */}
-      {Object.entries(grouped).map(([regulation, items]) => (
+      {Object.entries(grouped).map(([regulation, items]) => {
+        const passCount = items.filter(i => i.status === 'pass').length;
+        const applicableCount = items.filter(i => i.status !== 'n/a').length;
+        const regPct = applicableCount > 0 ? Math.round((passCount / applicableCount) * 100) : (items.length > 0 ? 100 : 0);
+        return (
         <div key={regulation} className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-white text-sm font-semibold flex items-center gap-2">
               {regulation}
               <span className="text-gray-600 text-xs font-normal">
-                {items.filter(i => i.status === 'pass').length} / {items.length} pass
+                {passCount} / {applicableCount} pass
               </span>
             </h3>
             {/* Mini progress bar for each regulation */}
             <div className="w-24 h-1 bg-gray-800 rounded-full overflow-hidden">
               <div
                 className="h-1 bg-green-500 rounded-full"
-                style={{ width: `${Math.round((items.filter(i => i.status === 'pass').length / items.length) * 100)}%` }}
+                style={{ width: `${regPct}%` }}
               />
             </div>
           </div>
@@ -198,7 +203,8 @@ export default function ComplianceTab({ projectId }) {
             ))}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

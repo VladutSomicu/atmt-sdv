@@ -46,8 +46,9 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
       });
       onUpdate();
       toast.success('Threat updated');
-    } catch {
-      toast.error('Failed to save threat changes');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to save threat changes';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

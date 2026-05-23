@@ -128,7 +128,7 @@ export default function EditorPage() {
         {/* Navbar */}
         <header className="h-12 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 sticky top-0 z-10">
           <div className="flex items-center gap-1.5 text-sm">
-            <a href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Projects</a>
+            <a href="/projects" className="text-gray-400 hover:text-white transition-colors">Projects</a>
             <span className="text-gray-600">/</span>
             <span className="text-white font-medium">{project.name}</span>
             <span className="text-gray-600">/</span>
@@ -136,19 +136,12 @@ export default function EditorPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-green-400 text-xs">Saved</span>
-            {canRunAnalysis && (
-              <button
-                onClick={() => setActiveTab('analysis')}
-                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-              >
-                Run analysis
-              </button>
-            )}
+
           </div>
         </header>
 
         <main className="flex-1 overflow-hidden">
-          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => {}} />}
+          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => {}} canEdit={canEditDiagram} />}
           {activeTab === 'analysis' && <AnalysisTab projectId={projectId} onThreatsLoaded={setThreats} onSelectAsset={(id) => { setSelectedAssetId(id); setActiveTab('diagram'); }} isReadOnly={!canRunAnalysis} />}
           {activeTab === 'compliance' && <ComplianceTab projectId={projectId} />}
           {activeTab === 'report' && <ReportTab projectId={projectId} project={project} threats={threats} canApprove={canApproveReport} />}

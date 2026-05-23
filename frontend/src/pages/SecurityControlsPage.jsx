@@ -11,8 +11,9 @@ export default function SecurityControlsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  // Add Control State
-  const [showAddModal, setShowAddModal] = useState(false);
+  // Add/Edit Control State
+  const [showControlModal, setShowControlModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: '',
@@ -36,7 +37,7 @@ export default function SecurityControlsPage() {
     loadControls();
   }, []);
 
-  const handleAddControl = async () => {
+  const handleSaveControl = async () => {
     if (!form.title) {
       toast.error('Title is required');
       return;
@@ -44,9 +45,15 @@ export default function SecurityControlsPage() {
     
     setSaving(true);
     try {
-      await api.post('/api/admin/library/controls', form);
-      toast.success('Security control added');
-      setShowAddModal(false);
+      if (editingId) {
+        await api.put(`/api/admin/library/controls/${editingId}`, form);
+        toast.success('Security control updated');
+      } else {
+        await api.post('/api/admin/library/controls', form);
+        toast.success('Security control added');
+      }
+      setShowControlModal(false);
+      setEditingId(null);
       setForm({
         title: '',
         description: '',
@@ -58,9 +65,34 @@ export default function SecurityControlsPage() {
       });
       loadControls();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add control');
+      toast.error(err.response?.data?.error || 'Failed to save control');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEdit = (control) => {
+    setForm({
+      title: control.title,
+      description: control.description || '',
+      applies_to_stride: control.applies_to_stride || [],
+      applies_to_protocols: control.applies_to_protocols || [],
+      reduction_value: control.reduction_value || 2,
+      reduction_target: control.reduction_target || 'Feasibility',
+      source_ref: control.source_ref || ''
+    });
+    setEditingId(control.id);
+    setShowControlModal(true);
+  };
+
+  const handleDelete = async (control) => {
+    if (!window.confirm(`Are you sure you want to delete ${control.title}?`)) return;
+    try {
+      await api.delete(`/api/admin/library/controls/${control.id}`);
+      toast.success('Security control deleted');
+      loadControls();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete control');
     }
   };
 
@@ -95,7 +127,15 @@ export default function SecurityControlsPage() {
           </div>
           {user?.is_admin && (
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setEditingId(null);
+                setForm({
+                  title: '', description: '', applies_to_stride: [],
+                  applies_to_protocols: [], reduction_value: 2,
+                  reduction_target: 'Feasibility', source_ref: ''
+                });
+                setShowControlModal(true);
+              }}
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,6 +178,7 @@ export default function SecurityControlsPage() {
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Target</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Value</th>
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reference</th>
+                    {user?.is_admin && <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -170,6 +211,22 @@ export default function SecurityControlsPage() {
                         <td className="px-5 py-4">
                           <span className="text-blue-400 text-xs font-mono">{c.source_ref || 'Internal'}</span>
                         </td>
+                        {user?.is_admin && (
+                          <td className="px-5 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => handleEdit(c)} className="p-1 text-gray-400 hover:text-blue-400 transition-colors" title="Edit Control">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button onClick={() => handleDelete(c)} className="p-1 text-gray-400 hover:text-red-400 transition-colors" title="Delete Control">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -181,11 +238,11 @@ export default function SecurityControlsPage() {
       </div>
 
       <Modal
-        isOpen={showAddModal}
-        title="Add New Security Control"
-        onClose={() => setShowAddModal(false)}
-        onConfirm={handleAddControl}
-        confirmText={saving ? 'Adding...' : 'Add Control'}
+        isOpen={showControlModal}
+        title={editingId ? "Edit Security Control" : "Add New Security Control"}
+        onClose={() => setShowControlModal(false)}
+        onConfirm={handleSaveControl}
+        confirmText={saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Control')}
       >
         <div className="space-y-4">
           <div>

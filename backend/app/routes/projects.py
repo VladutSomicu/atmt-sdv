@@ -11,8 +11,42 @@ from ..schemas.project import CreateProjectSchema, InviteMemberSchema
 from ..utils.auth_decorators import requires_project_role
 from ..models.audit_log import AuditLog
 from ..models.user import User
+from ..utils.audit import log_action
 
 projects_bp = Blueprint('projects', __name__, url_prefix='/api/projects')
+
+
+def check_project_lock(project, user_id):
+    """
+    Helper to check lock status. Releases lock if inactive for more than 20 seconds.
+    """
+    from datetime import timedelta
+    LOCK_TIMEOUT = timedelta(seconds=20)
+    now = datetime.now(timezone.utc)
+
+    if not project.is_locked:
+        return False, "Diagram is not locked"
+
+    if project.locked_at:
+        locked_at = project.locked_at
+        if locked_at.tzinfo is None:
+            locked_at = locked_at.replace(tzinfo=timezone.utc)
+        if now - locked_at > LOCK_TIMEOUT:
+            # Lock has expired, release it
+            project.is_locked = False
+            project.locked_by = None
+            project.locked_at = None
+            db.session.commit()
+            return False, "Diagram is not locked"
+
+    if str(project.locked_by) == user_id:
+        return True, "Lock active"
+
+    # Locked by someone else
+    locked_user = User.query.get(project.locked_by)
+    locked_name = locked_user.full_name if locked_user else "Unknown"
+    return False, f"Diagram is currently being edited by {locked_name}"
+
 
 
 @projects_bp.route('', methods=['GET'])
@@ -92,6 +126,13 @@ def create_project():
     )
 
     db.session.add(member)
+
+    log_action(
+        user_id=user_id,
+        action='project_created',
+        project_id=str(project.id),
+        new_value={"name": data.name, "description": data.description}
+    )
     db.session.commit()
 
     return jsonify({
@@ -114,6 +155,9 @@ def get_project(project_id):
 
     if not project:
         return jsonify({"error": "Project not found"}), 404
+
+    user_id = get_jwt_identity()
+    check_project_lock(project, user_id)
 
     # Get all members
     members = ProjectMember.query.filter_by(project_id=project.id).all()
@@ -177,6 +221,13 @@ def invite_member(project_id):
     )
 
     db.session.add(member)
+
+    log_action(
+        user_id=get_jwt_identity(),
+        action='member_invited',
+        project_id=str(project_id),
+        new_value={"email": data.email, "role": data.role}
+    )
     db.session.commit()
 
     return jsonify({
@@ -199,23 +250,34 @@ def lock_project(project_id):
     if not project:
         return jsonify({"error": "Project not found"}), 404
 
-    if project.is_locked:
-        locked_user = User.query.get(project.locked_by)
-        locked_name = locked_user.full_name if locked_user else "Unknown"
-        return jsonify({
-            "error": f"Project is already locked by {locked_name}"
-        }), 409
-
     user_id = get_jwt_identity()
-    project.is_locked = True
-    project.locked_by = user_id
-    project.locked_at = datetime.now(timezone.utc)
-    db.session.commit()
 
-    return jsonify({"message": "Project locked successfully"}), 200
+    # Check lock status (which releases it automatically if expired)
+    is_holder, msg = check_project_lock(project, user_id)
+    if is_holder:
+        project.locked_at = datetime.now(timezone.utc)
+        db.session.commit()
+        return jsonify({"message": "Lock refreshed"}), 200
+
+    if not project.is_locked:
+        # Acquire lock
+        project.is_locked = True
+        project.locked_by = user_id
+        project.locked_at = datetime.now(timezone.utc)
+
+        log_action(
+            user_id=user_id,
+            action='project_locked',
+            project_id=str(project_id)
+        )
+        db.session.commit()
+        return jsonify({"message": "Project locked successfully"}), 200
+
+    return jsonify({"error": msg}), 409
 
 
-@projects_bp.route('/<uuid:project_id>/unlock', methods=['PUT'])
+
+@projects_bp.route('/<uuid:project_id>/unlock', methods=['PUT', 'POST'])
 @jwt_required()
 @requires_project_role('engineer', 'architect')
 def unlock_project(project_id):
@@ -236,6 +298,12 @@ def unlock_project(project_id):
     project.is_locked = False
     project.locked_by = None
     project.locked_at = None
+
+    log_action(
+        user_id=user_id,
+        action='project_unlocked',
+        project_id=str(project_id)
+    )
     db.session.commit()
 
     return jsonify({"message": "Project unlocked successfully"}), 200
@@ -269,7 +337,6 @@ def get_audit_log(project_id):
     }), 200
 
 
-from ..utils.audit import log_action
 
 @projects_bp.route('/<uuid:project_id>', methods=['PUT'])
 @jwt_required()
@@ -319,6 +386,15 @@ def delete_project(project_id):
         return jsonify({"error": "Project not found"}), 404
 
     project_name = project.name
+
+    # Log deletion before cascade (audit entries for this project will be cascade-deleted,
+    # so we log with project_id=None and store details in new_value for global traceability)
+    log_action(
+        user_id=get_jwt_identity(),
+        action='project_deleted',
+        project_id=None,
+        new_value={"project_name": project_name, "project_id": str(project_id)}
+    )
 
     # CASCADE handles: project_members, diagrams, threats, audit_log
     db.session.delete(project)

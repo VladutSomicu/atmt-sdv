@@ -8,26 +8,26 @@ import toast from 'react-hot-toast';
 /* ── Category Colors ── */
 const CAT_COLORS = {
   'Safety-Critical': { fill: '#1c1917', stroke: '#dc2626', text: '#fca5a5' },
-  'Connectivity':    { fill: '#0f172a', stroke: '#2563eb', text: '#93c5fd' },
-  'User Interface':  { fill: '#0f172a', stroke: '#7c3aed', text: '#c4b5fd' },
-  'Infotainment':    { fill: '#0f172a', stroke: '#7c3aed', text: '#c4b5fd' },
-  'Powertrain':      { fill: '#1c1917', stroke: '#d97706', text: '#fcd34d' },
-  'Perception':      { fill: '#0f172a', stroke: '#059669', text: '#6ee7b7' },
-  'Diagnostic':      { fill: '#1c1917', stroke: '#6b7280', text: '#d1d5db' },
-  'Cloud':           { fill: '#0f172a', stroke: '#0891b2', text: '#67e8f9' },
-  'ECU':             { fill: '#1c1917', stroke: '#d97706', text: '#fcd34d' },
-  'Gateway':         { fill: '#1c1917', stroke: '#dc2626', text: '#fca5a5' },
+  'Connectivity': { fill: '#0f172a', stroke: '#2563eb', text: '#93c5fd' },
+  'User Interface': { fill: '#0f172a', stroke: '#7c3aed', text: '#c4b5fd' },
+  'Infotainment': { fill: '#0f172a', stroke: '#7c3aed', text: '#c4b5fd' },
+  'Powertrain': { fill: '#1c1917', stroke: '#d97706', text: '#fcd34d' },
+  'Perception': { fill: '#0f172a', stroke: '#059669', text: '#6ee7b7' },
+  'Diagnostic': { fill: '#1c1917', stroke: '#6b7280', text: '#d1d5db' },
+  'Cloud': { fill: '#0f172a', stroke: '#0891b2', text: '#67e8f9' },
+  'ECU': { fill: '#1c1917', stroke: '#d97706', text: '#fcd34d' },
+  'Gateway': { fill: '#1c1917', stroke: '#dc2626', text: '#fca5a5' },
 };
 
 const riskStroke = (score) => {
   if (score >= 16) return '#dc2626';
   if (score >= 12) return '#ea580c';
-  if (score >= 8)  return '#ca8a04';
-  if (score >= 4)  return '#2563eb';
+  if (score >= 8) return '#ca8a04';
+  if (score >= 4) return '#2563eb';
   return '#16a34a';
 };
 
-export default function DiagramTab({ projectId, project, threats = [], onDiagramSaved }) {
+export default function DiagramTab({ projectId, project, threats = [], onDiagramSaved, canEdit = true }) {
   const canvasRef = useRef(null);
   const graphRef = useRef(null);
   const paperRef = useRef(null);
@@ -56,16 +56,119 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   const redoFnRef = useRef(null);
   const saveFnRef = useRef(null);
 
+  // Lock state — start optimistic (no read-only flash while awaiting lock response)
+  const [lockError, setLockError] = useState(null);
+  const lockAcquiredRef = useRef(false);
+  const hadConflictRef = useRef(false);
+
   const vp = project.vehicle_profile || {};
 
   // Keep selectedRef in sync
   useEffect(() => { selectedRef.current = selectedCell; }, [selectedCell]);
 
-  // Load asset library
+  // Editable = user has edit rights AND no lock conflict with another user
+  const editable = canEdit && !lockError;
+  const editableRef = useRef(editable);
+
+  useEffect(() => {
+    editableRef.current = editable;
+  }, [editable]);
+
+  // Dynamically update paper interactivity when editable state changes
+  useEffect(() => {
+    if (paperRef.current) {
+      if (editable) {
+        paperRef.current.setInteractivity({
+          linkMove: true,
+          elementMove: true,
+          arrowheadMove: true,
+          addLinkFromMagnet: true,
+        });
+      } else {
+        paperRef.current.setInteractivity(false);
+      }
+    }
+  }, [editable]);
+
+  // Auto lock/unlock/polling for edit mode
+  useEffect(() => {
+    if (!canEdit) return;
+
+    setLockError(null);
+
+    const acquireLock = async () => {
+      try {
+        await api.put(`/api/projects/${projectId}/lock`);
+        if (hadConflictRef.current) {
+          toast.success('Diagram is now unlocked. You can edit.');
+          hadConflictRef.current = false;
+        }
+        lockAcquiredRef.current = true;
+        setLockError(null);
+      } catch (err) {
+        const msg = err.response?.data?.error || 'Could not acquire diagram lock';
+        setLockError(msg);
+        lockAcquiredRef.current = false;
+        hadConflictRef.current = true;
+      }
+    };
+
+    acquireLock();
+
+    // Poll every 5 seconds to either refresh the lock (heartbeat) or attempt to acquire it
+    const intervalId = setInterval(acquireLock, 5000);
+
+    const releaseLock = () => {
+      if (lockAcquiredRef.current) {
+        const token = localStorage.getItem('access_token');
+        const baseUrl = api.defaults.baseURL || 'http://localhost:5000';
+
+        // 1. Use modern keepalive fetch (extremely reliable during unload and supports query string authentication)
+        if (token) {
+          const url = `${baseUrl}/api/projects/${projectId}/unlock?jwt=${token}`;
+          fetch(url, {
+            method: 'POST',
+            keepalive: true
+          }).catch(() => { });
+        } else if (navigator.sendBeacon) {
+          const url = `${baseUrl}/api/projects/${projectId}/unlock`;
+          navigator.sendBeacon(url, '');
+        }
+
+        // 2. Also try normal axios request (for standard in-app navigation)
+        api.put(`/api/projects/${projectId}/unlock`).catch(() => { });
+
+        lockAcquiredRef.current = false;
+      }
+    };
+
+    window.addEventListener('beforeunload', releaseLock);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('beforeunload', releaseLock);
+      releaseLock();
+    };
+  }, [projectId, canEdit]);
+
   useEffect(() => {
     const vehicleType = vp.propulsion || 'ICE';
-    api.get(`/api/admin/public/assets?vehicle_type=${vehicleType}`)
-      .then(res => setAssets(res.data.assets || []))
+    const architecture = vp.architecture || 'Classic';
+    const ext = vp.external_interfaces || [];
+
+    api.get(`/api/admin/public/assets?vehicle_type=${vehicleType}&architecture=${architecture}`)
+      .then(res => {
+        let fetched = res.data.assets || [];
+        
+        if (!ext.includes('Cloud') && !ext.includes('Cellular') && !ext.includes('Wi-Fi')) {
+          fetched = fetched.filter(a => a.category !== 'Cloud');
+        }
+        if (!ext.includes('V2X')) {
+          fetched = fetched.filter(a => !(a.interface_types?.includes('V2X') && a.interface_types?.length === 1));
+        }
+        
+        setAssets(fetched);
+      })
       .catch(() => toast.error('Failed to load component library'));
   }, []);
 
@@ -92,11 +195,71 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
     });
   }, [threats, riskColors]);
 
+  const loadDiagram = useCallback(async () => {
+    if (!graphRef.current) return;
+    try {
+      const res = await api.get(`/api/diagrams/${projectId}`);
+      isRestoringRef.current = true;
+      graphRef.current.clear();
+      if (res.data.diagram?.graph_json?._joint_raw) {
+        graphRef.current.fromJSON(res.data.diagram.graph_json._joint_raw);
+      }
+      isRestoringRef.current = false;
+
+      // Ensure all standard nodes have their ports correctly defined on load
+      graphRef.current.getElements().forEach(cell => {
+        const d = cell.get('data') || {};
+        if (d.is_trust_boundary) return;
+
+        const colors = CAT_COLORS[d.category] || { fill: '#111827', stroke: '#374151', text: '#9ca3af' };
+        cell.prop('ports', {
+          groups: {
+            top: {
+              position: { name: 'top' },
+              markup: [{ tagName: 'circle', selector: 'portBody' }],
+              attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+            },
+            bottom: {
+              position: { name: 'bottom' },
+              markup: [{ tagName: 'circle', selector: 'portBody' }],
+              attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+            },
+            left: {
+              position: { name: 'left' },
+              markup: [{ tagName: 'circle', selector: 'portBody' }],
+              attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+            },
+            right: {
+              position: { name: 'right' },
+              markup: [{ tagName: 'circle', selector: 'portBody' }],
+              attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+            }
+          },
+          items: [
+            { group: 'top', id: 'top' },
+            { group: 'bottom', id: 'bottom' },
+            { group: 'left', id: 'left' },
+            { group: 'right', id: 'right' }
+          ]
+        });
+      });
+
+      historyRef.current = [JSON.stringify(graphRef.current.toJSON())];
+      setCanUndo(false);
+      setCanRedo(false);
+      setSelectedCell(null);
+    } catch (err) {
+      console.error('Error loading diagram:', err);
+    }
+  }, [projectId]);
+
+
   // ── Init JointJS ──
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const handleKeyDown = (e) => {
+      if (!editableRef.current) return;
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedRef.current) {
@@ -137,14 +300,24 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           has_security_control: false,
           crosses_trust_boundary: false,
           labels: [{ attrs: { text: { text: 'CAN', fill: '#9ca3af', fontSize: 10 } }, position: 0.5 }],
+          router: { name: 'manhattan' },
+          connector: { name: 'rounded' }
         }),
         linkPinning: false,
         snapLinks: { radius: 30 },
         defaultConnectionPoint: { name: 'boundary' },
-        validateConnection: (srcView, srcMag, tgtView) => {
+        validateMagnet: (cellView, magnet) => {
+          if (!magnet) return false;
+          if (cellView.model.get('data')?.is_trust_boundary) return false;
+          const val = magnet.getAttribute('magnet');
+          return val && val !== 'false';
+        },
+        validateConnection: (srcView, srcMag, tgtView, tgtMag) => {
           if (srcView === tgtView) return false;
           if (tgtView.model.get('data')?.is_trust_boundary) return false;
-          return true;
+          if (!tgtMag) return false;
+          const val = tgtMag.getAttribute('magnet');
+          return val && val !== 'false';
         },
       });
       paperRef.current = paper;
@@ -158,34 +331,60 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       });
       resizeObs.observe(container);
 
-      // ── Canvas panning (middle-click or blank drag) ──
+      // ── Canvas panning & resizing ──
       let isPanning = false;
       let panStart = { x: 0, y: 0 };
       let panOrigin = { x: 0, y: 0 };
+      let activeResizeView = null;
+      let resizeStartSize = null;
+      let resizeStartPos = null;
 
       paper.on('blank:pointerdown', (evt, x, y) => {
         setContextMenu(null);
         isPanning = true;
-        const scale = paper.scale().sx;
         panStart = { x: evt.clientX, y: evt.clientY };
         panOrigin = paper.translate();
         container.style.cursor = 'grabbing';
       });
 
-      const onPanMove = (e) => {
-        if (!isPanning) return;
-        const dx = e.clientX - panStart.x;
-        const dy = e.clientY - panStart.y;
-        paper.translate(panOrigin.x + dx, panOrigin.y + dy);
+      paper.on('element:resize', (elementView, evt) => {
+        evt.stopPropagation();
+        if (!editableRef.current) return;
+        activeResizeView = elementView;
+        resizeStartSize = elementView.model.size();
+        resizeStartPos = { x: evt.clientX, y: evt.clientY };
+        container.style.cursor = 'nwse-resize';
+      });
+
+      const onGlobalMouseMove = (e) => {
+        if (isPanning) {
+          const dx = e.clientX - panStart.x;
+          const dy = e.clientY - panStart.y;
+          paper.translate(panOrigin.x + dx, panOrigin.y + dy);
+        } else if (activeResizeView) {
+          const scale = paper.scale().sx;
+          const dx = (e.clientX - resizeStartPos.x) / scale;
+          const dy = (e.clientY - resizeStartPos.y) / scale;
+          activeResizeView.model.resize(
+            Math.max(100, resizeStartSize.width + dx),
+            Math.max(50, resizeStartSize.height + dy)
+          );
+        }
       };
-      const onPanUp = () => {
+
+      const onGlobalMouseUp = () => {
         if (isPanning) {
           isPanning = false;
           container.style.cursor = '';
         }
+        if (activeResizeView) {
+          activeResizeView = null;
+          container.style.cursor = '';
+          pushSnap();
+        }
       };
-      document.addEventListener('mousemove', onPanMove);
-      document.addEventListener('mouseup', onPanUp);
+      document.addEventListener('mousemove', onGlobalMouseMove);
+      document.addEventListener('mouseup', onGlobalMouseUp);
 
       // Selection
       paper.on('cell:pointerclick', (cv) => {
@@ -202,7 +401,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
                 prev.attr('body/strokeWidth', 1.5);
               }
             }
-          } catch(e) {}
+          } catch (e) { }
         }
         // Highlight new
         if (!cv.model.isLink()) {
@@ -230,7 +429,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
                 prev.attr('body/strokeWidth', 1.5);
               }
             }
-          } catch(e) {}
+          } catch (e) { }
         }
         setSelectedCell(null);
         setContextMenu(null);
@@ -239,6 +438,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       // Context menu
       paper.on('cell:contextmenu', (cv, evt) => {
         evt.preventDefault();
+        if (!editableRef.current) return;
         setSelectedCell(cv.model);
         setContextMenu({ cell: cv.model, x: evt.clientX, y: evt.clientY });
       });
@@ -246,6 +446,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
       // Double-click inline rename
       paper.on('cell:pointerdblclick', (cv) => {
+        if (!editableRef.current) return;
         if (cv.model.isLink()) return;
         const d = cv.model.get('data') || {};
         const label = d.is_trust_boundary ? (d.label || 'Trust Boundary') : (d.label || cv.model.attr('label/text') || '');
@@ -279,26 +480,13 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       graph.on('remove', pushSnap);
       paper.on('cell:pointerup', pushSnap);
 
-      // Load existing diagram
-      api.get(`/api/diagrams/${projectId}`)
-        .then(res => {
-          if (res.data.diagram?.graph_json?._joint_raw) {
-            isRestoringRef.current = true;
-            graph.fromJSON(res.data.diagram.graph_json._joint_raw);
-            isRestoringRef.current = false;
-            historyRef.current = [JSON.stringify(graph.toJSON())];
-            setCanUndo(false);
-            setCanRedo(false);
-          } else {
-            historyRef.current = [JSON.stringify(graph.toJSON())];
-          }
-        })
-        .catch(() => {});
+      // Load the diagram now that the graph is ready
+      loadDiagram();
 
-      // Store pan handlers for cleanup
+      // Store event handlers for cleanup
       container._panCleanup = () => {
-        document.removeEventListener('mousemove', onPanMove);
-        document.removeEventListener('mouseup', onPanUp);
+        document.removeEventListener('mousemove', onGlobalMouseMove);
+        document.removeEventListener('mouseup', onGlobalMouseUp);
       };
     }, 150);
 
@@ -315,14 +503,51 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
   // ── Add Node ──
   const addNode = useCallback((asset) => {
-    if (!graphRef.current) return;
+    if (!graphRef.current || !editableRef.current) return;
     const colors = CAT_COLORS[asset.category] || { fill: '#111827', stroke: '#374151', text: '#9ca3af' };
-    const cell = new shapes.standard.Rectangle();
+    const cell = new shapes.standard.Rectangle({
+      ports: {
+        groups: {
+          top: {
+            position: { name: 'top' },
+            markup: [{ tagName: 'circle', selector: 'portBody' }],
+            attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+          },
+          bottom: {
+            position: { name: 'bottom' },
+            markup: [{ tagName: 'circle', selector: 'portBody' }],
+            attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+          },
+          left: {
+            position: { name: 'left' },
+            markup: [{ tagName: 'circle', selector: 'portBody' }],
+            attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+          },
+          right: {
+            position: { name: 'right' },
+            markup: [{ tagName: 'circle', selector: 'portBody' }],
+            attrs: { portBody: { magnet: true, r: 5, fill: '#1f2937', stroke: colors.stroke, strokeWidth: 1.5 } }
+          }
+        },
+        items: [
+          { group: 'top', id: 'top' }, 
+          { group: 'bottom', id: 'bottom' }, 
+          { group: 'left', id: 'left' }, 
+          { group: 'right', id: 'right' }
+        ]
+      }
+    });
     cell.position(80 + Math.random() * 400, 80 + Math.random() * 300);
-    cell.resize(160, 64);
+    cell.resize(140, 60);
     cell.attr({
-      body: { fill: colors.fill, stroke: colors.stroke, strokeWidth: 1.5, rx: 6, ry: 6, magnet: true },
-      label: { text: asset.name, fill: colors.text, fontSize: 11, fontFamily: 'monospace', fontWeight: 'bold' },
+      body: { fill: colors.fill, stroke: colors.stroke, strokeWidth: 1.5, rx: 6, ry: 6, magnet: false },
+      label: { 
+        textWrap: { text: asset.name, width: -10 }, 
+        fill: colors.text, 
+        fontSize: 10, 
+        fontFamily: 'monospace', 
+        fontWeight: 'bold' 
+      },
     });
     cell.set('data', {
       asset_ref_id: asset.id,
@@ -339,13 +564,23 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
   // ── Add Trust Boundary ──
   const addTrustBoundary = useCallback(() => {
-    if (!graphRef.current) return;
+    if (!graphRef.current || !editableRef.current) return;
     const cell = new shapes.standard.Rectangle();
+    cell.markup = [
+      { tagName: 'rect', selector: 'body' },
+      { tagName: 'text', selector: 'label' },
+      { tagName: 'rect', selector: 'resizeHandle' }
+    ];
     cell.position(50 + Math.random() * 100, 50 + Math.random() * 100);
     cell.resize(320, 220);
     cell.attr({
       body: { fill: 'rgba(217,119,6,0.05)', stroke: '#d97706', strokeWidth: 2, strokeDasharray: '8 4', rx: 0, ry: 0, magnet: false },
       label: { text: 'Trust Boundary', fill: '#fcd34d', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold', refY: 14 },
+      resizeHandle: {
+        x: 'calc(w - 6)', y: 'calc(h - 6)',
+        width: 10, height: 10, fill: '#d97706', cursor: 'nwse-resize',
+        event: 'element:resize'
+      }
     });
     cell.set('data', { is_trust_boundary: true, label: 'Trust Boundary' });
     graphRef.current.addCell(cell);
@@ -441,9 +676,11 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       toast.success('Diagram saved');
       onDiagramSaved?.();
       setTimeout(() => setSaveMsg(''), 2000);
-    } catch {
+    } catch (err) {
+      console.error('Error saving diagram:', err);
       setSaveMsg('Failed');
-      toast.error('Failed to save diagram');
+      const apiErr = err.response?.data?.error || err.response?.data?.details || err.message;
+      toast.error(`Failed to save diagram: ${typeof apiErr === 'object' ? JSON.stringify(apiErr) : apiErr}`);
     } finally {
       setSaving(false);
     }
@@ -513,48 +750,61 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   return (
     <div className="flex" style={{ height: 'calc(100vh - 48px)' }}>
       {/* ── Components Sidebar ── */}
-      <div className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
-        <div className="px-3 py-2 border-b border-gray-800">
-          <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Components</span>
-        </div>
-        <div className="flex-1 overflow-y-auto px-2 py-2">
-          <div className="mb-3">
-            <button
-              onClick={addTrustBoundary}
-              className="w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded border border-dashed border-amber-700 text-amber-400 hover:bg-amber-900/20 hover:border-amber-500 transition-colors text-xs font-medium"
-            >
-              + Trust Boundary
-            </button>
+      {editable && (
+        <div className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
+          <div className="px-3 py-2 border-b border-gray-800">
+            <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Components</span>
           </div>
-          {Object.entries(grouped).map(([category, items]) => (
-            <div key={category} className="mb-3">
-              <p className="text-gray-600 text-[10px] uppercase tracking-widest px-1 mb-1">{category}</p>
-              {items.map(asset => (
-                <div
-                  key={asset.id}
-                  onClick={() => addNode(asset)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
-                  title="Click to add to canvas"
-                >
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
-                  <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
-                  <span className="text-gray-600 group-hover:text-gray-400 text-[10px]">+</span>
-                </div>
-              ))}
+          <div className="flex-1 overflow-y-auto px-2 py-2">
+            <div className="mb-3">
+              <button
+                onClick={addTrustBoundary}
+                className="w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded border border-dashed border-amber-700 text-amber-400 hover:bg-amber-900/20 hover:border-amber-500 transition-colors text-xs font-medium"
+              >
+                + Trust Boundary
+              </button>
             </div>
-          ))}
-          {assets.length === 0 && (
-            <p className="text-gray-600 text-xs px-2 py-4">No components. Add assets in the Asset Library.</p>
-          )}
+            {Object.entries(grouped).map(([category, items]) => (
+              <div key={category} className="mb-3">
+                <p className="text-gray-600 text-[10px] uppercase tracking-widest px-1 mb-1">{category}</p>
+                {items.map(asset => (
+                  <div
+                    key={asset.id}
+                    onClick={() => addNode(asset)}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
+                    title="Click to add to canvas"
+                  >
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
+                    <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
+                    <span className="text-gray-600 group-hover:text-gray-400 text-[10px]">+</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {assets.length === 0 && (
+              <p className="text-gray-600 text-xs px-2 py-4">No components. Add assets in the Asset Library.</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Canvas ── */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Lock / Read-only banner */}
+        {!editable && (
+          <div className="bg-yellow-900/30 border-b border-yellow-800/50 px-3 py-1.5 flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-yellow-300 text-xs">
+              {lockError || (!canEdit ? 'Read-only — your role does not have edit permissions.' : 'Waiting for diagram lock...')}
+            </span>
+          </div>
+        )}
         {/* Toolbar */}
         <div className="h-10 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <button onClick={saveDiagram} disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-3 py-1 rounded transition-colors font-medium">
+            <button onClick={saveDiagram} disabled={saving || !editable} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-3 py-1 rounded transition-colors font-medium">
               {saving ? 'Saving...' : 'Save'}
             </button>
             {saveMsg && <span className={`text-xs ${saveMsg === 'Saved' ? 'text-green-400' : 'text-red-400'}`}>{saveMsg}</span>}
@@ -642,7 +892,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         confirmText="Delete"
         confirmDanger
       >
-        <p className="text-gray-300 text-sm">Delete this element? This cannot be undone.</p>
+        <p className="text-gray-300 text-sm">Delete this element? You can use <span className="text-white font-medium">Undo (Ctrl+Z)</span> to restore it before saving.</p>
       </Modal>
 
       {/* ── Rename Modal ── */}

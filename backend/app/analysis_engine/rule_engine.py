@@ -2,195 +2,217 @@
 # CAPEC attack patterns, UNECE R155/R156, and LINDDUN.
 
 STRIDE_RULES = [
-
-    # ═══════════════════════════════════════════════
-    # NODE RULES (attribute-based)
-    # ═══════════════════════════════════════════════
-
+    # ─── SPOOFING ───
     {
-        'id': 'R001',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: 'is_connected_to_cloud' in node.get('flags', []),
-        'threat_title': 'Cloud Channel Information Disclosure',
-        'stride': 'Information Disclosure',
+        'id': 'R001', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'CAN Bus Injection',
+        'condition': lambda e, vp: e.get('protocol') == 'CAN'
     },
     {
-        'id': 'R002',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: node.get('category') == 'Safety-Critical',
-        'threat_title': 'Safety-Critical System Tampering',
-        'stride': 'Tampering',
+        'id': 'R002', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'CAN-FD Bus Injection',
+        'condition': lambda e, vp: e.get('protocol') == 'CAN-FD'
     },
     {
-        'id': 'R003',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: 'PII' in node.get('data_types', []),
-        'threat_title': 'PII Exposure (LINDDUN Detectability)',
-        'stride': 'Information Disclosure',
+        'id': 'R003', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'LIN Bus Message Spoofing',
+        'condition': lambda e, vp: e.get('protocol') == 'LIN'
     },
     {
-        'id': 'R004',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: node.get('physical_accessibility') == 'OBD-II',
-        'threat_title': 'Physical Tampering via OBD-II Port',
-        'stride': 'Tampering',
+        'id': 'R004', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'FlexRay Message Spoofing',
+        'condition': lambda e, vp: e.get('protocol') == 'FlexRay'
     },
     {
-        'id': 'R005',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: (
-            vp.get('ota_support') and
-            'ota_capable' in node.get('flags', [])
-        ),
-        'threat_title': 'OTA Update Man-in-the-Middle',
-        'stride': 'Tampering',
+        'id': 'R005', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'Ethernet Packet Spoofing',
+        'condition': lambda e, vp: e.get('protocol') in ['Ethernet', 'SOME/IP']
     },
     {
-        'id': 'R006',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: (
-            node.get('category') == 'Perception' and
-            vp.get('sae_level', 0) >= 3
-        ),
-        'threat_title': 'Autonomous Sensor Spoofing (SAE L3+)',
-        'stride': 'Spoofing',
+        'id': 'R006', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'Sensor Spoofing (GPS/Radar)',
+        'condition': lambda n, vp: n.get('category') == 'Perception' and 'Camera' not in n.get('name', '')
     },
     {
-        'id': 'R007',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: node.get('category') == 'Infotainment',
-        'threat_title': 'Unauthorized Infotainment Data Access',
-        'stride': 'Information Disclosure',
+        'id': 'R007', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'Camera Blinding/Spoofing',
+        'condition': lambda n, vp: 'Camera' in n.get('name', '')
     },
     {
-        'id': 'R008',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: (
-            vp.get('architecture') == 'SDV' and
-            'is_virtualized' in node.get('flags', [])
-        ),
-        'threat_title': 'Container Escape / Privilege Escalation (SDV)',
-        'stride': 'Elevation of Privilege',
+        'id': 'R008', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'V2X Infrastructure Spoofing',
+        'condition': lambda n, vp: 'V2I' in n.get('name', '') or 'V2X' in n.get('name', '')
     },
     {
-        'id': 'R009',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: node.get('category') == 'Cloud',
-        'threat_title': 'Cloud API Abuse / Unauthorized Access',
-        'stride': 'Elevation of Privilege',
+        'id': 'R009', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'V2V Vehicle Identity Spoofing',
+        'condition': lambda e, vp: e.get('protocol') == 'V2X'
     },
     {
-        'id': 'R010_node',
-        'trigger_type': 'node',
-        'condition': lambda node, vp: (
-            'is_connected_to_cloud' in node.get('flags', []) and
-            'PII' in node.get('data_types', [])
-        ),
-        'threat_title': 'LINDDUN - Vehicle Tracking via Cloud Telemetry',
-        'stride': 'Information Disclosure',
+        'id': 'R010', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'Keyless Entry Relay Attack',
+        'condition': lambda n, vp: 'Keyless' in n.get('name', '')
+    },
+    {
+        'id': 'R011', 'trigger_type': 'edge', 'stride': 'Spoofing', 'threat_title': 'Bluetooth MAC Spoofing',
+        'condition': lambda e, vp: e.get('protocol') == 'Bluetooth'
+    },
+    {
+        'id': 'R012', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'EVSE Identity Spoofing',
+        'condition': lambda n, vp: 'EVSE' in n.get('name', '')
+    },
+    {
+        'id': 'R013', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'Cloud API Token Spoofing',
+        'condition': lambda n, vp: n.get('category') == 'Cloud'
     },
 
-    # ═══════════════════════════════════════════════
-    # EDGE RULES (protocol-based)
-    # ═══════════════════════════════════════════════
-
+    # ─── TAMPERING ───
     {
-        'id': 'R010',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') in ['CAN', 'CAN-FD'],
-        'threat_title': 'CAN Bus Message Injection (CAPEC-19)',
-        'stride': 'Spoofing',
+        'id': 'R014', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'OTA Update Hijacking',
+        'condition': lambda n, vp: 'ota_capable' in n.get('flags', [])
     },
     {
-        'id': 'R011',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') in ['CAN', 'CAN-FD', 'LIN'],
-        'threat_title': 'CAN/LIN Bus Traffic Sniffing (CAPEC-167)',
-        'stride': 'Information Disclosure',
+        'id': 'R015', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Unsigned Firmware Flashing',
+        'condition': lambda n, vp: n.get('physical_accessibility') in ['OBD-II', 'Internal']
     },
     {
-        'id': 'R012',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') in ['Bluetooth', 'Wi-Fi'],
-        'threat_title': 'Wireless Traffic Interception (CAPEC-158)',
-        'stride': 'Information Disclosure',
+        'id': 'R016', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Diagnostic Parameter Tampering',
+        'condition': lambda n, vp: n.get('category') in ['Gateway', 'Powertrain']
     },
     {
-        'id': 'R013',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') == 'V2X',
-        'threat_title': 'V2X Message Replay Attack (CAPEC-570)',
-        'stride': 'Spoofing',
+        'id': 'R017', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'SDV Container Image Tampering',
+        'condition': lambda n, vp: vp.get('architecture') == 'SDV' and 'is_virtualized' in n.get('flags', [])
     },
     {
-        'id': 'R014',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') == 'Cellular',
-        'threat_title': 'Rogue Base Station / IMSI Catcher Attack',
-        'stride': 'Information Disclosure',
+        'id': 'R018', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'BMS Battery Limit Tampering',
+        'condition': lambda n, vp: 'Battery' in n.get('name', '')
     },
     {
-        'id': 'R015',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') == 'Ethernet',
-        'threat_title': 'VLAN Hopping / Lateral Movement (ATT&CK ICS)',
-        'stride': 'Elevation of Privilege',
+        'id': 'R019', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Odometer Rollback',
+        'condition': lambda n, vp: n.get('category') == 'Body'
     },
     {
-        'id': 'R016',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') == 'USB',
-        'threat_title': 'Malicious USB Device Injection',
-        'stride': 'Tampering',
+        'id': 'R020', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Infotainment Rooting / Jailbreaking',
+        'condition': lambda n, vp: n.get('category') == 'Infotainment'
     },
     {
-        'id': 'R017',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: edge.get('protocol') == 'ISO-15118',
-        'threat_title': 'EV Charging Station Attack (ISO 15118)',
-        'stride': 'Tampering',
+        'id': 'R021', 'trigger_type': 'edge', 'stride': 'Tampering', 'threat_title': 'V2X Message Tampering',
+        'condition': lambda e, vp: e.get('protocol') == 'V2X'
+    },
+    {
+        'id': 'R022', 'trigger_type': 'edge', 'stride': 'Tampering', 'threat_title': 'EV Charging Parameter Tampering',
+        'condition': lambda e, vp: e.get('protocol') == 'ISO-15118'
+    },
+    {
+        'id': 'R023', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Hardware Implant / Modchip',
+        'condition': lambda n, vp: n.get('physical_accessibility') == 'Internal'
     },
 
-    # ═══════════════════════════════════════════════
-    # TRUST BOUNDARY RULES
-    # ═══════════════════════════════════════════════
-
+    # ─── REPUDIATION ───
     {
-        'id': 'R020',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: (
-            edge.get('crosses_trust_boundary') and
-            not edge.get('has_security_control')
-        ),
-        'threat_title': 'Unsecured Trust Boundary Crossing',
-        'stride': 'Spoofing',
-    },
-
-    # ═══════════════════════════════════════════════
-    # CONTEXTUAL RULES (vehicle profile)
-    # ═══════════════════════════════════════════════
-
-    {
-        'id': 'R021',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: (
-            edge.get('protocol') == 'V2X' and
-            'V2X' in vp.get('external_interfaces', [])
-        ),
-        'threat_title': 'V2X Infrastructure Spoofing (UNECE R155)',
-        'stride': 'Spoofing',
+        'id': 'R024', 'trigger_type': 'node', 'stride': 'Repudiation', 'threat_title': 'Audit Log Deletion',
+        'condition': lambda n, vp: n.get('category') in ['Gateway', 'Compute']
     },
     {
-        'id': 'R022',
-        'trigger_type': 'edge',
-        'condition': lambda edge, vp: (
-            vp.get('ota_support') and
-            edge.get('protocol') in ['Cellular', 'Wi-Fi'] and
-            not edge.get('has_security_control')
-        ),
-        'threat_title': 'Unsigned OTA Update Acceptance (UNECE R156)',
-        'stride': 'Tampering',
+        'id': 'R025', 'trigger_type': 'edge', 'stride': 'Repudiation', 'threat_title': 'Cloud Telemetry Spoofing',
+        'condition': lambda e, vp: e.get('protocol') == 'Cellular'
     },
+    {
+        'id': 'R026', 'trigger_type': 'edge', 'stride': 'Repudiation', 'threat_title': 'V2X Non-Repudiation Bypass',
+        'condition': lambda e, vp: e.get('protocol') == 'V2X'
+    },
+    {
+        'id': 'R027', 'trigger_type': 'edge', 'stride': 'Repudiation', 'threat_title': 'EV Billing Repudiation',
+        'condition': lambda e, vp: e.get('protocol') == 'ISO-15118'
+    },
+
+    # ─── INFORMATION DISCLOSURE ───
+    {
+        'id': 'R028', 'trigger_type': 'edge', 'stride': 'Information Disclosure', 'threat_title': 'CAN/LIN Bus Traffic Sniffing',
+        'condition': lambda e, vp: e.get('protocol') in ['CAN', 'CAN-FD', 'LIN']
+    },
+    {
+        'id': 'R029', 'trigger_type': 'edge', 'stride': 'Information Disclosure', 'threat_title': 'Automotive Ethernet Sniffing',
+        'condition': lambda e, vp: e.get('protocol') in ['Ethernet', 'SOME/IP']
+    },
+    {
+        'id': 'R030', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'Credential Theft via Infotainment',
+        'condition': lambda n, vp: n.get('category') == 'Infotainment'
+    },
+    {
+        'id': 'R031', 'trigger_type': 'edge', 'stride': 'Information Disclosure', 'threat_title': 'Location Tracking (LINDDUN Linkability)',
+        'condition': lambda e, vp: e.get('protocol') in ['Cellular', 'Wi-Fi']
+    },
+    {
+        'id': 'R032', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'Microphone/Camera Eavesdropping',
+        'condition': lambda n, vp: n.get('category') == 'Infotainment' or 'Camera' in n.get('name', '')
+    },
+    {
+        'id': 'R033', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'Cloud Backend Data Breach',
+        'condition': lambda n, vp: n.get('category') == 'Cloud'
+    },
+    {
+        'id': 'R034', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'Companion App Local Storage Leak',
+        'condition': lambda n, vp: 'App' in n.get('name', '')
+    },
+    {
+        'id': 'R035', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'UDS Memory Read Dump',
+        'condition': lambda n, vp: n.get('category') in ['Powertrain', 'Safety-Critical']
+    },
+    {
+        'id': 'R036', 'trigger_type': 'edge', 'stride': 'Information Disclosure', 'threat_title': 'EVSE Payment Info Disclosure',
+        'condition': lambda e, vp: e.get('protocol') == 'ISO-15118'
+    },
+
+    # ─── DENIAL OF SERVICE ───
+    {
+        'id': 'R037', 'trigger_type': 'edge', 'stride': 'Denial of Service', 'threat_title': 'CAN Bus Flooding (DoS)',
+        'condition': lambda e, vp: e.get('protocol') in ['CAN', 'CAN-FD']
+    },
+    {
+        'id': 'R038', 'trigger_type': 'edge', 'stride': 'Denial of Service', 'threat_title': 'Ethernet Network Storm',
+        'condition': lambda e, vp: e.get('protocol') in ['Ethernet', 'SOME/IP']
+    },
+    {
+        'id': 'R039', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'Ransomware on IVI/HPC',
+        'condition': lambda n, vp: n.get('category') in ['Infotainment', 'Compute']
+    },
+    {
+        'id': 'R040', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'Cloud API DDoS',
+        'condition': lambda n, vp: n.get('category') == 'Cloud'
+    },
+    {
+        'id': 'R041', 'trigger_type': 'edge', 'stride': 'Denial of Service', 'threat_title': 'EV Charging DoS',
+        'condition': lambda e, vp: e.get('protocol') in ['ISO-15118', 'Wi-Fi']
+    },
+    {
+        'id': 'R042', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'Sensor Blinding (Laser/Jamming)',
+        'condition': lambda n, vp: n.get('category') == 'Perception'
+    },
+    {
+        'id': 'R043', 'trigger_type': 'edge', 'stride': 'Denial of Service', 'threat_title': 'V2X Channel Jamming',
+        'condition': lambda e, vp: e.get('protocol') == 'V2X'
+    },
+
+    # ─── ELEVATION OF PRIVILEGE ───
+    {
+        'id': 'R044', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Diagnostic Interface Access',
+        'condition': lambda n, vp: n.get('physical_accessibility') == 'OBD-II'
+    },
+    {
+        'id': 'R045', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Hypervisor Escape',
+        'condition': lambda n, vp: vp.get('architecture') == 'SDV' and 'is_virtualized' in n.get('flags', [])
+    },
+    {
+        'id': 'R046', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Container Breakout',
+        'condition': lambda n, vp: vp.get('architecture') == 'SDV' and n.get('category') == 'Gateway'
+    },
+    {
+        'id': 'R047', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'JTAG/UART Hardware Debug Access',
+        'condition': lambda n, vp: n.get('physical_accessibility') == 'Internal'
+    },
+    {
+        'id': 'R048', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Diagnostic Session Hijacking',
+        'condition': lambda n, vp: n.get('category') in ['Gateway', 'Compute']
+    },
+    {
+        'id': 'R049', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Companion App Token Escalation',
+        'condition': lambda n, vp: 'App' in n.get('name', '')
+    },
+    {
+        'id': 'R050', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Lateral Movement via Gateway',
+        'condition': lambda n, vp: n.get('category') == 'Gateway'
+    }
 ]
 
 
@@ -215,28 +237,34 @@ class RuleEngine:
     def _apply_node_rule(self, rule, nodes, vehicle_profile, threats):
         """Apply a single rule against all nodes."""
         for node_id, node in nodes.items():
-            if rule['condition'](node, vehicle_profile):
-                threats.append({
-                    'rule_id': rule['id'],
-                    'asset_id': node_id,
-                    'asset_label': node.get('label', ''),
-                    'asset_category': node.get('category', ''),
-                    'flow_id': None,
-                    'threat_title': rule['threat_title'],
-                    'stride': rule['stride'],
-                })
+            try:
+                if rule['condition'](node, vehicle_profile):
+                    threats.append({
+                        'rule_id': rule['id'],
+                        'asset_id': node_id,
+                        'asset_label': node.get('label', ''),
+                        'asset_category': node.get('category', ''),
+                        'flow_id': None,
+                        'threat_title': rule['threat_title'],
+                        'stride': rule['stride'],
+                    })
+            except Exception:
+                pass
 
     def _apply_edge_rule(self, rule, edges, nodes, vehicle_profile, threats):
         """Apply a single rule against all edges. Threat is on the target node."""
         for edge in edges:
-            if rule['condition'](edge, vehicle_profile):
-                target_node = nodes.get(edge.get('target'), {})
-                threats.append({
-                    'rule_id': rule['id'],
-                    'asset_id': edge.get('target', ''),
-                    'asset_label': target_node.get('label', ''),
-                    'asset_category': target_node.get('category', ''),
-                    'flow_id': edge.get('id'),
-                    'threat_title': rule['threat_title'],
-                    'stride': rule['stride'],
-                })
+            try:
+                if rule['condition'](edge, vehicle_profile):
+                    target_node = nodes.get(edge.get('target'), {})
+                    threats.append({
+                        'rule_id': rule['id'],
+                        'asset_id': edge.get('target', ''),
+                        'asset_label': target_node.get('label', ''),
+                        'asset_category': target_node.get('category', ''),
+                        'flow_id': edge.get('id'),
+                        'threat_title': rule['threat_title'],
+                        'stride': rule['stride'],
+                    })
+            except Exception:
+                pass

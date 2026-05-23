@@ -84,10 +84,10 @@ export default function LoginPage() {
             <div className="absolute bottom-2 right-16 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-300">Gateway</div>
             {/* Lines */}
             <svg className="absolute inset-0 w-full h-full">
-              <line x1="80" y1="20" x2="220" y2="20" stroke="#374151" strokeWidth="1" strokeDasharray="4,2"/>
-              <line x1="80" y1="20" x2="100" y2="100" stroke="#374151" strokeWidth="1" strokeDasharray="4,2"/>
-              <line x1="220" y1="20" x2="200" y2="100" stroke="#374151" strokeWidth="1" strokeDasharray="4,2"/>
-              <line x1="100" y1="100" x2="200" y2="100" stroke="#1d4ed8" strokeWidth="1"/>
+              <line x1="80" y1="20" x2="220" y2="20" stroke="#374151" strokeWidth="1" strokeDasharray="4,2" />
+              <line x1="80" y1="20" x2="100" y2="100" stroke="#374151" strokeWidth="1" strokeDasharray="4,2" />
+              <line x1="220" y1="20" x2="200" y2="100" stroke="#374151" strokeWidth="1" strokeDasharray="4,2" />
+              <line x1="100" y1="100" x2="200" y2="100" stroke="#1d4ed8" strokeWidth="1" />
             </svg>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function LoginPage() {
             <span className="text-white font-bold text-lg">ATMT-SDV</span>
           </div>
 
-          <h2 className="text-white text-2xl font-bold mb-1">Welcome back, engineer.</h2>
+          <h2 className="text-white text-2xl font-bold mb-1">Welcome back!</h2>
           <p className="text-gray-500 text-sm mb-8">Sign in with your organization credentials.</p>
 
           {error && (

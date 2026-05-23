@@ -92,12 +92,12 @@ def seed_automotive_data():
         # 2. Assets (using 'name' and 'category')
         if RefAsset.query.count() == 0:
             assets = [
-                RefAsset(name="Central Gateway (CGW)", category="Gateway", vehicle_types=["BEV", "PHEV", "ICE"], asil_level="D", interface_types=["CAN", "Ethernet"], data_types=["Control"]),
-                RefAsset(name="Telematics Unit (TCU)", category="Connectivity", vehicle_types=["ALL"], asil_level="B", interface_types=["Cellular", "Wi-Fi"], data_types=["PII", "Cloud"]),
-                RefAsset(name="ADAS Controller", category="ECU", vehicle_types=["BEV", "PHEV"], asil_level="D", interface_types=["Ethernet", "LVDS"], data_types=["Sensor Data"]),
-                RefAsset(name="BMS", category="ECU", vehicle_types=["BEV", "PHEV"], asil_level="D", interface_types=["CAN"], data_types=["Battery Status"]),
-                RefAsset(name="Infotainment (IVI)", category="User Interface", vehicle_types=["ALL"], asil_level="Q", interface_types=["Ethernet", "Bluetooth"], data_types=["PII"]),
-                RefAsset(name="Smart Key", category="ECU", vehicle_types=["ALL"], asil_level="B", interface_types=["NFC", "BLE"], data_types=["Auth"]),
+                RefAsset(name="Central Gateway (CGW)", category="Gateway", vehicle_types=["BEV", "PHEV", "ICE"], asil_level="D", interface_types=["CAN", "Ethernet"], data_types=["Control"], default_safety=4, default_financial=3, default_operational=4, default_privacy=2),
+                RefAsset(name="Telematics Unit (TCU)", category="Connectivity", vehicle_types=["ALL"], asil_level="B", interface_types=["Cellular", "Wi-Fi"], data_types=["PII", "Cloud"], default_safety=3, default_financial=3, default_operational=3, default_privacy=5),
+                RefAsset(name="ADAS Controller", category="ECU", vehicle_types=["BEV", "PHEV"], asil_level="D", interface_types=["Ethernet", "LVDS"], data_types=["Sensor Data"], default_safety=5, default_financial=4, default_operational=4, default_privacy=3),
+                RefAsset(name="BMS", category="ECU", vehicle_types=["BEV", "PHEV"], asil_level="D", interface_types=["CAN"], data_types=["Battery Status"], default_safety=4, default_financial=4, default_operational=4, default_privacy=2),
+                RefAsset(name="Infotainment (IVI)", category="User Interface", vehicle_types=["ALL"], asil_level="Q", interface_types=["Ethernet", "Bluetooth"], data_types=["PII"], default_safety=2, default_financial=3, default_operational=2, default_privacy=5),
+                RefAsset(name="Smart Key", category="ECU", vehicle_types=["ALL"], asil_level="B", interface_types=["NFC", "BLE"], data_types=["Auth"], default_safety=3, default_financial=4, default_operational=4, default_privacy=3),
             ]
             for a in assets: db.session.add(a)
         

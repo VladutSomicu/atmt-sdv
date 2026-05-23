@@ -18,6 +18,13 @@ import MobileGuard from './components/layout/MobileGuard';
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
+
+// Editor route — additionally blocks mobile screens
+function EditorProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <MobileGuard>{children}</MobileGuard>;
 }
 
@@ -37,9 +44,9 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/projects/:projectId/editor" element={
-          <ProtectedRoute>
+          <EditorProtectedRoute>
             <EditorPage />
-          </ProtectedRoute>
+          </EditorProtectedRoute>
         } />
         <Route path="/admin" element={
           <ProtectedRoute>

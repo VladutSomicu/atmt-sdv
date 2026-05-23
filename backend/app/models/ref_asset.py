@@ -28,8 +28,10 @@ class RefAsset(db.Model):
     default_privacy = db.Column(db.SmallInteger, nullable=True)
     # Special flags: is_connected_to_cloud, is_virtualized, ota_capable, etc.
     flags = db.Column(db.ARRAY(db.Text), nullable=True)
-    # ICE / EV / Hybrid / SDV -- filters what appears in sidebar per vehicle profile
+    # ICE / EV / Hybrid -- filters what appears in sidebar per vehicle profile
     vehicle_types = db.Column(db.ARRAY(db.Text), nullable=True)
+    # Classic / SDV -- filters by architecture
+    architectures = db.Column(db.ARRAY(db.Text), nullable=True)
 
     def __repr__(self):
         return f'<RefAsset {self.name}>'

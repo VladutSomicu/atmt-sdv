@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../services/api';
 import AppLayout from '../components/layout/AppLayout';
+import toast from 'react-hot-toast';
 
 const STEPS = [
   { id: 1, label: 'Project', sub: 'Name & objectives' },
@@ -78,7 +79,8 @@ export default function ProjectSetupPage() {
           try {
             await api.post(`/api/projects/${projectId}/members`, { email: m.email.trim(), role: m.role });
           } catch (e) {
-            console.error('Failed to invite', m.email, e);
+            const msg = e.response?.data?.error || `Failed to invite ${m.email}`;
+            toast.error(msg);
           }
         }
       }
@@ -92,7 +94,7 @@ export default function ProjectSetupPage() {
 
   return (
     <AppLayout breadcrumb={[
-      { label: 'Projects', href: '/dashboard' },
+      { label: 'Projects', href: '/projects' },
       { label: 'New project' }
     ]}>
       <div className="max-w-5xl mx-auto">
@@ -248,7 +250,9 @@ export default function ProjectSetupPage() {
                     <div>
                       <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">
                         SAE Automation Level — <span className="text-blue-400">Level {saeLevel}</span>
-                        {saeLevel >= 3 && <span className="text-yellow-500 ml-2">Safety-Critical: Perception sensors → Severe (4)</span>}
+                        {saeLevel <= 2 && <span className="text-gray-400 ml-2">Driver intervention possible. Standard safety scoring.</span>}
+                        {(saeLevel === 3 || saeLevel === 4) && <span className="text-yellow-500 ml-2">⚠️ Perception sensors auto-scored as Severe (4).</span>}
+                        {saeLevel === 5 && <span className="text-red-500 ml-2">🔴 All safety-critical systems auto-scored as Severe (4).</span>}
                       </label>
                       <input
                         type="range"
@@ -269,7 +273,7 @@ export default function ProjectSetupPage() {
               {/* ── STEP 3 ── */}
               {step === 3 && (
                 <>
-                  <h3 className="text-white text-xl font-bold mb-1">External interfaces</h3>
+                  <h3 className="text-white text-xl font-bold mb-1">External & Diagnostic Interfaces</h3>
                   <p className="text-gray-500 text-sm mb-6">
                     Each interface activates specific CAPEC attack patterns and UNECE R155 threat categories.
                   </p>
@@ -291,7 +295,7 @@ export default function ProjectSetupPage() {
                     </div>
                   </div>
 
-                  <label className="block text-gray-400 text-xs uppercase tracking-wider mb-3">External interfaces</label>
+                  <label className="block text-gray-400 text-xs uppercase tracking-wider mb-3">Interfaces</label>
                   <div className="grid grid-cols-2 gap-2">
                     {['OBD-II', 'V2X', 'Cloud', 'USB', 'Bluetooth', 'Wi-Fi', 'Cellular'].map(iface => (
                       <div
@@ -325,38 +329,63 @@ export default function ProjectSetupPage() {
                   
                   <div className="space-y-3 mb-4">
                     {members.map((m, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <input
-                          type="email"
-                          placeholder="user@example.com"
-                          value={m.email}
-                          onChange={(e) => {
-                            const newM = [...members];
-                            newM[idx].email = e.target.value;
-                            setMembers(newM);
-                          }}
-                          className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                        />
-                        <select
-                          value={m.role}
-                          onChange={(e) => {
-                            const newM = [...members];
-                            newM[idx].role = e.target.value;
-                            setMembers(newM);
-                          }}
-                          className="w-40 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                        >
-                          <option value="engineer">Engineer</option>
-                          <option value="architect">Architect</option>
-                          <option value="manager">Manager</option>
-                          <option value="auditor">Auditor</option>
-                        </select>
-                        <button
-                          onClick={() => setMembers(members.filter((_, i) => i !== idx))}
-                          className="text-gray-500 hover:text-red-400 p-2"
-                        >
-                          ×
-                        </button>
+                      <div key={idx}>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="email"
+                            placeholder="user@example.com"
+                            value={m.email}
+                            onChange={(e) => {
+                              const newM = [...members];
+                              newM[idx].email = e.target.value;
+                              newM[idx].valid = undefined;
+                              newM[idx].validName = undefined;
+                              setMembers(newM);
+                            }}
+                            onBlur={async () => {
+                              const email = m.email.trim();
+                              if (!email) return;
+                              try {
+                                const res = await api.get(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+                                const newM = [...members];
+                                newM[idx].valid = res.data.exists;
+                                newM[idx].validName = res.data.full_name;
+                                setMembers(newM);
+                              } catch {
+                                // ignore network errors during validation
+                              }
+                            }}
+                            className={`flex-1 bg-gray-800 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${
+                              m.valid === false ? 'border-red-600' : m.valid === true ? 'border-green-600' : 'border-gray-700'
+                            }`}
+                          />
+                          <select
+                            value={m.role}
+                            onChange={(e) => {
+                              const newM = [...members];
+                              newM[idx].role = e.target.value;
+                              setMembers(newM);
+                            }}
+                            className="w-40 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="engineer">Engineer</option>
+                            <option value="architect">Architect</option>
+                            <option value="manager">Manager</option>
+                            <option value="auditor">Auditor</option>
+                          </select>
+                          <button
+                            onClick={() => setMembers(members.filter((_, i) => i !== idx))}
+                            className="text-gray-500 hover:text-red-400 p-2"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        {m.valid === false && (
+                          <p className="text-red-400 text-xs mt-1 ml-1">User not found. They must register first.</p>
+                        )}
+                        {m.valid === true && m.validName && (
+                          <p className="text-green-400 text-xs mt-1 ml-1">✓ {m.validName}</p>
+                        )}
                       </div>
                     ))}
                   </div>

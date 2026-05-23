@@ -51,7 +51,7 @@ export default function GlobalReportsPage() {
   // Calculate mitigation rate
   const mitigationRate = summary.total_threats > 0
     ? Math.round((summary.mitigated_threats / summary.total_threats) * 100)
-    : 100;
+    : 0;
 
   return (
     <AppLayout breadcrumb={[{ label: 'Global Reports' }]}>

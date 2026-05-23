@@ -8,6 +8,8 @@ from ..schemas.diagram import SaveDiagramSchema
 from ..utils.auth_decorators import requires_project_role
 from pydantic import ValidationError
 
+from .projects import check_project_lock
+
 diagrams_bp = Blueprint('diagrams', __name__, url_prefix='/api/diagrams')
 
 
@@ -27,9 +29,11 @@ def save_diagram():
     user_id = get_jwt_identity()
 
     # Check that the project is locked by this user
-    if not project.is_locked or str(project.locked_by) != user_id:
+    is_holder, msg = check_project_lock(project, user_id)
+    if not is_holder:
+        db.session.commit()
         return jsonify({
-            "error": "You must lock the project before saving"
+            "error": "You must lock the project before saving. " + msg
         }), 403
 
     # Get the current highest version number
@@ -48,6 +52,14 @@ def save_diagram():
     )
 
     db.session.add(diagram)
+    
+    from ..utils.audit import log_action
+    log_action(
+        user_id=user_id,
+        action='diagram_saved',
+        project_id=data.project_id,
+        new_value={"version": new_version, "dfd_level": data.dfd_level}
+    )
     db.session.commit()
 
     return jsonify({

@@ -29,6 +29,9 @@ class RefThreat(db.Model):
     default_impact_operational = db.Column(db.SmallInteger, nullable=True)
     default_impact_privacy = db.Column(db.SmallInteger, nullable=True)
     default_feasibility = db.Column(db.SmallInteger, nullable=True)
+    # Filters
+    vehicle_types = db.Column(db.ARRAY(db.Text), nullable=True)
+    architectures = db.Column(db.ARRAY(db.Text), nullable=True)
 
     def __repr__(self):
         return f'<RefThreat {self.title}>'

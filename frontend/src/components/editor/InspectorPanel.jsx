@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const PROTOCOLS = ['CAN','CAN-FD','LIN','Ethernet','Bluetooth','Wi-Fi','Cellular','V2X','USB','ISO-15118','K-Line'];
+const PROTOCOLS = ['CAN', 'CAN-FD', 'LIN', 'FlexRay', 'Ethernet', 'Bluetooth', 'Wi-Fi', 'Cellular', 'V2X', 'USB', 'ISO-15118', 'SOME/IP'];
 
 export default function InspectorPanel({ selectedCell, threats, onUpdate }) {
   const [tick, setTick] = useState(0);
@@ -141,7 +141,7 @@ export default function InspectorPanel({ selectedCell, threats, onUpdate }) {
                 value={data.label || ''}
                 onChange={(e) => {
                   selectedCell.set('data', { ...data, label: e.target.value });
-                  selectedCell.attr('label/text', e.target.value);
+                  selectedCell.attr('label/textWrap/text', e.target.value);
                   refresh();
                 }}
               />

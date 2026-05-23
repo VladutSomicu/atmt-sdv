@@ -44,8 +44,8 @@ def run_analysis():
             user_id=user_id
         ).first()
         
-        if not member or member.role not in ['engineer']:
-            return jsonify({"error": "Only engineers can run the analysis engine"}), 403
+        if not member or member.role not in ['engineer', 'architect']:
+            return jsonify({"error": "Only engineers and architects can run the analysis engine"}), 403
 
     # Get the latest diagram
     diagram = Diagram.query.filter_by(

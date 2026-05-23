@@ -69,10 +69,21 @@ class ScoringEngine:
     def _apply_context(self, s, f, o, p, feasibility, node, vp, sae_level):
         """Apply vehicle profile and node-specific adjustments."""
 
-        # SAE Level >= 3: Perception sensors get max Safety
-        if node.get('category') == 'Perception' and sae_level >= 3:
-            s = 4
-            feasibility = max(feasibility, 4)
+        # SAE 0-2 Logic
+        if sae_level <= 2:
+            if node.get('category') == 'Perception':
+                s = min(s, 3) # Major, not Severe
+
+        # SAE 3-4 Logic
+        if sae_level in [3, 4]:
+            if node.get('category') == 'Perception':
+                s = 4
+                feasibility = max(feasibility, 4)
+
+        # SAE 5 Logic
+        if sae_level == 5:
+            if node.get('category') in ['Perception', 'Powertrain', 'Safety-Critical', 'Body']:
+                s = 4
 
         # Cloud-connected nodes: max feasibility + high privacy
         if 'is_connected_to_cloud' in node.get('flags', []):
