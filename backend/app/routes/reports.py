@@ -7,6 +7,7 @@ from ..models.threat import Threat
 from ..models.diagram import Diagram
 from ..models.project_member import ProjectMember
 from ..models.user import User
+from ..models.audit_log import AuditLog
 from ..utils.auth_decorators import requires_project_role
 from ..utils.report_generator import ReportGenerator
 from ..routes.compliance import _run_r155_checks, _run_r156_checks, _run_general_checks
@@ -157,9 +158,36 @@ def generate_report(project_id):
                 "role": m.role
             })
 
+    # Get audit logs
+    audit_logs_query = AuditLog.query.filter(
+        AuditLog.project_id == str(project_id),
+        ~AuditLog.action.in_(['project_locked', 'project_unlocked'])
+    ).order_by(AuditLog.created_at.asc()).all()
+
+    audit_logs = []
+    for log in audit_logs_query:
+        user = User.query.get(log.user_id)
+        audit_logs.append({
+            "action": log.action,
+            "user": user.full_name if user else "System",
+            "date": log.created_at.strftime("%Y-%m-%d %H:%M"),
+            "justification": log.justification
+        })
+
+    # Extract diagram nodes for Asset Identification section
+    diagram_nodes = []
+    if diagram and diagram.graph_json:
+        raw = diagram.graph_json.get('_joint_raw', diagram.graph_json)
+        cells = raw.get('cells', [])
+        diagram_nodes = [
+            c for c in cells
+            if not c.get('source')  # exclude links
+            and not c.get('data', {}).get('is_trust_boundary')  # exclude TBs
+        ]
+
     # Generate PDF
     generator = ReportGenerator()
-    pdf_bytes = generator.generate(project, threats, compliance, members)
+    pdf_bytes = generator.generate(project, threats, compliance, members, audit_logs, diagram_nodes)
 
     # Update project status
     project.status = 'completed'

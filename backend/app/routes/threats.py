@@ -27,6 +27,7 @@ def get_threats(project_id):
             {
                 "id": str(t.id),
                 "asset_id": t.asset_id,
+                "asset_name": t.asset_name,
                 "flow_id": t.flow_id,
                 "stride_category": t.stride_category,
                 "title": t.title,
@@ -143,8 +144,15 @@ def update_threat(threat_id):
         if not member or member.role != 'engineer':
             return jsonify({"error": "Only engineers can modify threat scores"}), 403
 
-    # Require justification for Accept treatment
-    if data.treatment == 'accept' and not data.justification:
+    updates = data.model_dump(exclude_unset=True)
+
+    new_status = updates.get('status', threat.status)
+    new_treatment = updates.get('treatment', threat.treatment)
+    new_justification = updates.get('justification', threat.justification)
+
+    # Require justification if status is 'accepted' or treatment is 'accept'
+    is_accepted = (new_status == 'accepted' or new_treatment == 'accept')
+    if is_accepted and not new_justification:
         return jsonify({"error": "Justification is required when accepting a risk"}), 400
 
     # Track if baseline was modified
@@ -197,15 +205,15 @@ def update_threat(threat_id):
                     threat.feasibility = max(1, threat.feasibility - val)
                 score_changed = True
 
-    # Update treatment and status
-    if data.treatment is not None:
-        threat.treatment = data.treatment
+    # Update treatment, status and justification
+    if 'treatment' in updates:
+        threat.treatment = updates['treatment']
 
-    if data.status is not None:
-        threat.status = data.status
+    if 'status' in updates:
+        threat.status = updates['status']
 
-    if data.justification is not None:
-        threat.justification = data.justification
+    if 'justification' in updates:
+        threat.justification = updates['justification']
 
     # Mark as modified if scores changed
     if score_changed:

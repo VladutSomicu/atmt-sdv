@@ -5,6 +5,30 @@ import Modal from '../shared/Modal';
 import InspectorPanel from './InspectorPanel';
 import toast from 'react-hot-toast';
 
+// Define a custom shape for Trust Boundaries so the router can exclude it by type
+const TrustBoundaryShape = dia.Element.define('atmt.TrustBoundary', {
+  markup: [
+    { tagName: 'rect', selector: 'body' },
+    { tagName: 'text', selector: 'label' },
+    { tagName: 'rect', selector: 'resizeHandle' }
+  ],
+  attrs: {
+    body: { refWidth: '100%', refHeight: '100%', fill: 'rgba(217,119,6,0.05)', stroke: '#d97706', strokeWidth: 2, strokeDasharray: '8 4', rx: 0, ry: 0, magnet: false },
+    label: { text: 'Trust Boundary', fill: '#fcd34d', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold', refY: 14 },
+    resizeHandle: {
+      x: 'calc(w - 6)', y: 'calc(h - 6)',
+      width: 10, height: 10, fill: '#d97706', cursor: 'nwse-resize',
+      event: 'element:resize'
+    }
+  }
+});
+// Register it in the shapes namespace
+Object.assign(shapes, {
+  atmt: {
+    TrustBoundary: TrustBoundaryShape
+  }
+});
+
 /* ── Category Colors ── */
 const CAT_COLORS = {
   'Safety-Critical': { fill: '#1c1917', stroke: '#dc2626', text: '#fca5a5' },
@@ -202,7 +226,19 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       isRestoringRef.current = true;
       graphRef.current.clear();
       if (res.data.diagram?.graph_json?._joint_raw) {
-        graphRef.current.fromJSON(res.data.diagram.graph_json._joint_raw);
+        const raw = res.data.diagram.graph_json._joint_raw;
+        // Migrate existing elements
+        if (raw.cells) {
+          raw.cells.forEach(cell => {
+            if (cell.data && cell.data.is_trust_boundary) {
+              cell.type = 'atmt.TrustBoundary';
+            }
+            if (cell.type === 'standard.Link') {
+              cell.router = { name: 'manhattan', args: { excludeTypes: ['atmt.TrustBoundary'] } };
+            }
+          });
+        }
+        graphRef.current.fromJSON(raw);
       }
       isRestoringRef.current = false;
 
@@ -292,17 +328,20 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         background: { color: '#030712' },
         cellViewNamespace: shapes,
         interactive: { linkMove: true, elementMove: true, arrowheadMove: true, addLinkFromMagnet: true },
-        defaultLink: () => new shapes.standard.Link({
-          attrs: {
-            line: { stroke: '#4b5563', strokeWidth: 1.5, targetMarker: { type: 'path', fill: '#4b5563', stroke: 'none', d: 'M 7 -3 0 0 7 3 z' } }
-          },
-          protocol: 'CAN',
-          has_security_control: false,
-          crosses_trust_boundary: false,
-          labels: [{ attrs: { text: { text: 'CAN', fill: '#9ca3af', fontSize: 10 } }, position: 0.5 }],
-          router: { name: 'manhattan' },
-          connector: { name: 'rounded' }
-        }),
+        defaultLink: () => {
+          const lnk = new shapes.standard.Link({
+            attrs: {
+              line: { stroke: '#4b5563', strokeWidth: 1.5, targetMarker: { type: 'path', fill: '#4b5563', stroke: 'none', d: 'M 7 -3 0 0 7 3 z' } }
+            },
+            protocol: 'CAN',
+            has_security_control: false,
+            crosses_trust_boundary: false,
+            labels: [{ attrs: { text: { text: 'CAN', fill: '#9ca3af', fontSize: 10 } }, position: 0.5 }],
+            connector: { name: 'rounded' }
+          });
+          lnk.router('manhattan', { excludeTypes: ['atmt.TrustBoundary'] });
+          return lnk;
+        },
         linkPinning: false,
         snapLinks: { radius: 30 },
         defaultConnectionPoint: { name: 'boundary' },
@@ -565,23 +604,9 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   // ── Add Trust Boundary ──
   const addTrustBoundary = useCallback(() => {
     if (!graphRef.current || !editableRef.current) return;
-    const cell = new shapes.standard.Rectangle();
-    cell.markup = [
-      { tagName: 'rect', selector: 'body' },
-      { tagName: 'text', selector: 'label' },
-      { tagName: 'rect', selector: 'resizeHandle' }
-    ];
+    const cell = new TrustBoundaryShape();
     cell.position(50 + Math.random() * 100, 50 + Math.random() * 100);
     cell.resize(320, 220);
-    cell.attr({
-      body: { fill: 'rgba(217,119,6,0.05)', stroke: '#d97706', strokeWidth: 2, strokeDasharray: '8 4', rx: 0, ry: 0, magnet: false },
-      label: { text: 'Trust Boundary', fill: '#fcd34d', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold', refY: 14 },
-      resizeHandle: {
-        x: 'calc(w - 6)', y: 'calc(h - 6)',
-        width: 10, height: 10, fill: '#d97706', cursor: 'nwse-resize',
-        event: 'element:resize'
-      }
-    });
     cell.set('data', { is_trust_boundary: true, label: 'Trust Boundary' });
     graphRef.current.addCell(cell);
     cell.toBack();
