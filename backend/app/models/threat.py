@@ -25,6 +25,7 @@ class Threat(db.Model):
 
     # Which node/edge in graph_json is affected
     asset_id = db.Column(db.String(100), nullable=False)
+    asset_name = db.Column(db.String(200), nullable=True)
     flow_id = db.Column(db.String(100), nullable=True)
 
     # Threat metadata (copied from ref_threats for convenience)

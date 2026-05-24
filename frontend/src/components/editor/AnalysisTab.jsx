@@ -207,7 +207,7 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset 
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-gray-500 text-xs">{t.source_ref || t.source || '-'}</td>
-                    <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">{t.asset_id}</td>
+                    <td className="px-4 py-2.5 text-gray-400 text-xs font-mono break-all">{t.asset_name || t.asset_id}</td>
                     <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">
                       {t.impact_safety}-{t.impact_financial}-{t.impact_operational}-{t.impact_privacy}
                     </td>

@@ -238,7 +238,7 @@ class ReportGenerator:
             ))
 
             detail_data = [
-                ["Asset", t.asset_id, "STRIDE", t.stride_category],
+                ["Asset", getattr(t, 'asset_name', None) or t.asset_id, "STRIDE", t.stride_category],
                 ["Source", f"{t.source or 'N/A'} ({t.source_ref or 'N/A'})",
                  "Status", t.status.capitalize()],
                 ["Safety", str(t.impact_safety), "Financial", str(t.impact_financial)],

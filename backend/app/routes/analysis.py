@@ -72,6 +72,7 @@ def run_analysis():
             project_id=project_id,
             ref_threat_id=t.get('ref_threat_id'),
             asset_id=t['asset_id'],
+            asset_name=t.get('asset_label', 'Unknown Component'),
             flow_id=t.get('flow_id'),
             stride_category=t['stride'],
             title=t['threat_title'],
