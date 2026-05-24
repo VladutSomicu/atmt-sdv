@@ -88,7 +88,8 @@ class ReportGenerator:
         add(ParagraphStyle(
             'CoverSubtitle', parent=self.styles['Normal'],
             fontSize=12, leading=16, spaceAfter=4,
-            textColor=_SLATE, alignment=TA_CENTER
+            textColor=_SLATE, alignment=TA_CENTER,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'SectionHeader', parent=self.styles['Heading1'],
@@ -103,17 +104,20 @@ class ReportGenerator:
         add(ParagraphStyle(
             'Body', parent=self.styles['Normal'],
             fontSize=9, leading=13, spaceAfter=4,
-            textColor=_BLACK, alignment=TA_JUSTIFY
+            textColor=_BLACK, alignment=TA_JUSTIFY,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'BodySmall', parent=self.styles['Normal'],
             fontSize=8, leading=11, spaceAfter=2,
-            textColor=_BLACK
+            textColor=_BLACK,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'CellText', parent=self.styles['Normal'],
             fontSize=7.5, leading=10, spaceAfter=0,
-            textColor=_BLACK
+            textColor=_BLACK,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'CellBold', parent=self.styles['Normal'],
@@ -128,7 +132,8 @@ class ReportGenerator:
         add(ParagraphStyle(
             'Disclaimer', parent=self.styles['Normal'],
             fontSize=8, leading=11, spaceAfter=4,
-            textColor=_BLACK, alignment=TA_JUSTIFY
+            textColor=_BLACK, alignment=TA_JUSTIFY,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'DisclaimerBold', parent=self.styles['Normal'],
@@ -138,7 +143,8 @@ class ReportGenerator:
         add(ParagraphStyle(
             'TOCEntry', parent=self.styles['Normal'],
             fontSize=10, leading=18, spaceAfter=0,
-            textColor=_CHARCOAL
+            textColor=_CHARCOAL,
+            fontName='Helvetica'
         ))
         add(ParagraphStyle(
             'BannerText', parent=self.styles['Normal'],
@@ -149,7 +155,14 @@ class ReportGenerator:
         add(ParagraphStyle(
             'FooterText', parent=self.styles['Normal'],
             fontSize=7, leading=9, spaceAfter=0,
-            textColor=_GRAY500
+            textColor=_GRAY500,
+            fontName='Helvetica'
+        ))
+        add(ParagraphStyle(
+            'CodeText', parent=self.styles['Normal'],
+            fontSize=8, leading=11, spaceAfter=4,
+            textColor=_BLACK,
+            fontName='Courier'
         ))
 
     # ──────────────────────────────────────────────────────────
@@ -453,17 +466,16 @@ class ReportGenerator:
             'manager': 'Compliance Manager',
             'viewer': 'External Auditor',
         }
-        approval_data = [
-            [self._c("Role", True, white=True),
-             self._c("Full Name", True, white=True),
-             self._c("Signature", True, white=True),
-             self._c("Date", True, white=True)]
-        ]
-        used_roles = set()
-        for m in members:
-            mapped = role_map.get(m.get('role', ''), m.get('role', '').capitalize())
-            if mapped not in used_roles:
-                used_roles.add(mapped)
+
+        if members:
+            approval_data = [
+                [self._c("Role", True, white=True),
+                 self._c("Full Name", True, white=True),
+                 self._c("Signature", True, white=True),
+                 self._c("Date", True, white=True)]
+            ]
+            for m in members:
+                mapped = role_map.get(m.get('role', ''), m.get('role', '').capitalize())
                 approval_data.append([
                     self._c(mapped),
                     self._c(m.get('full_name', 'N/A')),
@@ -471,22 +483,11 @@ class ReportGenerator:
                     self._c("____/____/________")
                 ])
 
-        # Fill missing roles
-        for role_label in ['Cybersecurity Engineer', 'System Architect',
-                           'Compliance Manager', 'External Auditor']:
-            if role_label not in used_roles:
-                approval_data.append([
-                    self._c(role_label),
-                    self._c("_______________________"),
-                    self._c("_______________________"),
-                    self._c("____/____/________")
-                ])
-
-        approval_t = self._make_table(
-            approval_data,
-            [40 * mm, 45 * mm, 42 * mm, 35 * mm]
-        )
-        els.append(approval_t)
+            approval_t = self._make_table(
+                approval_data,
+                [40 * mm, 45 * mm, 42 * mm, 35 * mm]
+            )
+            els.append(approval_t)
 
         return els
 
@@ -734,26 +735,33 @@ class ReportGenerator:
             [self._c("ID", True, white=True),
              self._c("Name", True, white=True),
              self._c("Category", True, white=True),
-             self._c("Interfaces", True, white=True)]
+             self._c("Interfaces", True, white=True),
+             self._c("Data Types", True, white=True)]
         ]
-        for i, node in enumerate(diagram_nodes, 1):
+        idx = 0
+        for node in diagram_nodes:
             data = node.get('data', {})
             if data.get('is_trust_boundary'):
                 continue
+            idx += 1
             label = data.get('label', node.get('attrs', {}).get('label', {}).get('text', 'Unknown'))
             category = data.get('category', 'N/A')
-            ifaces = data.get('interfaces', [])
+            # Read interface_types (the actual field name stored on nodes)
+            ifaces = data.get('interface_types', data.get('interfaces', []))
             ifaces_str = ", ".join(ifaces) if isinstance(ifaces, list) and ifaces else "—"
+            dtypes = data.get('data_types', [])
+            dtypes_str = ", ".join(dtypes) if isinstance(dtypes, list) and dtypes else "—"
             asset_data.append([
-                self._c(f"A-{i:02d}"),
+                self._c(f"A-{idx:02d}"),
                 self._c(label),
                 self._c(category),
                 self._c(ifaces_str),
+                self._c(dtypes_str),
             ])
 
         if len(asset_data) > 1:
             els.append(self._make_table(
-                asset_data, [15 * mm, 50 * mm, 40 * mm, CONTENT_W - 105 * mm]
+                asset_data, [12 * mm, 40 * mm, 28 * mm, 40 * mm, 35 * mm]
             ))
         else:
             els.append(Paragraph("<i>No component assets found in diagram.</i>", self.styles['Body']))
@@ -1312,7 +1320,7 @@ class ReportGenerator:
         ]
 
         for ref_id, text in refs:
-            els.append(Paragraph(f"<b>{ref_id}</b> {text}", self.styles['Body']))
+            els.append(Paragraph(f"<b>{ref_id}</b> {text}", self.styles['CodeText']))
         return els
 
     # ──────────────────────────────────────────────────────────
