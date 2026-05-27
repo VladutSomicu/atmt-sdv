@@ -44,6 +44,21 @@ CONTROLS_DATA = [
     # ─── ADVANCED SDV CONTROLS ───
     ("Zero Trust Architecture (ZTA)", "Mutual authentication and continuous authorization between all microservices.", ["Elevation of Privilege", "Spoofing"], ["Ethernet", "Cellular"], 3, "Feasibility", "NIST_SP800-207"),
     ("Runtime Integrity Monitoring", "Monitors OS processes and memory for malicious injection.", ["Tampering", "Elevation of Privilege"], ["ALL"], 2, "Feasibility", "SDV_Arch"),
+
+    # ─── EXTENDED CONTROLS ───
+    ("TPMS Cryptographic Authentication", "Authenticates tire sensors to prevent spoofing.", ["Spoofing"], ["RF", "CAN"], 4, "Feasibility", "ISO_21434"),
+    ("UWB Secure Ranging (Time-of-Flight)", "Uses Ultra-Wideband to prevent relay attacks.", ["Spoofing"], ["UWB"], 4, "Feasibility", "CCC"),
+    ("Immobilizer Cryptographic Challenge-Response", "Uses strong AES/RSA for transponder auth.", ["Spoofing"], ["LF", "CAN"], 4, "Feasibility", "ISO_14229"),
+    ("Broker TLS Mutual Authentication & Rate Limiting", "Enforces mTLS and limits connections.", ["Denial of Service"], ["Ethernet"], 3, "Feasibility", "NIST_SP800-52"),
+    ("Container Image Signature Verification", "Ensures only cryptographically signed images run.", ["Tampering"], ["Internal API"], 4, "Feasibility", "NIST_SP800-190"),
+    ("SOA Service Authentication & Authorization", "Validates services registering on the SOA bus.", ["Tampering"], ["Ethernet"], 3, "Feasibility", "AUTOSAR_Adaptive"),
+    ("Hardware TEE for ML Models", "Protects AI models in a Trusted Execution Environment.", ["Tampering"], ["PCIe", "Ethernet"], 4, "Feasibility", "GlobalPlatform"),
+    ("SELinux Enforcing Mode & MAC Policies", "Strict Mandatory Access Control for AAOS daemons.", ["Elevation of Privilege"], ["Internal API"], 3, "Feasibility", "Android_Security"),
+    ("Binder IPC Mutual Authentication", "Enforces app identity at the IPC level.", ["Spoofing"], ["Binder"], 3, "Feasibility", "Android_Security"),
+    ("Android APK Code Signing Verification", "Validates app developer certificates.", ["Tampering"], ["Internal API"], 4, "Feasibility", "OWASP-Mobile"),
+    ("Display Framebuffer Integrity Check", "Validates HUD display signals against physical sensors.", ["Tampering"], ["LVDS", "Ethernet"], 2, "Impact - Safety", "ISO_26262"),
+    ("USB Device Whitelisting & Sandboxing", "Prevents malware execution from media ports.", ["Tampering"], ["USB"], 3, "Feasibility", "Android_Security"),
+    ("eCall Cellular Cryptographic Authentication", "Secures the emergency dialer channel.", ["Spoofing"], ["Cellular"], 3, "Feasibility", "3GPP_Sec")
 ]
 
 def seed_controls():

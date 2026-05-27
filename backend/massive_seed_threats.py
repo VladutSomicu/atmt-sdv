@@ -65,7 +65,23 @@ THREATS_DATA = [
     ("Elevation of Privilege", "JTAG/UART Hardware Debug Access", "Attacker solders wires to exposed debug ports to gain root.", "CAPEC-531", 4, 3, 4, 4, 1, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
     ("Elevation of Privilege", "Diagnostic Session Hijacking", "Attacker bypasses UDS SecurityAccess (Seed/Key) algorithm.", "CAPEC-68", 4, 3, 4, 2, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
     ("Elevation of Privilege", "Companion App Token Escalation", "Attacker modifies JWT token to access another user's vehicle.", "OWASP", 3, 4, 3, 4, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
-    ("Elevation of Privilege", "Lateral Movement via Gateway", "Attacker moves from Infotainment (low safety) to Powertrain (high safety) via CGW.", "UNECE_R155", 4, 4, 4, 3, 2, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"])
+    ("Elevation of Privilege", "Lateral Movement via Gateway", "Attacker moves from Infotainment (low safety) to Powertrain (high safety) via CGW.", "UNECE_R155", 4, 4, 4, 3, 2, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+
+    # ─── EXTENDED THREATS ───
+    ("Spoofing", "TPMS Sensor Spoofing / False Deflation Alerts", "Attacker transmits forged RF signals to simulate tire pressure anomalies.", "CAPEC-19", 2, 2, 2, 1, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Spoofing", "PEPS Relay Attack / Signal Amplification", "Attacker uses a relay to amplify the LF/RF signal from the owner's fob.", "CAPEC-112", 1, 4, 2, 2, 4, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Spoofing", "Immobilizer Transponder Cloning", "Attacker sniffs and clones the low-frequency immobilizer challenge-response.", "CAPEC-19", 1, 4, 2, 2, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Denial of Service", "Vehicle Data Broker (MQTT) Connection Exhaustion", "Attacker floods the SOME/IP or MQTT broker with connections.", "CAPEC-125", 2, 3, 4, 1, 3, ["ICE", "EV", "Hybrid"], ["SDV"]),
+    ("Tampering", "Malicious Container Image Deployment", "Attacker pushes a poisoned container to the SDV runtime engine.", "NIST-SP800-190", 4, 4, 4, 4, 2, ["ICE", "EV", "Hybrid"], ["SDV"]),
+    ("Tampering", "SOA Registry Poisoning / Service Hijacking", "Attacker registers a fake service on the SOA bus to intercept traffic.", "SDV_Threat", 4, 3, 4, 4, 2, ["ICE", "EV", "Hybrid"], ["SDV"]),
+    ("Tampering", "ML Model Poisoning / Evasion Attack", "Attacker alters training data or uses adversarial inputs to trick the Edge AI.", "MITRE-ATLAS", 4, 2, 4, 1, 2, ["ICE", "EV", "Hybrid"], ["SDV"]),
+    ("Elevation of Privilege", "AAOS VHAL Privilege Escalation via Malicious App", "Attacker uses a vulnerable Android app to gain unauthorized VHAL write access.", "CAPEC-233", 4, 3, 4, 4, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Spoofing", "Android Binder IPC Spoofing", "Attacker spoofs the caller UID/PID over Android Binder to invoke privileged APIs.", "CAPEC-19", 2, 3, 3, 4, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Information Disclosure", "Android App Sandbox Bypass Leaking PII", "Attacker escapes the Android application sandbox to read local storage or contacts.", "CAPEC-37", 1, 4, 2, 4, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Tampering", "Sideloading of Unsigned Android Apps", "Attacker enables developer mode or exploits ADB to install unapproved APKs.", "CAPEC-185", 1, 3, 2, 4, 4, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Tampering", "AR-HUD Display Tampering / Falsified Road Warnings", "Attacker manipulates HUD overlays to trick the driver with fake obstacles.", "CAPEC-68", 4, 2, 4, 1, 2, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Tampering", "Rear Seat Entertainment USB Malware Infection", "Attacker inserts a malicious USB into RSE to pivot into the main network.", "CAPEC-68", 2, 3, 3, 4, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"]),
+    ("Spoofing", "eCall Emergency Call Spoofing", "Attacker spoofs the TCU cellular connection to trigger fake emergency calls.", "UNECE_R155", 3, 4, 3, 1, 3, ["ICE", "EV", "Hybrid"], ["Classic", "SDV"])
 ]
 
 def seed_threats():

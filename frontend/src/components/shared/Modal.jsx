@@ -1,9 +1,47 @@
+import { useEffect, useRef } from 'react';
+
 export default function Modal({ isOpen, title, children, onClose, onConfirm, confirmText = 'Confirm', confirmDanger = false }) {
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [isOpen]);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'Enter') {
+        if (e.defaultPrevented) return;
+        
+        const tag = e.target.tagName;
+        // Don't trigger confirm if typing in a textarea, or if focused on a button/link
+        if (tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'A') return;
+        
+        e.preventDefault();
+        if (onConfirm) onConfirm();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, onConfirm]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+    >
+      <div 
+        ref={modalRef}
+        tabIndex={-1}
+        className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 focus:outline-none"
+      >
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
           <h3 className="text-white font-medium">{title}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">

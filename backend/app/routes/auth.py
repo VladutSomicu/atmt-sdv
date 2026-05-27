@@ -159,3 +159,15 @@ def check_email():
         "exists": user is not None,
         "full_name": user.full_name if user else None
     }), 200
+
+@auth_bp.route('/directory', methods=['GET'])
+@jwt_required()
+def get_user_directory():
+    """Return a list of all active users for dropdown selection."""
+    users = User.query.filter_by(is_active=True).order_by(User.full_name).all()
+    return jsonify({
+        "users": [
+            {"email": u.email, "full_name": u.full_name}
+            for u in users
+        ]
+    }), 200

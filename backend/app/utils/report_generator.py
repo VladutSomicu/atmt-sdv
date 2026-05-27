@@ -22,7 +22,7 @@ import io
 
 
 # ──────────────────────────────────────────────────────────────
-# Color Palette — Minimal, professional, enterprise
+# Color Palette
 # ──────────────────────────────────────────────────────────────
 _NAVY      = colors.HexColor('#1F4E79')
 _CHARCOAL  = colors.HexColor('#1f2937')
@@ -291,15 +291,18 @@ class ReportGenerator:
         self._integrity_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
         vehicle = project.vehicle_profile or {}
-        doc_id = f"TARA-{str(project.id)[:8].upper()}-v1.0"
+        # ID from the first 8 characters of the project's UUID
+        doc_id = str(project.id)[:8].upper()
 
-        self._header_left = f"{project.name} — TARA Report {doc_id}"
+        self._header_left = f"{project.name} — TARA Report #{doc_id}"
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
             buffer, pagesize=A4,
             rightMargin=MARGIN, leftMargin=MARGIN,
-            topMargin=22 * mm, bottomMargin=18 * mm
+            topMargin=22 * mm, bottomMargin=18 * mm,
+            title=f"TARA Report - {project.name}",
+            author="ATMT-SDV"
         )
 
         elements = []
@@ -444,7 +447,6 @@ class ReportGenerator:
         # Document metadata
         meta_data = [
             [self._c("Document ID", True), self._c(doc_id)],
-            [self._c("Version", True), self._c("1.0")],
             [self._c("Date", True), self._c(self._gen_time.strftime("%Y-%m-%d"))],
             [self._c("Classification", True), self._c("Confidential — Restricted Distribution")],
         ]
@@ -691,8 +693,19 @@ class ReportGenerator:
                 "The following cybersecurity objectives have been defined for this item:",
                 self.styles['Body']
             ))
+            KNOWN_OBJECTIVES = {
+                'passenger_safety': 'Passenger safety',
+                'brake_availability': 'Brake system availability',
+                'location_privacy': 'Location data confidentiality',
+                'ota_integrity': 'OTA update integrity',
+                'data_privacy': 'Driver data privacy',
+                'operational_continuity': 'Operational continuity'
+            }
             for i, obj in enumerate(objectives, 1):
-                els.append(Paragraph(f"<b>OBJ-{i:02d}:</b> {obj}", self.styles['Body']))
+                display_text = KNOWN_OBJECTIVES.get(obj, obj)
+                if display_text.startswith('custom_'):
+                    display_text = 'User-defined business objective'
+                els.append(Paragraph(f"<b>OBJ-{i:02d}:</b> {display_text}", self.styles['Body']))
         else:
             els.append(Paragraph("No formal business objectives have been recorded for this project.",
                                  self.styles['Body']))
@@ -1277,21 +1290,18 @@ class ReportGenerator:
         mitigated = sum(1 for t in threats if t.status == 'mitigated')
 
         v_data = [
-            [self._c("Version", True, white=True),
-             self._c("Date", True, white=True),
+            [self._c("Date", True, white=True),
              self._c("Author", True, white=True),
              self._c("Changes", True, white=True)],
-            [self._c("0.1"),
-             self._c(project.created_at.strftime("%Y-%m-%d") if project.created_at else "N/A"),
+            [self._c(project.created_at.strftime("%Y-%m-%d") if project.created_at else "N/A"),
              self._c(engineer_name),
              self._c("Initial threat identification and project setup")],
-            [self._c("1.0"),
-             self._c(self._gen_time.strftime("%Y-%m-%d")),
+            [self._c(self._gen_time.strftime("%Y-%m-%d")),
              self._c(engineer_name),
-             self._c(f"Final report — {len(threats)} threats identified, {mitigated} mitigated")],
+             self._c(f"Generated report — {len(threats)} threats identified, {mitigated} mitigated")],
         ]
         els.append(self._make_table(
-            v_data, [20 * mm, 25 * mm, 40 * mm, CONTENT_W - 85 * mm]
+            v_data, [25 * mm, 40 * mm, CONTENT_W - 65 * mm]
         ))
         return els
 

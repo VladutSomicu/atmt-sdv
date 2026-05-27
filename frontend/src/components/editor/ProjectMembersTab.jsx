@@ -1,27 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import AppLayout from '../components/layout/AppLayout';
-import { useAuth } from '../store/AuthContext';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
+import Modal from '../shared/Modal';
+import UserSelect from '../shared/UserSelect';
 
-export default function ProjectMembersPage() {
-  const { projectId } = useParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
-  const [project, setProject] = useState(null);
+export default function ProjectMembersTab({ projectId, user }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('engineer');
   const [inviting, setInviting] = useState(false);
+  const [removingId, setRemovingId] = useState(null);
+  const [userToRemove, setUserToRemove] = useState(null);
 
   useEffect(() => {
     api.get(`/api/projects/${projectId}`)
       .then(res => {
-        setProject(res.data.project);
         setMembers(res.data.members || []);
       })
       .catch(() => toast.error('Failed to load project members'))
@@ -42,7 +37,7 @@ export default function ProjectMembersPage() {
       setMembers([...members, {
         user_id: res.data.member.user_id,
         email: res.data.member.email,
-        full_name: 'Pending invite...',
+        full_name: res.data.member.full_name,
         role: res.data.member.role,
         joined_at: new Date().toISOString()
       }]);
@@ -57,23 +52,30 @@ export default function ProjectMembersPage() {
   const myRole = user?.is_admin ? 'admin' : members.find(m => m.user_id === user?.id)?.role;
   const canManageMembers = ['admin', 'manager'].includes(myRole);
 
-  if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-500">Loading members...</div>;
+  const confirmRemove = async () => {
+    if (!userToRemove) return;
+    const userId = userToRemove.user_id;
+    setRemovingId(userId);
+    try {
+      await api.delete(`/api/projects/${projectId}/members/${userId}`);
+      toast.success('Member removed successfully');
+      setMembers(members.filter(m => m.user_id !== userId));
+      setUserToRemove(null);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to remove member');
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  if (loading) return <div className="flex-1 flex items-center justify-center text-gray-500 h-full">Loading members...</div>;
 
   return (
-    <AppLayout breadcrumb={[
-      { label: 'Projects', href: '/dashboard' },
-      { label: project?.name || 'Project', href: `/projects/${projectId}/editor` },
-      { label: 'Members' }
-    ]}>
-      <div className="max-w-4xl mx-auto mt-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-white text-2xl font-bold">Team Members</h1>
-            <p className="text-gray-500 text-sm">Manage who has access to {project?.name}</p>
-          </div>
-          <button onClick={() => navigate(`/projects/${projectId}/editor`)} className="text-gray-400 hover:text-white transition-colors text-sm">
-            Back to Editor
-          </button>
+    <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 48px)' }}>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-white text-xl font-bold">Team Members</h1>
+          <p className="text-gray-500 text-sm">Manage who has access to this project</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-8">
@@ -86,6 +88,7 @@ export default function ProjectMembersPage() {
                 <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">User</th>
                 <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">Role</th>
                 <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">Joined</th>
+                {canManageMembers && <th className="px-5 py-3 text-right text-xs text-gray-500 font-medium uppercase">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -103,6 +106,17 @@ export default function ProjectMembersPage() {
                   <td className="px-5 py-3 text-gray-500 text-xs">
                     {new Date(m.joined_at).toLocaleDateString()}
                   </td>
+                  {canManageMembers && (
+                    <td className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => setUserToRemove(m)}
+                        disabled={removingId === m.user_id}
+                        className="text-red-400 hover:text-red-300 disabled:opacity-50 text-xs transition-colors"
+                      >
+                        {removingId === m.user_id ? 'Removing...' : 'Remove'}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -115,13 +129,10 @@ export default function ProjectMembersPage() {
             <p className="text-gray-500 text-xs mb-4">Add a new user to this project. They will receive access immediately.</p>
             
             <form onSubmit={handleInvite} className="flex gap-3">
-              <input
-                type="email"
-                required
-                placeholder="User's email address"
-                value={inviteEmail}
-                onChange={e => setInviteEmail(e.target.value)}
-                className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500"
+              <UserSelect 
+                value={inviteEmail} 
+                onChange={setInviteEmail} 
+                placeholder="User's email address" 
               />
               <select
                 value={inviteRole}
@@ -144,6 +155,20 @@ export default function ProjectMembersPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+
+      <Modal
+        isOpen={!!userToRemove}
+        onClose={() => setUserToRemove(null)}
+        onConfirm={confirmRemove}
+        title="Remove Member"
+        confirmText={removingId ? "Removing..." : "Remove"}
+        confirmDanger={true}
+      >
+        <p className="text-gray-300 text-sm">
+          Are you sure you want to remove <strong>{userToRemove?.email}</strong> from this project? 
+          They will lose access immediately.
+        </p>
+      </Modal>
+    </div>
   );
 }

@@ -287,7 +287,7 @@ export default function ThreatCatalogPage() {
                     filteredThreats.map((t) => (
                       <tr key={t.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-5 py-3">
-                          <span className="px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-300 text-xs font-medium">
+                          <span className="px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">
                             {t.stride_category}
                           </span>
                         </td>

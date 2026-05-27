@@ -10,10 +10,17 @@ import { Navigate } from 'react-router-dom';
 function CreateUserModal({ isOpen, onClose, onCreated }) {
   const [form, setForm] = useState({ email: '', full_name: '', password: '', is_admin: false });
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.email || !form.full_name || !form.password) {
       toast.error('All fields are required');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,}$/;
+    if (!passwordRegex.test(form.password)) {
+      toast.error('Password must be at least 12 characters and include uppercase, lowercase, a number, and a symbol.');
       return;
     }
     setSaving(true);
@@ -45,7 +52,7 @@ function CreateUserModal({ isOpen, onClose, onCreated }) {
             type="text"
             value={form.full_name}
             onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-            placeholder="Jane Doe"
+            placeholder="John Doe"
             className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
           />
         </div>
@@ -55,19 +62,38 @@ function CreateUserModal({ isOpen, onClose, onCreated }) {
             type="email"
             value={form.email}
             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-            placeholder="jane@company.com"
+            placeholder="john@company.com"
             className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
           />
         </div>
         <div>
           <label className="text-gray-400 text-xs block mb-1">Password</label>
-          <input
-            type="password"
-            value={form.password}
-            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-            placeholder="Min. 8 characters"
-            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="Min. 12 chars, upper, lower, number, symbol"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-300 focus:outline-none"
+              tabIndex="-1"
+            >
+              {showPassword ? (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -84,20 +110,35 @@ function CreateUserModal({ isOpen, onClose, onCreated }) {
 }
 
 /* ── Edit User Modal ──────────────────────────────────── */
-function EditUserModal({ isOpen, onClose, onUpdated, user }) {
-  const [form, setForm] = useState({ email: '', full_name: '', password: '', is_admin: false });
+function EditUserModal({ isOpen, onClose, onUpdated, user, currentUser }) {
+  const [form, setForm] = useState({ email: '', full_name: '', password: '', confirmPassword: '', is_admin: false });
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setForm({ email: user.email || '', full_name: user.full_name || '', password: '', is_admin: user.is_admin || false });
+      setForm({ email: user.email || '', full_name: user.full_name || '', password: '', confirmPassword: '', is_admin: user.is_admin || false });
     }
   }, [user]);
 
   const handleSubmit = async () => {
+    if (form.password) {
+      if (form.password !== form.confirmPassword) {
+        toast.error('Passwords do not match');
+        return;
+      }
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{12,}$/;
+      if (!passwordRegex.test(form.password)) {
+        toast.error('Password must be at least 12 characters and include uppercase, lowercase, a number, and a symbol.');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const payload = { ...form };
+      delete payload.confirmPassword;
       if (!payload.password) delete payload.password; // Don't send empty password if not changing
       await api.put(`/api/admin/users/${user.id}`, payload);
       toast.success(`User ${form.full_name} updated`);
@@ -141,21 +182,76 @@ function EditUserModal({ isOpen, onClose, onUpdated, user }) {
         </div>
         <div>
           <label className="text-gray-400 text-xs block mb-1">New Password (leave blank to keep current)</label>
-          <input
-            type="password"
-            value={form.password}
-            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-300 focus:outline-none"
+              tabIndex="-1"
+            >
+              {showPassword ? (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+        {form.password && (
+          <div>
+            <label className="text-gray-400 text-xs block mb-1">Confirm New Password</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                className={`w-full bg-gray-800 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none pr-10 ${form.confirmPassword && form.password !== form.confirmPassword
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-700 focus:border-blue-500'
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-300 focus:outline-none"
+                tabIndex="-1"
+              >
+                {showConfirmPassword ? (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={form.is_admin}
             onChange={e => setForm(f => ({ ...f, is_admin: e.target.checked }))}
             className="rounded bg-gray-800 border-gray-600 text-blue-600"
+            disabled={user?.id === currentUser?.id}
           />
-          <span className="text-gray-300 text-sm">Grant admin privileges</span>
+          <span className={`text-sm ${user?.id === currentUser?.id ? 'text-gray-500' : 'text-gray-300'}`}>
+            Grant admin privileges {user?.id === currentUser?.id && '(Cannot remove own privileges)'}
+          </span>
         </label>
       </div>
     </Modal>
@@ -168,7 +264,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('users'); // 'users' or 'audit'
-  
+
   // Users tab state
   const [showCreate, setShowCreate] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -263,17 +359,15 @@ export default function AdminPage() {
       <div className="flex items-center gap-6 border-b border-gray-800 mb-6">
         <button
           onClick={() => setActiveTab('users')}
-          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
-            activeTab === 'users' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
-          }`}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'users' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}
         >
           User Management
         </button>
         <button
           onClick={() => setActiveTab('audit')}
-          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
-            activeTab === 'audit' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
-          }`}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'audit' ? 'border-blue-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}
         >
           Global Audit Log
         </button>
@@ -294,172 +388,174 @@ export default function AdminPage() {
             </button>
           </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Total Users', value: stats.total, color: 'text-white' },
-          { label: 'Active', value: stats.active, color: 'text-green-400' },
-          { label: 'Admins', value: stats.admins, color: 'text-purple-400' },
-          { label: 'Demo accounts', value: stats.demo, color: 'text-yellow-400' },
-        ].map(card => (
-          <div key={card.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">{card.label}</p>
-            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Total Users', value: stats.total, color: 'text-white' },
+              { label: 'Active', value: stats.active, color: 'text-green-400' },
+              { label: 'Admins', value: stats.admins, color: 'text-purple-400' },
+              { label: 'Demo accounts', value: stats.demo, color: 'text-yellow-400' },
+            ].map(card => (
+              <div key={card.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">{card.label}</p>
+                <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Search */}
-      <div className="mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name or email..."
-          className="w-full max-w-xs bg-gray-900 border border-gray-800 text-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-        />
-      </div>
+          {/* Search */}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name or email..."
+              className="w-full max-w-xs bg-gray-900 border border-gray-800 text-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
 
-      {/* Users table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="text-white text-sm font-medium">All users</h2>
-          <span className="text-gray-600 text-xs">{filtered.length} shown</span>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-gray-500 text-sm">Loading users...</span>
+          {/* Users table */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-white text-sm font-medium">All users</h2>
+              <span className="text-gray-600 text-xs">{filtered.length} shown</span>
             </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-gray-500 text-sm">Loading users...</span>
+                </div>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-16 text-gray-500">No users found</div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    {['USER', 'EMAIL', 'ROLE', 'STATUS', 'JOINED', 'ACTIONS'].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(u => (
+                    <tr key={u.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {u.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-white text-sm font-medium">{u.full_name}</p>
+                            {u.is_demo && <span className="text-yellow-500 text-xs">Demo account</span>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-400 text-sm">{u.email}</td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${u.is_admin ? 'bg-purple-900 text-purple-300' : 'bg-gray-800 text-gray-400'}`}>
+                            {u.is_admin ? 'Admin' : 'User'}
+                          </span>
+                          {u.id !== currentUser?.id && (
+                            <button
+                              onClick={() => toggleAdmin(u)}
+                              className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
+                              title={u.is_admin ? 'Remove admin' : 'Grant admin'}
+                            >
+                              {u.is_admin ? '↓' : '↑'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={`text-xs font-medium ${u.is_active ? 'text-green-400' : 'text-red-400'}`}>
+                          {u.is_active ? '● Active' : '○ Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-500 text-xs">
+                        {new Date(u.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setEditTarget(u)}
+                            className="text-gray-400 hover:text-white text-xs font-medium transition-colors"
+                          >
+                            Edit
+                          </button>
+                          {u.id !== currentUser?.id ? (
+                            <>
+                              <button
+                                onClick={() => u.is_active ? setDeactivateTarget(u) : toggleActive(u)}
+                                className={`text-xs font-medium transition-colors ${u.is_active ? 'text-yellow-500 hover:text-yellow-400' : 'text-green-400 hover:text-green-300'}`}
+                              >
+                                {u.is_active ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button
+                                onClick={() => setDeleteTarget(u)}
+                                className="text-red-500 hover:text-red-400 text-xs font-medium transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-gray-700 text-xs ml-2">(You)</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">No users found</div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-800">
-                {['USER', 'EMAIL', 'ROLE', 'STATUS', 'JOINED', 'ACTIONS'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(u => (
-                <tr key={u.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {u.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-medium">{u.full_name}</p>
-                        {u.is_demo && <span className="text-yellow-500 text-xs">Demo account</span>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-gray-400 text-sm">{u.email}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${u.is_admin ? 'bg-purple-900 text-purple-300' : 'bg-gray-800 text-gray-400'}`}>
-                        {u.is_admin ? 'Admin' : 'User'}
-                      </span>
-                      {u.id !== currentUser?.id && (
-                        <button
-                          onClick={() => toggleAdmin(u)}
-                          className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
-                          title={u.is_admin ? 'Remove admin' : 'Grant admin'}
-                        >
-                          {u.is_admin ? '↓' : '↑'}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className={`text-xs font-medium ${u.is_active ? 'text-green-400' : 'text-red-400'}`}>
-                      {u.is_active ? '● Active' : '○ Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-gray-500 text-xs">
-                    {new Date(u.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {u.id !== currentUser?.id ? (
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setEditTarget(u)}
-                          className="text-gray-400 hover:text-white text-xs font-medium transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => u.is_active ? setDeactivateTarget(u) : toggleActive(u)}
-                          className={`text-xs font-medium transition-colors ${u.is_active ? 'text-yellow-500 hover:text-yellow-400' : 'text-green-400 hover:text-green-300'}`}
-                        >
-                          {u.is_active ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(u)}
-                          className="text-red-500 hover:text-red-400 text-xs font-medium transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-gray-700 text-xs">You</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
 
-      {/* Create user modal */}
-      <CreateUserModal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={loadUsers}
-      />
+          {/* Create user modal */}
+          <CreateUserModal
+            isOpen={showCreate}
+            onClose={() => setShowCreate(false)}
+            onCreated={loadUsers}
+          />
 
-      {/* Edit user modal */}
-      <EditUserModal
-        isOpen={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        onUpdated={loadUsers}
-        user={editTarget}
-      />
+          <EditUserModal
+            isOpen={!!editTarget}
+            onClose={() => setEditTarget(null)}
+            onUpdated={loadUsers}
+            user={editTarget}
+            currentUser={currentUser}
+          />
 
-      {/* Deactivate confirmation */}
-      <Modal
-        isOpen={!!deactivateTarget}
-        title="Deactivate User"
-        onClose={() => setDeactivateTarget(null)}
-        onConfirm={() => toggleActive(deactivateTarget)}
-        confirmText="Deactivate"
-        confirmDanger={true}
-      >
-        <p className="text-gray-300 text-sm">
-          Deactivate <span className="text-white font-medium">{deactivateTarget?.full_name}</span>?
-          They will no longer be able to log in, but their data will be preserved.
-        </p>
-      </Modal>
+          {/* Deactivate confirmation */}
+          <Modal
+            isOpen={!!deactivateTarget}
+            title="Deactivate User"
+            onClose={() => setDeactivateTarget(null)}
+            onConfirm={() => toggleActive(deactivateTarget)}
+            confirmText="Deactivate"
+            confirmDanger={true}
+          >
+            <p className="text-gray-300 text-sm">
+              Deactivate <span className="text-white font-medium">{deactivateTarget?.full_name}</span>?
+              They will no longer be able to log in, but their data will be preserved.
+            </p>
+          </Modal>
 
-      {/* Delete confirmation */}
-      <Modal
-        isOpen={!!deleteTarget}
-        title="Permanently Delete User"
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => deleteUser(deleteTarget)}
-        confirmText="Delete Permanently"
-        confirmDanger={true}
-      >
-        <p className="text-gray-300 text-sm">
-          Are you sure you want to permanently delete <span className="text-white font-medium">{deleteTarget?.full_name}</span>?
-          This action cannot be undone. All project memberships associated with this user will also be removed.
-        </p>
+          {/* Delete confirmation */}
+          <Modal
+            isOpen={!!deleteTarget}
+            title="Permanently Delete User"
+            onClose={() => setDeleteTarget(null)}
+            onConfirm={() => deleteUser(deleteTarget)}
+            confirmText="Delete Permanently"
+            confirmDanger={true}
+          >
+            <p className="text-gray-300 text-sm">
+              Are you sure you want to permanently delete <span className="text-white font-medium">{deleteTarget?.full_name}</span>?
+              This action cannot be undone. All project memberships associated with this user will also be removed.
+            </p>
           </Modal>
         </>
       )}
@@ -475,7 +571,7 @@ export default function AdminPage() {
               Refresh
             </button>
           </div>
-          
+
           {loadingAudit ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />

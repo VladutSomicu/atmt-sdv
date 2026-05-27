@@ -198,7 +198,7 @@ export default function SecurityControlsPage() {
                         <td className="px-5 py-4">
                           <div className="flex flex-wrap gap-1">
                             {c.applies_to_stride?.map(s => (
-                              <span key={s} className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-400 text-[10px]">{s}</span>
+                              <span key={s} className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-400 text-[10px] whitespace-nowrap">{s}</span>
                             ))}
                           </div>
                         </td>

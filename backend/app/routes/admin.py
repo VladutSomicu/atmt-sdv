@@ -106,7 +106,13 @@ def update_user(user_id):
         user.full_name = data['full_name'].strip()
 
     if 'password' in data and data['password'].strip():
-        user.password_hash = bcrypt.generate_password_hash(data['password'].strip()).decode('utf-8')
+        pwd = data['password'].strip()
+        from ..schemas.auth import validate_password_strength
+        try:
+            validate_password_strength(pwd)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        user.password_hash = bcrypt.generate_password_hash(pwd).decode('utf-8')
 
     db.session.commit()
 

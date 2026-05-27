@@ -26,12 +26,10 @@ export default function Sidebar() {
     <aside className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col h-screen sticky top-0">
 
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-800">
-        <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-bold">A</span>
-        </div>
+      <div className="h-12 flex items-center gap-2 px-4 border-b border-gray-800 shrink-0">
+        <img src="/atmt_logo.png" alt="ATMT Logo" className="w-6 h-6 object-contain" />
         <span className="text-white font-bold text-sm tracking-wide">ATMT-SDV</span>
-        <span className="text-gray-600 text-xs ml-auto">v0.9</span>
+        <span className="text-gray-600 text-xs ml-auto">v2.0</span>
       </div>
 
       {/* Nav */}
@@ -45,12 +43,11 @@ export default function Sidebar() {
             <a
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
+              className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors text-left ${isActive(item.href)
                 ? 'bg-blue-600/20 text-blue-400'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
             >
-              <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
               {item.label}
             </a>
           );
@@ -67,12 +64,11 @@ export default function Sidebar() {
                 <a
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors ${isActive(item.href)
+                  className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors text-left ${isActive(item.href)
                     ? 'bg-blue-600/20 text-blue-400'
                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                     }`}
                 >
-                  <span className="text-xs w-4 text-center text-gray-600 font-mono">{item.icon}</span>
                   {item.label}
                 </a>
               );

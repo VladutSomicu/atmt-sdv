@@ -73,6 +73,9 @@ def get_my_projects():
             ).order_by(Project.updated_at.desc()).all()
 
     # Build response with role info
+    from ..models.threat import Threat
+    from sqlalchemy import func
+    
     result = []
     for p in projects:
         membership = ProjectMember.query.filter_by(
@@ -85,6 +88,7 @@ def get_my_projects():
             "description": p.description,
             "status": p.status,
             "vehicle_profile": p.vehicle_profile,
+            "max_risk_score": db.session.query(func.max(Threat.risk_score)).filter_by(project_id=str(p.id)).scalar() or 0,
             "my_role": membership.role if membership else "admin",
             "is_locked": p.is_locked,
             "created_at": p.created_at.isoformat(),
@@ -235,6 +239,7 @@ def invite_member(project_id):
         "member": {
             "user_id": str(user.id),
             "email": user.email,
+            "full_name": user.full_name,
             "role": data.role
         }
     }), 201
@@ -311,7 +316,7 @@ def unlock_project(project_id):
 
 @projects_bp.route('/<uuid:project_id>/audit', methods=['GET'])
 @jwt_required()
-@requires_project_role('engineer', 'manager', 'auditor')
+@requires_project_role('engineer', 'manager', 'auditor', 'architect')
 def get_audit_log(project_id):
     """Return the audit log for a project."""
     logs = AuditLog.query.filter_by(
@@ -403,3 +408,40 @@ def delete_project(project_id):
     return jsonify({
         "message": f"Project '{project_name}' deleted successfully"
     }), 200
+
+@projects_bp.route('/<uuid:project_id>/members/<uuid:user_id>', methods=['DELETE'])
+@jwt_required()
+@requires_project_role('manager')
+def remove_member(project_id, user_id):
+    """Remove a user from the project."""
+    member = ProjectMember.query.filter_by(
+        project_id=str(project_id),
+        user_id=str(user_id)
+    ).first()
+
+    if not member:
+        return jsonify({"error": "User is not a member of this project"}), 404
+
+    # Prevent removing the last manager
+    if member.role == 'manager':
+        manager_count = ProjectMember.query.filter_by(
+            project_id=str(project_id),
+            role='manager'
+        ).count()
+        if manager_count <= 1:
+            return jsonify({"error": "Cannot remove the last manager from the project"}), 400
+
+    user = User.query.get(str(user_id))
+    user_email = user.email if user else str(user_id)
+
+    db.session.delete(member)
+
+    log_action(
+        user_id=get_jwt_identity(),
+        action='member_removed',
+        project_id=str(project_id),
+        new_value={"email": user_email, "role": member.role}
+    )
+    db.session.commit()
+
+    return jsonify({"message": f"Member {user_email} removed successfully"}), 200

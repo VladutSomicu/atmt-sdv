@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
-export default function ComplianceTab({ projectId }) {
+export default function ComplianceTab({ projectId, isReadOnly = false }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reevaluating, setReevaluating] = useState(false);
@@ -70,13 +70,15 @@ export default function ComplianceTab({ projectId }) {
     <div className="flex-1 flex items-center justify-center text-gray-500 p-8 flex-col gap-3">
       <p>No compliance data yet.</p>
       <p className="text-gray-600 text-sm">Run analysis first, then re-evaluate compliance.</p>
-      <button
-        onClick={reevaluate}
-        disabled={reevaluating}
-        className="mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-      >
-        {reevaluating ? 'Evaluating...' : 'Run Compliance Check'}
-      </button>
+      {!isReadOnly && (
+        <button
+          onClick={reevaluate}
+          disabled={reevaluating}
+          className="mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          {reevaluating ? 'Evaluating...' : 'Run Compliance Check'}
+        </button>
+      )}
     </div>
   );
 
@@ -111,16 +113,18 @@ export default function ComplianceTab({ projectId }) {
           <p className="text-gray-500 text-xs mt-0.5">ISO 21434 / UNECE R155 / R156</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={reevaluate}
-            disabled={reevaluating}
-            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <svg className={`w-3.5 h-3.5 ${reevaluating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {reevaluating ? 'Evaluating...' : 'Re-evaluate'}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={reevaluate}
+              disabled={reevaluating}
+              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <svg className={`w-3.5 h-3.5 ${reevaluating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {reevaluating ? 'Evaluating...' : 'Re-evaluate'}
+            </button>
+          )}
           <button
             onClick={exportCSV}
             disabled={exporting}

@@ -10,31 +10,31 @@ import toast from 'react-hot-toast';
 const riskBadge = (score) => {
   if (score >= 16) return 'bg-red-900 text-red-300 border-red-800';
   if (score >= 12) return 'bg-orange-900 text-orange-300 border-orange-800';
-  if (score >= 8)  return 'bg-yellow-900 text-yellow-300 border-yellow-800';
-  if (score >= 4)  return 'bg-blue-900 text-blue-300 border-blue-800';
+  if (score >= 8) return 'bg-yellow-900 text-yellow-300 border-yellow-800';
+  if (score >= 4) return 'bg-blue-900 text-blue-300 border-blue-800';
   return 'bg-gray-800 text-gray-400 border-gray-700';
 };
 
 const riskLabel = (score) => {
   if (score >= 16) return 'CRITICAL';
   if (score >= 12) return 'HIGH';
-  if (score >= 8)  return 'MEDIUM';
-  if (score >= 4)  return 'LOW';
+  if (score >= 8) return 'MEDIUM';
+  if (score >= 4) return 'LOW';
   return 'DRAFT';
 };
 
 const statusColor = {
-  draft:       'text-gray-400',
+  draft: 'text-gray-400',
   in_analysis: 'text-blue-400',
-  mitigating:  'text-yellow-400',
-  completed:   'text-green-400',
+  mitigating: 'text-yellow-400',
+  completed: 'text-green-400',
 };
 
 const roleColor = {
-  engineer:  'bg-blue-900 text-blue-300',
-  manager:   'bg-green-900 text-green-300',
+  engineer: 'bg-blue-900 text-blue-300',
+  manager: 'bg-green-900 text-green-300',
   architect: 'bg-purple-900 text-purple-300',
-  auditor:   'bg-yellow-900 text-yellow-300',
+  auditor: 'bg-yellow-900 text-yellow-300',
 };
 
 /* ── Context Menu ─────────────────────────────────────── */
@@ -94,8 +94,8 @@ function DonutChart({ value, total, label, colorClass }) {
       <div className="relative w-20 h-20 flex items-center justify-center">
         <svg className="w-full h-full transform -rotate-90">
           <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-800" />
-          <circle 
-            cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent" 
+          <circle
+            cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="6" fill="transparent"
             className={colorClass}
             strokeDasharray={213.6}
             strokeDashoffset={213.6 - (213.6 * percentage) / 100}
@@ -115,8 +115,8 @@ function MiniBarChart({ data }) {
     <div className="flex items-end gap-1 h-12">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-          <div 
-            className={`w-full rounded-t-sm transition-all duration-500 ${d.color}`} 
+          <div
+            className={`w-full rounded-t-sm transition-all duration-500 ${d.color}`}
             style={{ height: `${(d.value / max) * 100}%` }}
           />
           <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -137,118 +137,154 @@ function AdminDashboard({ projects }) {
     critical: projects.filter(p => (p.max_risk_score || 0) >= 16).length,
     inAnalysis: projects.filter(p => p.status === 'in_analysis').length,
     completed: projects.filter(p => p.status === 'completed').length,
+    otaCapable: projects.filter(p => p.vehicle_profile?.ota_support).length,
   };
-
-  const riskData = [
-    { label: 'Low', value: projects.filter(p => (p.max_risk_score || 0) < 8 && p.max_risk_score > 0).length, color: 'bg-blue-500/40' },
-    { label: 'Med', value: projects.filter(p => (p.max_risk_score || 0) >= 8 && (p.max_risk_score || 0) < 12).length, color: 'bg-yellow-500/40' },
-    { label: 'High', value: projects.filter(p => (p.max_risk_score || 0) >= 12 && (p.max_risk_score || 0) < 16).length, color: 'bg-orange-500/40' },
-    { label: 'Crit', value: stats.critical, color: 'bg-red-500/40' },
-  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-white text-2xl font-bold">Fleet Security Overview</h1>
-            <span className="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">System Admin</span>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-white text-3xl font-bold tracking-tight">Fleet Security Overview</h1>
+            <span className="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs px-2.5 py-0.5 rounded uppercase font-bold tracking-wider">System Admin</span>
           </div>
-          <p className="text-gray-500 text-sm italic">Real-time ISO 21434 compliance tracking across all SDV projects.</p>
-        </div>
-        <div className="flex gap-2">
-          <a href="/reports" className="bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors border border-gray-700">
-            Global Report
-          </a>
-          <a href="/projects/new" className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
-            + New Project
-          </a>
+          <p className="text-gray-500 text-sm mt-2">Real-time compliance tracking across all SDV projects in the organization.</p>
         </div>
       </div>
 
       {/* Analytics Grid */}
       <div className="grid grid-cols-12 gap-6">
+
         {/* Left: Key Stats */}
-        <div className="col-span-8 grid grid-cols-3 gap-4">
-          <div className="col-span-3 bg-gray-900 border border-gray-800 rounded-2xl p-6 flex items-center justify-between">
-            <div className="space-y-4">
+        <div className="col-span-8 space-y-6">
+          {/* Top 3 Metric Cards */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Active TARA</p>
+              <div className="flex items-end gap-3">
+                <p className="text-white text-4xl font-black">{stats.inAnalysis}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">projects</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">OTA Capable</p>
+              <div className="flex items-end gap-3">
+                <p className="text-white text-4xl font-black">{stats.otaCapable}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">vehicles</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Critical Risks</p>
+              <div className="flex items-end gap-3">
+                <p className={`${stats.critical > 0 ? 'text-red-400' : 'text-emerald-400'} text-4xl font-black`}>{stats.critical}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">fleet-wide</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Organization Health & Demographics */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col justify-between">
               <div>
-                <p className="text-gray-500 text-xs font-medium uppercase tracking-widest mb-1">Organization Health</p>
-                <p className="text-white text-3xl font-bold">{Math.round((stats.completed / (stats.total || 1)) * 100)}% <span className="text-gray-600 text-sm font-normal">Compliant</span></p>
+                <h2 className="text-white text-sm font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Organization Health
+                </h2>
+                <p className="text-gray-500 text-xs mb-6">Percentage of projects successfully completing security lifecycle.</p>
               </div>
-              <div className="flex gap-8">
-                <div>
-                  <p className="text-gray-500 text-[10px] uppercase">Active TARA</p>
-                  <p className="text-white text-lg font-bold">{stats.inAnalysis}</p>
+              <div className="flex items-center justify-around flex-1">
+                <div className="flex flex-col items-center">
+                  <p className="text-4xl font-black text-white mb-2">{Math.round((stats.completed / (stats.total || 1)) * 100)}%</p>
+                  <p className="text-emerald-500 text-xs uppercase tracking-wider font-bold">Compliant</p>
                 </div>
-                <div className="border-l border-gray-800 h-8 mt-1" />
-                <div>
-                  <p className="text-gray-500 text-[10px] uppercase">Total Assets</p>
-                  <p className="text-white text-lg font-bold">128</p>
-                </div>
-                <div className="border-l border-gray-800 h-8 mt-1" />
-                <div>
-                  <p className="text-gray-500 text-[10px] uppercase">Vulnerabilities</p>
-                  <p className="text-red-400 text-lg font-bold">42</p>
+                <div className="h-16 border-l border-gray-800"></div>
+                <div className="flex gap-4">
+                  <DonutChart value={stats.completed} total={stats.total} label="Completed" colorClass="text-emerald-500" />
+                  <DonutChart value={stats.critical} total={stats.total} label="At Risk" colorClass="text-red-500" />
                 </div>
               </div>
             </div>
-            <div className="flex gap-6">
-              <DonutChart value={stats.completed} total={stats.total} label="Completed" colorClass="text-emerald-500" />
-              <DonutChart value={stats.critical} total={stats.total} label="At Risk" colorClass="text-red-500" />
-            </div>
-          </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col justify-between">
-            <p className="text-gray-500 text-[10px] uppercase font-bold mb-4">Risk Distribution</p>
-            <MiniBarChart data={riskData} />
-            <div className="flex justify-between text-[8px] text-gray-600 mt-2 uppercase font-bold">
-              <span>Low</span>
-              <span>Med</span>
-              <span>High</span>
-              <span>Crit</span>
-            </div>
-          </div>
-
-          <div className="col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl rounded-full" />
-            <p className="text-gray-500 text-[10px] uppercase font-bold mb-1">System Load</p>
-            <p className="text-white text-2xl font-bold">84%</p>
-            <p className="text-gray-600 text-[10px] mt-1">API Throughput: 1.2k req/min</p>
-            <div className="mt-4 flex gap-1">
-              {[40, 60, 45, 90, 85, 70, 84].map((v, i) => (
-                <div key={i} className="flex-1 bg-blue-500/20 h-8 rounded-sm relative group/bar">
-                  <div className="absolute bottom-0 left-0 w-full bg-blue-500/40 rounded-sm transition-all" style={{ height: `${v}%` }} />
+            <div className="space-y-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-3xl rounded-full" />
+                <p className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-wider">Vehicle Architectures</p>
+                <div className="space-y-4 relative z-10">
+                  {['Classic', 'SDV'].map(type => {
+                    const count = projects.filter(p => p.vehicle_profile?.architecture === type).length;
+                    const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
+                    return (
+                      <div key={type}>
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span className="text-gray-400 font-medium">{type}</span>
+                          <span className="text-white font-bold">{count}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-1.5">
+                          <div className="bg-indigo-500/60 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
+
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-600/5 blur-3xl rounded-full" />
+                <p className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-wider">Fleet Propulsion</p>
+                <div className="space-y-4 relative z-10">
+                  {['EV', 'ICE', 'Hybrid'].map(type => {
+                    const count = projects.filter(p => p.vehicle_profile?.propulsion === type).length;
+                    const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
+                    return (
+                      <div key={type}>
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span className="text-gray-400 font-medium">{type}</span>
+                          <span className="text-white font-bold">{count}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-1.5">
+                          <div className="bg-teal-500/60 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right: Quick Admin Links */}
-        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Management Hub</p>
-          <div className="space-y-3">
+        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            Management Hub
+          </h2>
+          <div className="space-y-4">
             {[
               { label: 'Asset Library', icon: '📦', href: '/assets', color: 'bg-blue-500/10 text-blue-400' },
               { label: 'Threat Catalog', icon: '⚡', href: '/threats-catalog', color: 'bg-orange-500/10 text-orange-400' },
               { label: 'Security Controls', icon: '🛡️', href: '/controls-library', color: 'bg-emerald-500/10 text-emerald-400' },
               { label: 'User Directory', icon: '👥', href: '/admin', color: 'bg-purple-500/10 text-purple-400' },
             ].map((link) => (
-              <a 
+              <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group"
+                className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group"
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${link.color}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${link.color}`}>
                   {link.icon}
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium group-hover:text-blue-400">{link.label}</p>
-                  <p className="text-gray-600 text-[10px]">Configure global parameters</p>
+                  <p className="text-white text-sm font-bold group-hover:text-blue-400">{link.label}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">Configure global parameters</p>
                 </div>
-                <svg className="w-4 h-4 ml-auto text-gray-700 group-hover:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 ml-auto text-gray-600 group-hover:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </a>
@@ -262,57 +298,139 @@ function AdminDashboard({ projects }) {
 
 /* ── User Dashboard ───────────────────────────────────── */
 function UserDashboard({ projects, user }) {
-  const criticalCount = projects.reduce((acc, p) => acc + (p.max_risk_score >= 16 ? 1 : 0), 0);
+  const navigate = useNavigate();
+
+  const totalProjects = projects.length;
   const inProgress = projects.filter(p => p.status !== 'completed').length;
-  
+  const completed = totalProjects - inProgress;
+
+  const criticalProjects = projects.filter(p => (p.max_risk_score || 0) >= 16).length;
+  const highProjects = projects.filter(p => (p.max_risk_score || 0) >= 12 && (p.max_risk_score || 0) < 16).length;
+  const mediumProjects = projects.filter(p => (p.max_risk_score || 0) >= 8 && (p.max_risk_score || 0) < 12).length;
+  const lowProjects = projects.filter(p => (p.max_risk_score || 0) > 0 && (p.max_risk_score || 0) < 8).length;
+
+  const compliantProjects = projects.filter(p => p.status === 'completed' || (p.max_risk_score !== null && p.max_risk_score < 12)).length;
+  const healthScore = totalProjects > 0 ? Math.round((compliantProjects / totalProjects) * 100) : 100;
+
+  const recentProjects = [...projects].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 4);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-2xl font-bold">
+          <h1 className="text-white text-3xl font-bold tracking-tight">
             Welcome back, {user?.full_name?.split(' ')[0] || 'User'} 👋
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-500 text-sm mt-2">
             You have <span className="text-white font-medium">{projects.length}</span> project{projects.length !== 1 ? 's' : ''} assigned to your workspace.
           </p>
         </div>
-        <div className="flex gap-3">
-          <a href="/projects/new" className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
-            + Create New Project
-          </a>
-        </div>
       </div>
 
-      {/* Real Stats */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-gray-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Active Projects</p>
-          <p className="text-white text-3xl font-bold">{inProgress}</p>
+      {/* Main Grid */}
+      <div className="grid grid-cols-12 gap-6">
+
+        {/* Left Column: Stats & Risk Landscape */}
+        <div className="col-span-8 space-y-6">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Active Projects</p>
+              <div className="flex items-end gap-3">
+                <p className="text-white text-4xl font-black">{inProgress}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">in progress</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Critical Risks</p>
+              <div className="flex items-end gap-3">
+                <p className={`${criticalProjects > 0 ? "text-red-400" : "text-emerald-400"} text-4xl font-black`}>
+                  {criticalProjects}
+                </p>
+                <p className="text-gray-500 text-sm font-medium mb-1">needs attention</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Compliance Health</p>
+              <div className="flex items-end gap-3">
+                <p className={`${healthScore > 80 ? 'text-emerald-400' : healthScore > 50 ? 'text-yellow-400' : 'text-red-400'} text-4xl font-black`}>
+                  {healthScore}%
+                </p>
+                <p className="text-gray-500 text-sm font-medium mb-1">compliant</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Risk Landscape
+            </h2>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { label: 'Critical', count: criticalProjects, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+                { label: 'High', count: highProjects, color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+                { label: 'Medium', count: mediumProjects, color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+                { label: 'Low', count: lowProjects, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+              ].map(({ label, count, color, bg, border }) => (
+                <div key={label} className={`flex flex-col items-center justify-center p-4 rounded-xl border ${bg} ${border}`}>
+                  <p className={`text-3xl font-black ${color}`}>{count}</p>
+                  <p className={`text-[10px] uppercase tracking-wider mt-1.5 font-bold ${color} opacity-80`}>{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-gray-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Critical Risks</p>
-          <p className={criticalCount > 0 ? "text-red-400 text-3xl font-bold" : "text-emerald-400 text-3xl font-bold"}>
-            {criticalCount}
-          </p>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-gray-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Completed TARA</p>
-          <p className="text-white text-3xl font-bold">{projects.length - inProgress}</p>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-gray-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Compliance Status</p>
-          <p className="text-blue-400 text-xl font-bold mt-1 tracking-tight">ISO 21434 / R155</p>
+
+        {/* Right Column: Recent Activity */}
+        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col">
+          <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-purple-500" />
+            Recent Activity
+          </h2>
+          {recentProjects.length > 0 ? (
+            <div className="space-y-3 flex-1">
+              {recentProjects.map((p, idx) => {
+                return (
+                  <div key={p.id} className="relative pl-4 border-l border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-600 border-2 border-gray-900" />
+                    <p className="text-white text-sm font-bold truncate pr-4">{p.name}</p>
+                    <p className="text-gray-500 text-[11px] mt-0.5">
+                      Status changed to <span className="text-gray-300 capitalize">{p.status?.replace('_', ' ')}</span>
+                    </p>
+                    <p className="text-gray-600 text-[10px] mt-1 uppercase font-medium">
+                      {new Date(p.updated_at).toLocaleDateString()} at {new Date(p.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+              <span className="text-gray-700 text-3xl mb-2">📭</span>
+              <p className="text-gray-500 text-sm">No recent activity.</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Projects Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800 bg-gray-900/50 flex items-center justify-between">
-          <h2 className="text-white text-sm font-bold uppercase tracking-wider">Your Project Workspace</h2>
-          <span className="text-gray-500 text-[10px] font-medium">{projects.length} items</span>
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
+        <div className="px-6 py-5 border-b border-gray-800 bg-gray-900 flex items-center justify-between">
+          <h2 className="text-white text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Your Workspace
+          </h2>
+          <span className="bg-gray-800 text-gray-400 text-xs font-bold px-3 py-1 rounded-md">{projects.length} PROJECTS</span>
         </div>
-        <ProjectsTable projects={projects} />
+        <div className="overflow-x-auto custom-scrollbar">
+          <ProjectsTable projects={projects} />
+        </div>
       </div>
     </div>
   );
@@ -321,6 +439,7 @@ function UserDashboard({ projects, user }) {
 /* ── Projects Table (shared) ──────────────────────────── */
 function ProjectsTable({ projects, showAllColumns = false }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [contextMenu, setContextMenu] = useState(null);
   const [renameTarget, setRenameTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -333,7 +452,10 @@ function ProjectsTable({ projects, showAllColumns = false }) {
   const handleContextMenu = (e, project) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, project });
+
+    // Determine if the user can manage this project
+    const canManage = user?.is_admin || ['admin', 'manager'].includes(project.my_role);
+    setContextMenu({ x: e.clientX, y: e.clientY, project, canManage });
   };
 
   const handleRename = async () => {
@@ -449,7 +571,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
       {/* Context Menu */}
       <ProjectContextMenu
         menu={contextMenu}
-        canManage={true}
+        canManage={contextMenu?.canManage}
         onClose={() => setContextMenu(null)}
         onRename={() => {
           setRenameTarget(contextMenu.project);

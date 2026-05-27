@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import AppLayout from '../components/layout/AppLayout';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const actionLabels = {
@@ -9,7 +7,6 @@ const actionLabels = {
   project_updated: 'Project Updated',
   diagram_saved: 'Diagram Saved',
   analysis_run: 'Analysis Run',
-  report_approved: 'Report Approved',
   threat_updated: 'Threat Updated',
   member_invited: 'Member Invited'
 };
@@ -19,24 +16,15 @@ const actionColors = {
   project_updated: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
   diagram_saved: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
   analysis_run: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
-  report_approved: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
   threat_updated: 'text-red-400 bg-red-400/10 border-red-400/20',
   member_invited: 'text-teal-400 bg-teal-400/10 border-teal-400/20'
 };
 
-export default function ProjectAuditLogPage() {
-  const { projectId } = useParams();
-  const navigate = useNavigate();
+export default function ProjectAuditLogTab({ projectId }) {
   const [logs, setLogs] = useState([]);
-  const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load project details to get the name
-    api.get(`/api/projects/${projectId}`)
-      .then(res => setProject(res.data.project))
-      .catch(() => {});
-
     // Load audit logs
     api.get(`/api/projects/${projectId}/audit`)
       .then(res => setLogs(res.data.audit_log || []))
@@ -45,24 +33,15 @@ export default function ProjectAuditLogPage() {
   }, [projectId]);
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-500">Loading audit log...</div>;
+    return <div className="flex-1 flex items-center justify-center text-gray-500 h-full">Loading audit log...</div>;
   }
 
   return (
-    <AppLayout breadcrumb={[
-      { label: 'Projects', href: '/dashboard' },
-      { label: project?.name || 'Project', href: `/projects/${projectId}/editor` },
-      { label: 'Audit Log' }
-    ]}>
-      <div className="max-w-5xl mx-auto mt-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-white text-2xl font-bold">Audit Log</h1>
-            <p className="text-gray-500 text-sm">Review all actions and changes made in this project</p>
-          </div>
-          <button onClick={() => navigate(`/projects/${projectId}/editor`)} className="text-gray-400 hover:text-white transition-colors text-sm">
-            Back to Editor
-          </button>
+    <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 48px)' }}>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-white text-xl font-bold">Audit Log</h1>
+          <p className="text-gray-500 text-sm">Review all actions and changes made in this project</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
@@ -124,6 +103,6 @@ export default function ProjectAuditLogPage() {
           )}
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }

@@ -5,6 +5,8 @@ import DiagramTab from '../components/editor/DiagramTab';
 import AnalysisTab from '../components/editor/AnalysisTab';
 import ComplianceTab from '../components/editor/ComplianceTab';
 import ReportTab from '../components/editor/ReportTab';
+import ProjectAuditLogTab from '../components/editor/ProjectAuditLogTab';
+import ProjectMembersTab from '../components/editor/ProjectMembersTab';
 import { useAuth } from '../store/AuthContext';
 
 export default function EditorPage() {
@@ -21,11 +23,16 @@ export default function EditorPage() {
   const [myRole, setMyRole] = useState(null);
 
   useEffect(() => {
-    api.get(`/api/projects/${projectId}`)
-      .then(res => {
-        setProject(res.data.project);
-        const member = res.data.members?.find(m => m.user_id === user?.id);
+    setLoading(true);
+    Promise.all([
+      api.get(`/api/projects/${projectId}`),
+      api.get(`/api/threats/${projectId}`)
+    ])
+      .then(([projRes, threatsRes]) => {
+        setProject(projRes.data.project);
+        const member = projRes.data.members?.find(m => m.user_id === user?.id);
         setMyRole(user?.is_admin ? 'admin' : (member?.role || 'auditor'));
+        setThreats(threatsRes.data.threats || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -59,18 +66,16 @@ export default function EditorPage() {
   ];
 
   // RBAC Flags
-  const canEditDiagram = ['admin', 'engineer', 'architect'].includes(myRole);
+  const canEditDiagram = ['admin', 'architect'].includes(myRole);
   const canRunAnalysis = ['admin', 'engineer'].includes(myRole);
-  const canApproveReport = ['admin', 'manager'].includes(myRole);
+  const canRunCompliance = ['admin', 'engineer', 'manager'].includes(myRole);
 
   return (
     <div className="flex min-h-screen bg-gray-950">
       {/* Sidebar */}
       <aside className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col h-screen sticky top-0">
-        <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-800">
-          <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">A</span>
-          </div>
+        <div className="h-12 flex items-center gap-2 px-4 border-b border-gray-800 shrink-0">
+          <img src="/atmt_logo.png" alt="ATMT Logo" className="w-6 h-6 object-contain" />
           <span className="text-white font-bold text-sm tracking-wide">ATMT-SDV</span>
           <span className="text-gray-600 text-xs ml-auto">v0.9</span>
         </div>
@@ -108,9 +113,27 @@ export default function EditorPage() {
           {user?.is_admin && (
             <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
           )}
-          <a href={`/projects/${projectId}/audit`} className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Audit log</a>
+          <button
+            onClick={() => setActiveTab('audit')}
+            className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors text-left ${
+              activeTab === 'audit'
+                ? 'bg-blue-600/20 text-blue-400'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+            }`}
+          >
+            Audit log
+          </button>
           {['admin', 'manager'].includes(myRole) && (
-            <a href={`/projects/${projectId}/members`} className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Members</a>
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors text-left ${
+                activeTab === 'members'
+                  ? 'bg-blue-600/20 text-blue-400'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+              }`}
+            >
+              Members
+            </button>
           )}
         </nav>
 
@@ -143,8 +166,10 @@ export default function EditorPage() {
         <main className="flex-1 overflow-hidden">
           {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => {}} canEdit={canEditDiagram} />}
           {activeTab === 'analysis' && <AnalysisTab projectId={projectId} onThreatsLoaded={setThreats} onSelectAsset={(id) => { setSelectedAssetId(id); setActiveTab('diagram'); }} isReadOnly={!canRunAnalysis} />}
-          {activeTab === 'compliance' && <ComplianceTab projectId={projectId} />}
-          {activeTab === 'report' && <ReportTab projectId={projectId} project={project} threats={threats} canApprove={canApproveReport} />}
+          {activeTab === 'compliance' && <ComplianceTab projectId={projectId} isReadOnly={!canRunCompliance} />}
+          {activeTab === 'report' && <ReportTab projectId={projectId} project={project} threats={threats} />}
+          {activeTab === 'audit' && <ProjectAuditLogTab projectId={projectId} />}
+          {activeTab === 'members' && <ProjectMembersTab projectId={projectId} user={user} />}
         </main>
       </div>
     </div>

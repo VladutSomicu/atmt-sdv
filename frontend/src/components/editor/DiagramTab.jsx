@@ -5,20 +5,39 @@ import Modal from '../shared/Modal';
 import InspectorPanel from './InspectorPanel';
 import toast from 'react-hot-toast';
 
-// Define a custom shape for Trust Boundaries so the router can exclude it by type
 const TrustBoundaryShape = dia.Element.define('atmt.TrustBoundary', {
   markup: [
     { tagName: 'rect', selector: 'body' },
+    { tagName: 'text', selector: 'dragHandle' },
     { tagName: 'text', selector: 'label' },
     { tagName: 'rect', selector: 'resizeHandle' }
   ],
   attrs: {
-    body: { refWidth: '100%', refHeight: '100%', fill: 'rgba(217,119,6,0.05)', stroke: '#d97706', strokeWidth: 2, strokeDasharray: '8 4', rx: 0, ry: 0, magnet: false },
-    label: { text: 'Trust Boundary', fill: '#fcd34d', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold', refY: 14 },
+    body: {
+      refWidth: '100%', refHeight: '100%',
+      fill: 'rgba(217,119,6,0.05)', stroke: '#d97706', strokeWidth: 2, strokeDasharray: '8 4', rx: 0, ry: 0, magnet: false,
+      pointerEvents: 'none'
+    },
+    dragHandle: {
+      text: '⠿',
+      fill: '#d97706',
+      fontSize: 16,
+      x: 6,
+      y: 16,
+      cursor: 'move',
+      pointerEvents: 'auto'
+    },
+    label: {
+      text: 'Trust Boundary', fill: '#fcd34d', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold',
+      x: 24,
+      y: 14,
+      pointerEvents: 'auto'
+    },
     resizeHandle: {
       x: 'calc(w - 6)', y: 'calc(h - 6)',
       width: 10, height: 10, fill: '#d97706', cursor: 'nwse-resize',
-      event: 'element:resize'
+      event: 'element:resize',
+      pointerEvents: 'auto'
     }
   }
 });
@@ -39,6 +58,7 @@ const CAT_COLORS = {
   'Perception': { fill: '#0f172a', stroke: '#059669', text: '#6ee7b7' },
   'Diagnostic': { fill: '#1c1917', stroke: '#6b7280', text: '#d1d5db' },
   'Cloud': { fill: '#0f172a', stroke: '#0891b2', text: '#67e8f9' },
+  'External': { fill: '#0f172a', stroke: '#0891b2', text: '#67e8f9' },
   'ECU': { fill: '#1c1917', stroke: '#d97706', text: '#fcd34d' },
   'Gateway': { fill: '#1c1917', stroke: '#dc2626', text: '#fca5a5' },
 };
@@ -68,7 +88,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   const [tick, setTick] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
-  const [riskColors, setRiskColors] = useState(true);
+  const [riskColors, setRiskColors] = useState(false);
 
   // Undo/Redo
   const historyRef = useRef([]);
@@ -183,41 +203,20 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
     api.get(`/api/admin/public/assets?vehicle_type=${vehicleType}&architecture=${architecture}`)
       .then(res => {
         let fetched = res.data.assets || [];
-        
+
         if (!ext.includes('Cloud') && !ext.includes('Cellular') && !ext.includes('Wi-Fi')) {
           fetched = fetched.filter(a => a.category !== 'Cloud');
         }
         if (!ext.includes('V2X')) {
           fetched = fetched.filter(a => !(a.interface_types?.includes('V2X') && a.interface_types?.length === 1));
         }
-        
+
         setAssets(fetched);
       })
       .catch(() => toast.error('Failed to load component library'));
   }, []);
 
-  // Color nodes by risk score
-  useEffect(() => {
-    if (!graphRef.current || !riskColors) return;
-    const riskByAsset = {};
-    const countByAsset = {};
-    threats.forEach(t => {
-      if (!t.asset_id) return;
-      riskByAsset[t.asset_id] = Math.max(riskByAsset[t.asset_id] || 0, t.risk_score || 0);
-      countByAsset[t.asset_id] = (countByAsset[t.asset_id] || 0) + 1;
-    });
-    graphRef.current.getCells().forEach(cell => {
-      if (cell.isLink()) return;
-      const d = cell.get('data') || {};
-      if (d.is_trust_boundary) return;
-      const aid = d.asset_ref_id;
-      if (!aid) return;
-      if (aid in riskByAsset) {
-        cell.attr('body/stroke', riskStroke(riskByAsset[aid]));
-        cell.attr('body/strokeWidth', riskByAsset[aid] >= 16 ? 2.5 : 1.5);
-      }
-    });
-  }, [threats, riskColors]);
+
 
   const loadDiagram = useCallback(async () => {
     if (!graphRef.current) return;
@@ -247,6 +246,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         const d = cell.get('data') || {};
         if (d.is_trust_boundary) return;
 
+        cell.attr('root/title', d.label || '');
         const colors = CAT_COLORS[d.category] || { fill: '#111827', stroke: '#374151', text: '#9ca3af' };
         cell.prop('ports', {
           groups: {
@@ -327,7 +327,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         drawGrid: { name: 'mesh', args: { color: '#1f2937', thickness: 1 } },
         background: { color: '#030712' },
         cellViewNamespace: shapes,
-        interactive: { linkMove: true, elementMove: true, arrowheadMove: true, addLinkFromMagnet: true },
+        interactive: editableRef.current ? { linkMove: true, elementMove: true, arrowheadMove: true, addLinkFromMagnet: true } : false,
         defaultLink: () => {
           const lnk = new shapes.standard.Link({
             attrs: {
@@ -399,7 +399,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         if (isPanning) {
           const dx = e.clientX - panStart.x;
           const dy = e.clientY - panStart.y;
-          paper.translate(panOrigin.x + dx, panOrigin.y + dy);
+          paper.translate(panOrigin.tx + dx, panOrigin.ty + dy);
         } else if (activeResizeView) {
           const scale = paper.scale().sx;
           const dx = (e.clientX - resizeStartPos.x) / scale;
@@ -427,49 +427,11 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
       // Selection
       paper.on('cell:pointerclick', (cv) => {
-        // Deselect previous
-        if (selectedRef.current && selectedRef.current !== cv.model) {
-          try {
-            const prev = selectedRef.current;
-            if (!prev.isLink() && prev.graph) {
-              const d = prev.get('data') || {};
-              if (!d.is_trust_boundary) {
-                const cat = d.category || '';
-                const origStroke = CAT_COLORS[cat]?.stroke || '#374151';
-                prev.attr('body/stroke', origStroke);
-                prev.attr('body/strokeWidth', 1.5);
-              }
-            }
-          } catch (e) { }
-        }
-        // Highlight new
-        if (!cv.model.isLink()) {
-          const d = cv.model.get('data') || {};
-          if (!d.is_trust_boundary) {
-            cv.model.attr('body/stroke', '#3b82f6');
-            cv.model.attr('body/strokeWidth', 2);
-          }
-        }
         setSelectedCell(cv.model);
         setContextMenu(null);
       });
 
       paper.on('blank:pointerclick', () => {
-        // Deselect current
-        if (selectedRef.current && !selectedRef.current.isLink()) {
-          try {
-            const prev = selectedRef.current;
-            if (prev.graph) {
-              const d = prev.get('data') || {};
-              if (!d.is_trust_boundary) {
-                const cat = d.category || '';
-                const origStroke = CAT_COLORS[cat]?.stroke || '#374151';
-                prev.attr('body/stroke', origStroke);
-                prev.attr('body/strokeWidth', 1.5);
-              }
-            }
-          } catch (e) { }
-        }
         setSelectedCell(null);
         setContextMenu(null);
       });
@@ -569,23 +531,32 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           }
         },
         items: [
-          { group: 'top', id: 'top' }, 
-          { group: 'bottom', id: 'bottom' }, 
-          { group: 'left', id: 'left' }, 
+          { group: 'top', id: 'top' },
+          { group: 'bottom', id: 'bottom' },
+          { group: 'left', id: 'left' },
           { group: 'right', id: 'right' }
         ]
       }
     });
     cell.position(80 + Math.random() * 400, 80 + Math.random() * 300);
     cell.resize(140, 60);
+    const isExtCat = asset.category === 'Cloud' || asset.category === 'External';
+
     cell.attr({
-      body: { fill: colors.fill, stroke: colors.stroke, strokeWidth: 1.5, rx: 6, ry: 6, magnet: false },
-      label: { 
-        textWrap: { text: asset.name, width: -10 }, 
-        fill: colors.text, 
-        fontSize: 10, 
-        fontFamily: 'monospace', 
-        fontWeight: 'bold' 
+      root: { title: asset.name },
+      body: {
+        fill: colors.fill,
+        stroke: colors.stroke,
+        strokeWidth: 1.5,
+        rx: 6, ry: 6, magnet: false,
+        strokeDasharray: isExtCat ? '4 2' : ''
+      },
+      label: {
+        textWrap: { text: asset.name, width: -10 },
+        fill: colors.text,
+        fontSize: 10,
+        fontFamily: 'monospace',
+        fontWeight: 'bold'
       },
     });
     cell.set('data', {
@@ -594,11 +565,12 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       category: asset.category,
       interface_types: asset.interface_types || [],
       data_types: asset.data_types || [],
-      physical_accessibility: asset.physical_accessibility || 'Internal',
+      physical_accessibility: isExtCat ? 'External-Facing' : (asset.physical_accessibility || 'Internal'),
       asil_level: asset.asil_level,
       flags: asset.flags || [],
     });
     graphRef.current.addCell(cell);
+    setTick(t => t + 1);
   }, []);
 
   // ── Add Trust Boundary ──
@@ -772,6 +744,70 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
     return acc;
   }, {});
 
+  // ── Reactive Styling Engine ──
+  useEffect(() => {
+    if (!graphRef.current) return;
+    const cells = graphRef.current.getCells();
+
+    cells.forEach(cell => {
+      const isSelected = selectedCell && selectedCell.id === cell.id;
+      const isLink = cell.isLink();
+      const d = cell.get('data') || {};
+      const isTB = d.is_trust_boundary || cell.get('type') === 'atmt.TrustBoundary';
+
+      if (isTB) {
+        if (isSelected) {
+          cell.attr('body/stroke', '#3b82f6');
+          cell.attr('body/strokeWidth', 3);
+        } else {
+          cell.attr('body/stroke', '#d97706');
+          cell.attr('body/strokeWidth', 2);
+        }
+        return;
+      }
+
+      let strokeColor;
+      let strokeWidth = 1.5;
+
+      if (isSelected) {
+        strokeColor = '#3b82f6';
+        strokeWidth = 2.5;
+      } else if (riskColors) {
+        const assetThreats = threats.filter(t => t.asset_id === cell.id && t.status !== 'closed' && t.status !== 'mitigated' && t.status !== 'accepted');
+        if (assetThreats.length > 0) {
+          const maxScore = Math.max(...assetThreats.map(t => t.risk_score));
+          strokeColor = riskStroke(maxScore);
+          strokeWidth = 3;
+        } else {
+          strokeColor = '#4b5563'; // Gray out safe/mitigated assets
+        }
+      } else {
+        if (isLink) {
+          const crosses = cell.get('crosses_trust_boundary');
+          const hasCtrl = cell.get('has_security_control');
+          if (crosses && !hasCtrl) strokeColor = '#ef4444';
+          else if (hasCtrl) strokeColor = '#22c55e';
+          else strokeColor = '#4b5563';
+        } else {
+          strokeColor = CAT_COLORS[d.category]?.stroke || '#374151';
+        }
+      }
+
+      if (isLink) {
+        cell.attr('line/stroke', strokeColor);
+        cell.attr('line/strokeWidth', strokeWidth);
+        const crosses = cell.get('crosses_trust_boundary');
+        const hasCtrl = cell.get('has_security_control');
+        cell.attr('line/strokeDasharray', (!riskColors && crosses && !hasCtrl) ? '8 4' : '');
+      } else {
+        cell.attr('body/stroke', strokeColor);
+        cell.attr('body/strokeWidth', strokeWidth);
+        const isExt = d.physical_accessibility === 'External-Facing';
+        cell.attr('body/strokeDasharray', isExt ? '4 2' : '');
+      }
+    });
+  }, [riskColors, threats, selectedCell, tick]);
+
   return (
     <div className="flex" style={{ height: 'calc(100vh - 48px)' }}>
       {/* ── Components Sidebar ── */}
@@ -797,7 +833,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
                     key={asset.id}
                     onClick={() => addNode(asset)}
                     className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
-                    title="Click to add to canvas"
+                    title={`${asset.name} - (Click to add)`}
                   >
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
                     <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>

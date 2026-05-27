@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
-export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose }) {
+export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose, isReadOnly = false }) {
   const [safety, setSafety] = useState(threat.impact_safety);
   const [financial, setFinancial] = useState(threat.impact_financial);
   const [operational, setOperational] = useState(threat.impact_operational);
@@ -25,6 +25,7 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
   };
 
   const toggleControl = (id) => {
+    if (isReadOnly) return;
     setSelectedControls(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
@@ -95,7 +96,8 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
               <input
                 type="range" min="1" max="4" value={val}
                 onChange={e => setter(parseInt(e.target.value))}
-                className="w-full accent-blue-500"
+                disabled={isReadOnly}
+                className="w-full accent-blue-500 disabled:opacity-50"
               />
             </div>
           ))}
@@ -108,7 +110,8 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
             <input
               type="range" min="1" max="5" value={feasibility}
               onChange={e => setFeasibility(parseInt(e.target.value))}
-              className="w-full accent-blue-500"
+              disabled={isReadOnly}
+              className="w-full accent-blue-500 disabled:opacity-50"
             />
           </div>
         </div>
@@ -121,7 +124,9 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
               <div
                 key={c.id}
                 onClick={() => toggleControl(c.id)}
-                className={`p-2 rounded-lg border mb-1.5 cursor-pointer transition-colors ${
+                className={`p-2 rounded-lg border mb-1.5 transition-colors ${
+                  isReadOnly ? '' : 'cursor-pointer'
+                } ${
                   selectedControls.includes(c.id)
                     ? 'border-green-700 bg-green-900/20'
                     : 'border-gray-800 hover:border-gray-700'
@@ -146,8 +151,9 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
             {['mitigate', 'accept', 'transfer', 'avoid'].map(t => (
               <button
                 key={t}
-                onClick={() => setTreatment(t)}
-                className={`py-1 rounded text-xs font-medium transition-colors capitalize ${
+                onClick={() => !isReadOnly && setTreatment(t)}
+                disabled={isReadOnly}
+                className={`py-1 rounded text-xs font-medium transition-colors capitalize disabled:opacity-50 ${
                   treatment === t
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -162,8 +168,9 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
             {['open', 'mitigated', 'accepted'].map(s => (
               <button
                 key={s}
-                onClick={() => setStatus(s)}
-                className={`py-1 rounded text-xs font-medium transition-colors capitalize ${
+                onClick={() => !isReadOnly && setStatus(s)}
+                disabled={isReadOnly}
+                className={`py-1 rounded text-xs font-medium transition-colors capitalize disabled:opacity-50 ${
                   status === s
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -179,17 +186,20 @@ export default function ThreatDetailPanel({ threat, controls, onUpdate, onClose 
             onChange={e => setJustification(e.target.value)}
             placeholder="Justification (required for Accept)..."
             rows={3}
-            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 resize-none"
+            disabled={isReadOnly}
+            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 resize-none disabled:opacity-50"
           />
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
-        >
-          {saving ? 'Saving...' : 'Save changes'}
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
+          >
+            {saving ? 'Saving...' : 'Save changes'}
+          </button>
+        )}
       </div>
     </div>
   );

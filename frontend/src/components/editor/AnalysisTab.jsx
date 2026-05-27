@@ -3,7 +3,7 @@ import api from '../../services/api';
 import ThreatDetailPanel from './ThreatDetailPanel';
 import toast from 'react-hot-toast';
 
-export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset }) {
+export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset, isReadOnly = false }) {
   const [threats, setThreats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
@@ -134,13 +134,15 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset 
               </select>
             </div>
           </div>
-          <button
-            onClick={runAnalysis}
-            disabled={analyzing}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-          >
-            {analyzing ? 'Analyzing...' : 'Run analysis'}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={runAnalysis}
+              disabled={analyzing}
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              {analyzing ? 'Analyzing...' : 'Run analysis'}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -202,7 +204,7 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset 
                       </div>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${strideColor[t.stride_category] || 'bg-gray-800 text-gray-400'}`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${strideColor[t.stride_category] || 'bg-gray-800 text-gray-400'}`}>
                         {t.stride_category}
                       </span>
                     </td>
@@ -212,12 +214,12 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset 
                       {t.impact_safety}-{t.impact_financial}-{t.impact_operational}-{t.impact_privacy}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`text-xs px-2 py-0.5 rounded border font-medium ${riskColor(t.risk_score)}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded border font-medium whitespace-nowrap ${riskColor(t.risk_score)}`}>
                         {t.risk_score} {riskLabel(t.risk_score)}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`text-xs font-medium ${
+                      <span className={`text-xs font-medium whitespace-nowrap ${
                         t.status === 'mitigated' ? 'text-green-400' :
                         t.status === 'accepted' ? 'text-yellow-400' :
                         'text-gray-400'
@@ -239,6 +241,7 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset 
           threat={selected}
           controls={controls}
           projectId={projectId}
+          isReadOnly={isReadOnly}
           onUpdate={() => { loadThreats(); setSelected(null); }}
           onClose={() => setSelected(null)}
         />

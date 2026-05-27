@@ -5,8 +5,6 @@ import ProjectSetupPage from './pages/ProjectSetupPage';
 import EditorPage from './pages/EditorPage';
 import AdminPage from './pages/AdminPage';
 import ProjectsPage from './pages/ProjectsPage';
-import ProjectMembersPage from './pages/ProjectMembersPage';
-import ProjectAuditLogPage from './pages/ProjectAuditLogPage';
 import ThreatCatalogPage from './pages/ThreatCatalogPage';
 import AssetLibraryPage from './pages/AssetLibraryPage';
 import SecurityControlsPage from './pages/SecurityControlsPage';
@@ -77,16 +75,6 @@ function App() {
         <Route path="/projects" element={
           <ProtectedRoute>
             <ProjectsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/members" element={
-          <ProtectedRoute>
-            <ProjectMembersPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/projects/:projectId/audit" element={
-          <ProtectedRoute>
-            <ProjectAuditLogPage />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />

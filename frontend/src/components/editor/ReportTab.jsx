@@ -44,146 +44,174 @@ export default function ReportTab({ projectId, project, threats = [] }) {
 
   // Risk summary from threats prop
   const critical = threats.filter(t => t.risk_score >= 16).length;
-  const high     = threats.filter(t => t.risk_score >= 12 && t.risk_score < 16).length;
-  const medium   = threats.filter(t => t.risk_score >= 8  && t.risk_score < 12).length;
+  const high = threats.filter(t => t.risk_score >= 12 && t.risk_score < 16).length;
+  const medium = threats.filter(t => t.risk_score >= 8 && t.risk_score < 12).length;
   const mitigated = threats.filter(t => t.status === 'mitigated').length;
 
   return (
     <div className="flex" style={{ height: 'calc(100vh - 48px)' }}>
       {/* Left — Report preview */}
-      <div className="flex-1 flex flex-col items-center justify-start bg-gray-950 p-8 overflow-y-auto gap-4">
+      <div className="flex-1 flex flex-col items-center justify-start bg-gray-950 p-8 overflow-y-auto gap-6">
 
         {/* ⚠️ Critical open threats banner */}
         {isBlocked && (
-          <div className="w-full max-w-lg bg-red-950 border border-red-700 rounded-xl p-4 flex gap-3 items-start">
-            <span className="text-red-400 text-xl mt-0.5">⚠️</span>
-            <div>
-              <p className="text-red-300 text-sm font-semibold mb-1">
-                Report blocked — {blockingThreats.length} critical threat{blockingThreats.length !== 1 ? 's' : ''} still open
+          <div className="w-full max-w-2xl bg-red-950/40 border border-red-500/30 rounded-2xl p-5 flex gap-4 items-start shadow-[0_0_30px_rgba(239,68,68,0.1)] backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30">
+              <span className="text-red-400 text-lg">⚠️</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-red-300 text-base font-semibold mb-1">
+                Report blocked — {blockingThreats.length} critical threat{blockingThreats.length !== 1 ? 's' : ''} open
               </p>
-              <p className="text-red-500 text-xs mb-2">
-                ISO 21434 requires all CRITICAL risks to be mitigated or formally accepted before a TARA report can be issued.
+              <p className="text-red-400/80 text-xs mb-3 leading-relaxed">
+                ISO 21434 mandates that all CRITICAL risks must be mitigated or formally accepted prior to report generation. Please resolve these before proceeding.
               </p>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5 bg-red-950/30 rounded-xl p-3 border border-red-900/50">
                 {blockingThreats.slice(0, 5).map(t => (
-                  <li key={t.id} className="flex items-center gap-2 text-xs text-red-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                    <span className="font-mono">{t.title}</span>
-                    <span className="text-red-600 ml-auto">score {t.risk_score}</span>
+                  <li key={t.id} className="flex items-center gap-3 text-xs text-red-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] flex-shrink-0" />
+                    <span className="font-mono truncate">{t.title}</span>
+                    <span className="text-red-500 font-bold ml-auto bg-red-500/10 px-2 py-0.5 rounded">
+                      score {t.risk_score}
+                    </span>
                   </li>
                 ))}
                 {blockingThreats.length > 5 && (
-                  <li className="text-red-600 text-xs">+ {blockingThreats.length - 5} more...</li>
+                  <li className="text-red-500/80 text-xs pl-4 pt-1 font-medium italic">
+                    + {blockingThreats.length - 5} more critical threats...
+                  </li>
                 )}
               </ul>
             </div>
           </div>
         )}
 
-        {/* Report mock-up card */}
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8">
-          <div className="flex items-center justify-between mb-6">
+        {/* Report mock-up card (Professional Dark Theme) */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-lg w-full max-w-2xl p-8 relative overflow-hidden">
+          <div className="flex items-start justify-between mb-6 border-b border-gray-800 pb-6">
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wider">TARA Report — ISO 21434</p>
-              <h2 className="text-gray-900 text-2xl font-bold mt-1">{project.name}</h2>
-              <p className="text-gray-500 text-sm">Threat Analysis and Risk Assessment</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">A</span>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-gray-800 border border-gray-700 rounded mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">ISO 21434 TARA Report</span>
+              </div>
+              <h2 className="text-gray-100 text-2xl font-bold tracking-tight">
+                {project.name}
+              </h2>
+              <p className="text-gray-500 text-xs mt-1">Threat Analysis and Risk Assessment</p>
             </div>
           </div>
 
-          {/* Vehicle profile */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* Vehicle profile Grid */}
+          <div className="grid grid-cols-4 gap-3 mb-6">
             {[
-              ['Propulsion',   vp.propulsion   || 'N/A'],
+              ['Propulsion', vp.propulsion || 'N/A'],
               ['Architecture', vp.architecture || 'N/A'],
-              ['SAE Level',    vp.sae_level !== undefined ? `L${vp.sae_level}` : 'N/A'],
-              ['OTA Support',  vp.ota_support ? 'Yes' : 'No'],
+              ['SAE Level', vp.sae_level !== undefined ? `L${vp.sae_level}` : 'N/A'],
+              ['OTA Support', vp.ota_support ? 'Yes' : 'No'],
             ].map(([k, v]) => (
-              <div key={k} className="bg-gray-50 rounded-lg p-3">
-                <p className="text-gray-500 text-xs">{k}</p>
-                <p className="text-gray-900 text-sm font-medium">{v}</p>
+              <div key={k} className="bg-gray-950/50 border border-gray-800/80 rounded-lg p-3 flex flex-col items-start justify-center">
+                <p className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">{k}</p>
+                <p className="text-gray-200 text-xs font-bold mt-1">{v}</p>
               </div>
             ))}
           </div>
 
-          {/* Risk summary (populated from threats prop) */}
+          {/* Risk summary */}
           {threats.length > 0 ? (
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Risk Summary</p>
-              <div className="grid grid-cols-4 gap-2">
+            <div className="bg-gray-950/30 rounded-lg p-4 border border-gray-800/50">
+              <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-3 font-semibold">Risk Landscape Summary</p>
+              <div className="grid grid-cols-4 gap-3">
                 {[
-                  { label: 'Critical', count: critical, color: 'text-red-600' },
-                  { label: 'High',     count: high,     color: 'text-orange-500' },
-                  { label: 'Medium',   count: medium,   color: 'text-yellow-600' },
-                  { label: 'Mitigated',count: mitigated,color: 'text-green-600' },
+                  { label: 'Critical', count: critical, color: 'text-red-500' },
+                  { label: 'High', count: high, color: 'text-orange-500' },
+                  { label: 'Medium', count: medium, color: 'text-yellow-500' },
+                  { label: 'Mitigated', count: mitigated, color: 'text-emerald-500' },
                 ].map(({ label, count, color }) => (
-                  <div key={label} className="text-center">
-                    <p className={`text-2xl font-bold ${color}`}>{count}</p>
-                    <p className="text-gray-400 text-xs">{label}</p>
+                  <div key={label} className={`flex flex-col items-center justify-center py-3 rounded-lg border border-gray-800/50 bg-gray-900/50`}>
+                    <p className={`text-xl font-bold ${color}`}>{count}</p>
+                    <p className={`text-[10px] uppercase tracking-wider mt-1 font-medium text-gray-500`}>{label}</p>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-gray-400 text-xs text-center border-t border-gray-100 pt-4">
-              Run analysis to populate risk summary.
-            </p>
+            <div className="flex flex-col items-center justify-center p-6 bg-gray-950/30 rounded-lg border border-gray-800/50 border-dashed">
+              <p className="text-gray-500 text-xs text-center">
+                Run an analysis to populate the risk landscape summary.
+              </p>
+            </div>
           )}
         </div>
       </div>
 
       {/* Right — Export panel */}
-      <div className="w-64 bg-gray-900 border-l border-gray-800 flex flex-col flex-shrink-0 p-4">
-        <p className="text-gray-400 text-xs uppercase tracking-wider mb-4">Export</p>
+      <div className="w-64 bg-gray-900 border-l border-gray-800 flex flex-col flex-shrink-0 p-5">
+        <div className="mb-5 border-b border-gray-800 pb-3">
+          <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">Export Engine</p>
+        </div>
 
         {/* Blocked state indicator */}
         {isBlocked ? (
-          <div className="bg-red-950 border border-red-800 rounded-lg p-3 mb-4">
-            <p className="text-red-300 text-xs font-medium mb-1">🔒 Blocked</p>
-            <p className="text-red-500 text-xs">
-              Resolve {blockingThreats.length} critical threat{blockingThreats.length !== 1 ? 's' : ''} to unlock export.
+          <div className="bg-red-950/40 border border-red-900/50 rounded-lg p-3 mb-4">
+            <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              Blocked
+            </p>
+            <p className="text-red-300/80 text-[11px] leading-relaxed">
+              Resolve <strong className="text-red-400">{blockingThreats.length} critical threats</strong> to unlock export functionality.
             </p>
           </div>
         ) : threats.length > 0 ? (
-          <div className="bg-green-950 border border-green-800 rounded-lg p-3 mb-4">
-            <p className="text-green-300 text-xs font-medium">✅ Ready to export</p>
-            <p className="text-green-600 text-xs mt-0.5">No blocking risks detected.</p>
+          <div className="bg-emerald-950/30 border border-emerald-900/50 rounded-lg p-3 mb-4">
+            <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Ready
+            </p>
+            <p className="text-emerald-300/80 text-[11px] leading-relaxed">
+              All compliance checks passed.
+            </p>
           </div>
         ) : (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4">
-            <p className="text-gray-400 text-xs">Run analysis first to validate report readiness.</p>
+          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 mb-4">
+            <p className="text-gray-500 text-[11px] leading-relaxed">
+              Run analysis first to validate report readiness.
+            </p>
           </div>
         )}
 
         <button
           onClick={generateReport}
           disabled={generating || isBlocked || threats.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 rounded-lg transition-colors mb-3"
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:bg-blue-900 disabled:text-blue-300 disabled:cursor-not-allowed text-white text-xs font-semibold py-2.5 rounded-lg transition-colors mb-2 flex items-center justify-center gap-2"
         >
-          {generating ? 'Generating...' : 'Generate PDF'}
+          {generating ? (
+            <>
+              <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Compiling PDF...</span>
+            </>
+          ) : (
+            'Generate PDF'
+          )}
         </button>
 
-        <p className="text-gray-600 text-xs">
-          Per ISO 21434, all CRITICAL risks must be mitigated or formally accepted before report generation.
+        <p className="text-gray-500 text-[10px] text-center mb-6">
+          Standardized ISO 21434 Format
         </p>
 
-        <div className="mt-6">
-          <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">Project status</p>
-          <div className="space-y-2">
+        <div className="mt-auto pt-4 border-t border-gray-800">
+          <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-2 font-semibold">Telemetry</p>
+          <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">Status</span>
-              <span className="text-white capitalize">{project.status?.replace('_', ' ')}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-500">Standards</span>
-              <span className="text-white">R155 / R156</span>
+              <span className="text-gray-300 capitalize">{project.status?.replace('_', ' ')}</span>
             </div>
             {threats.length > 0 && (
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">Total threats</span>
-                <span className="text-white">{threats.length}</span>
+                <span className="text-gray-500">Total Risks</span>
+                <span className="text-gray-300">{threats.length}</span>
               </div>
             )}
           </div>

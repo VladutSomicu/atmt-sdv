@@ -2,6 +2,7 @@ import { useState } from 'react';
 import api from '../services/api';
 import AppLayout from '../components/layout/AppLayout';
 import toast from 'react-hot-toast';
+import UserSelect from '../components/shared/UserSelect';
 
 const STEPS = [
   { id: 1, label: 'Project', sub: 'Name & objectives' },
@@ -29,6 +30,8 @@ export default function ProjectSetupPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedObjectives, setSelectedObjectives] = useState(['passenger_safety', 'brake_availability', 'location_privacy']);
+  const [customObjectives, setCustomObjectives] = useState([]);
+  const [customInput, setCustomInput] = useState('');
 
   // Step 2
   const [propulsion, setPropulsion] = useState('');
@@ -48,6 +51,15 @@ export default function ProjectSetupPage() {
     );
   };
 
+  const addCustomObjective = () => {
+    const trimmed = customInput.trim();
+    if (!trimmed) return;
+    const id = `custom_${Date.now()}`;
+    setCustomObjectives(prev => [...prev, { id, label: trimmed }]);
+    setSelectedObjectives(prev => [...prev, id]);
+    setCustomInput('');
+  };
+
   const toggleInterface = (iface) => {
     setExternalInterfaces(prev =>
       prev.includes(iface) ? prev.filter(i => i !== iface) : [...prev, iface]
@@ -58,6 +70,14 @@ export default function ProjectSetupPage() {
     setLoading(true);
     setError('');
     try {
+      const mappedObjectives = selectedObjectives.map(id => {
+        const preset = OBJECTIVES.find(o => o.id === id);
+        if (preset) return preset.label;
+        const custom = customObjectives.find(o => o.id === id);
+        if (custom) return custom.label;
+        return id;
+      });
+
       const res = await api.post('/api/projects', {
         name,
         description,
@@ -68,7 +88,7 @@ export default function ProjectSetupPage() {
           ota_support: otaSupport,
           external_interfaces: externalInterfaces,
         },
-        business_objectives: selectedObjectives,
+        business_objectives: mappedObjectives,
       });
 
       const projectId = res.data.project.id;
@@ -196,6 +216,61 @@ export default function ProjectSetupPage() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Custom objectives */}
+                    {customObjectives.map(obj => (
+                      <div
+                        key={obj.id}
+                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          selectedObjectives.includes(obj.id)
+                            ? 'border-blue-700 bg-blue-600/10'
+                            : 'border-gray-800 hover:border-gray-700'
+                        }`}
+                      >
+                        <div
+                          onClick={() => toggleObjective(obj.id)}
+                          className={`w-4 h-4 rounded flex-shrink-0 mt-0.5 flex items-center justify-center ${
+                            selectedObjectives.includes(obj.id) ? 'bg-blue-600' : 'bg-gray-800 border border-gray-600'
+                          }`}
+                        >
+                          {selectedObjectives.includes(obj.id) && (
+                            <span className="text-white text-xs">✓</span>
+                          )}
+                        </div>
+                        <div className="flex-1" onClick={() => toggleObjective(obj.id)}>
+                          <p className="text-white text-sm font-medium">{obj.label}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setCustomObjectives(prev => prev.filter(o => o.id !== obj.id));
+                            setSelectedObjectives(prev => prev.filter(id => id !== obj.id));
+                          }}
+                          className="text-gray-600 hover:text-red-400 transition-colors text-lg leading-none mt-0.5 flex-shrink-0"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add custom input */}
+                    <div className="flex gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={customInput}
+                        onChange={e => setCustomInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addCustomObjective()}
+                        placeholder="Add a custom objective..."
+                        className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-gray-600"
+                      />
+                      <button
+                        onClick={addCustomObjective}
+                        disabled={!customInput.trim()}
+                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -331,13 +406,12 @@ export default function ProjectSetupPage() {
                     {members.map((m, idx) => (
                       <div key={idx}>
                         <div className="flex items-center gap-3">
-                          <input
-                            type="email"
+                          <UserSelect
                             placeholder="user@example.com"
                             value={m.email}
-                            onChange={(e) => {
+                            onChange={(val) => {
                               const newM = [...members];
-                              newM[idx].email = e.target.value;
+                              newM[idx].email = val;
                               newM[idx].valid = undefined;
                               newM[idx].validName = undefined;
                               setMembers(newM);
@@ -355,7 +429,7 @@ export default function ProjectSetupPage() {
                                 // ignore network errors during validation
                               }
                             }}
-                            className={`flex-1 bg-gray-800 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${
+                            inputClassName={`w-full bg-gray-800 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${
                               m.valid === false ? 'border-red-600' : m.valid === true ? 'border-green-600' : 'border-gray-700'
                             }`}
                           />
@@ -442,7 +516,10 @@ export default function ProjectSetupPage() {
                 {step < 5 ? (
                   <button
                     onClick={() => setStep(step + 1)}
-                    disabled={step === 1 && (!name || selectedObjectives.length === 0)}
+                    disabled={
+                      (step === 1 && (!name || selectedObjectives.length === 0)) ||
+                      (step === 2 && (!propulsion || !architecture))
+                    }
                     className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
                   >
                     Continue: {STEPS[step].label} →
