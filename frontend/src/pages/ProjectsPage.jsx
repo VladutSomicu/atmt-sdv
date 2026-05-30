@@ -26,8 +26,7 @@ const riskLabel = (score) => {
 const statusColor = {
   draft:       'text-gray-400',
   in_analysis: 'text-blue-400',
-  mitigating:  'text-yellow-400',
-  completed:   'text-green-400',
+  completed:   'text-emerald-400',
 };
 
 const roleColor = {
@@ -54,7 +53,7 @@ function ProjectContextMenu({ menu, onRename, onDelete, onClose, canManage }) {
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden"
+      className="fixed z-50 bg-gray-900 border border-gray-700 rounded-none  overflow-hidden"
       style={{ top: menu.y, left: menu.x, minWidth: 160 }}
     >
       {canManage ? (
@@ -148,12 +147,13 @@ function ProjectsTable({ projects, showAllColumns = false }) {
     <>
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-800">
-            {headers.map(h => (
-              <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">
-                {h}
-              </th>
-            ))}
+          <tr className="border-b border-gray-800 text-gray-600 text-xs font-medium uppercase tracking-wider">
+            <th className="px-5 py-3 text-left">Project</th>
+            <th className="px-5 py-3 text-left">Vehicle Profile</th>
+            <th className="px-5 py-3 text-center">Risk</th>
+            <th className="px-5 py-3 text-center">Status</th>
+            <th className="px-5 py-3 text-center">{showAllColumns ? 'Role' : 'My Role'}</th>
+            <th className="px-5 py-3 text-center">Last Update</th>
           </tr>
         </thead>
         <tbody>
@@ -180,6 +180,8 @@ function ProjectsTable({ projects, showAllColumns = false }) {
 
                 <td className="px-5 py-3.5">
                   <div className="flex flex-wrap gap-1">
+                    {vp.category && <span className="text-gray-300 text-xs font-bold">{vp.category}</span>}
+                    {vp.category && (vp.propulsion || vp.architecture) && <span className="text-gray-600 text-xs">/</span>}
                     {vp.propulsion && <span className="text-gray-400 text-xs">{vp.propulsion}</span>}
                     {vp.architecture && <span className="text-gray-600 text-xs">/ {vp.architecture}</span>}
                     {vp.sae_level !== undefined && <span className="text-gray-600 text-xs">/ SAE {vp.sae_level}</span>}
@@ -187,25 +189,25 @@ function ProjectsTable({ projects, showAllColumns = false }) {
                   </div>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-xs px-2 py-0.5 rounded border font-medium ${riskBadge(p.max_risk_score || 0)}`}>
                     {p.max_risk_score ? riskLabel(p.max_risk_score) : 'DRAFT'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-sm font-medium ${statusColor[p.status] || 'text-gray-400'}`}>
                     {p.status?.replace('_', ' ')}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${roleColor[p.my_role] || 'bg-gray-800 text-gray-400'}`}>
                     {p.my_role || '—'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-gray-500 text-xs">
+                <td className="px-5 py-3.5 text-center text-gray-500 text-xs">
                   {new Date(p.updated_at).toLocaleDateString()}
                 </td>
               </tr>
@@ -242,7 +244,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleRename()}
           autoFocus
-          className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+          className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
           placeholder="Project name..."
         />
       </Modal>
@@ -286,7 +288,7 @@ export default function ProjectsPage() {
         {!user?.is_demo && (
           <a
             href="/projects/new"
-            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-none transition-colors"
           >
             + New project
           </a>
@@ -301,7 +303,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
             <h2 className="text-white text-sm font-medium">All projects</h2>
             <span className="text-gray-600 text-xs">{projects.length} total</span>

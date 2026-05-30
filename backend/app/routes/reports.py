@@ -75,8 +75,9 @@ def get_global_reports():
 
         passed = sum(1 for c in all_checks if c['status'] == 'pass')
         applicable = sum(1 for c in all_checks if c['status'] != 'n/a')
-        score = round((passed / applicable * 100)) if applicable > 0 else 0
-        compliance_scores.append(score)
+        score = round((passed / applicable * 100)) if applicable > 0 else 'N/A'
+        if score != 'N/A':
+            compliance_scores.append(score)
 
         project_list.append({
             "id": str(p.id),
@@ -90,7 +91,7 @@ def get_global_reports():
             "updated_at": p.updated_at.isoformat()
         })
 
-    avg_compliance = round(sum(compliance_scores) / len(compliance_scores)) if compliance_scores else 0
+    avg_compliance = round(sum(compliance_scores) / len(compliance_scores)) if compliance_scores else 'N/A'
 
     return jsonify({
         "summary": {

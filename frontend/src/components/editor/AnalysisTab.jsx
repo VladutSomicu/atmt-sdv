@@ -87,8 +87,29 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset,
     if (filterStatus !== 'All') result = result.filter(t => t.status === filterStatus);
     
     result.sort((a, b) => {
-      let aVal = a[sortConfig.key];
-      let bVal = b[sortConfig.key];
+      let aVal, bVal;
+
+      switch(sortConfig.key) {
+        case 'asset_id':
+          aVal = a.asset_name || a.asset_id || '';
+          bVal = b.asset_name || b.asset_id || '';
+          break;
+        case 'source_ref':
+          aVal = a.source_ref || a.source || '';
+          bVal = b.source_ref || b.source || '';
+          break;
+        case 'impact_safety':
+          aVal = `${a.impact_safety}-${a.impact_financial}-${a.impact_operational}-${a.impact_privacy}`;
+          bVal = `${b.impact_safety}-${b.impact_financial}-${b.impact_operational}-${b.impact_privacy}`;
+          break;
+        default:
+          aVal = a[sortConfig.key];
+          bVal = b[sortConfig.key];
+          break;
+      }
+      
+      if (aVal == null) aVal = '';
+      if (bVal == null) bVal = '';
       
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();
@@ -138,7 +159,7 @@ export default function AnalysisTab({ projectId, onThreatsLoaded, onSelectAsset,
             <button
               onClick={runAnalysis}
               disabled={analyzing}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-none transition-colors"
             >
               {analyzing ? 'Analyzing...' : 'Run analysis'}
             </button>

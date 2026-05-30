@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Modal({ isOpen, title, children, onClose, onConfirm, confirmText = 'Confirm', confirmDanger = false }) {
   const modalRef = useRef(null);
@@ -33,14 +34,14 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
     >
       <div 
         ref={modalRef}
         tabIndex={-1}
-        className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 focus:outline-none"
+        className="bg-gray-900 border border-gray-800 rounded-none shadow-none w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 focus:outline-none"
       >
         <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
           <h3 className="text-white font-medium">{title}</h3>
@@ -62,7 +63,7 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
           </button>
           <button 
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-medium rounded-none transition-colors ${
               confirmDanger 
                 ? 'bg-red-600 hover:bg-red-500 text-white' 
                 : 'bg-blue-600 hover:bg-blue-500 text-white'
@@ -74,4 +75,6 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

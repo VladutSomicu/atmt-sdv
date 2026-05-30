@@ -44,7 +44,7 @@ export default function ProjectAuditLogTab({ projectId }) {
           <p className="text-gray-500 text-sm">Review all actions and changes made in this project</p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           {logs.length === 0 ? (
             <div className="text-center py-16 text-gray-500">No actions recorded yet.</div>
           ) : (

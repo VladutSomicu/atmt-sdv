@@ -55,7 +55,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
 
         {/* ⚠️ Critical open threats banner */}
         {isBlocked && (
-          <div className="w-full max-w-2xl bg-red-950/40 border border-red-500/30 rounded-2xl p-5 flex gap-4 items-start shadow-[0_0_30px_rgba(239,68,68,0.1)] backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-full max-w-2xl bg-red-950/40 border border-red-500/30 rounded-none p-5 flex gap-4 items-start shadow-[0_0_30px_rgba(239,68,68,0.1)] backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30">
               <span className="text-red-400 text-lg">⚠️</span>
             </div>
@@ -66,7 +66,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
               <p className="text-red-400/80 text-xs mb-3 leading-relaxed">
                 ISO 21434 mandates that all CRITICAL risks must be mitigated or formally accepted prior to report generation. Please resolve these before proceeding.
               </p>
-              <ul className="space-y-1.5 bg-red-950/30 rounded-xl p-3 border border-red-900/50">
+              <ul className="space-y-1.5 bg-red-950/30 rounded-none p-3 border border-red-900/50">
                 {blockingThreats.slice(0, 5).map(t => (
                   <li key={t.id} className="flex items-center gap-3 text-xs text-red-300">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] flex-shrink-0" />
@@ -87,7 +87,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
         )}
 
         {/* Report mock-up card (Professional Dark Theme) */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-lg w-full max-w-2xl p-8 relative overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none shadow-none w-full max-w-2xl p-8 relative overflow-hidden">
           <div className="flex items-start justify-between mb-6 border-b border-gray-800 pb-6">
             <div>
               <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-gray-800 border border-gray-700 rounded mb-3">
@@ -102,14 +102,15 @@ export default function ReportTab({ projectId, project, threats = [] }) {
           </div>
 
           {/* Vehicle profile Grid */}
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-5 gap-3 mb-6">
             {[
+              ['Category', vp.category || 'N/A'],
               ['Propulsion', vp.propulsion || 'N/A'],
               ['Architecture', vp.architecture || 'N/A'],
               ['SAE Level', vp.sae_level !== undefined ? `L${vp.sae_level}` : 'N/A'],
               ['OTA Support', vp.ota_support ? 'Yes' : 'No'],
             ].map(([k, v]) => (
-              <div key={k} className="bg-gray-950/50 border border-gray-800/80 rounded-lg p-3 flex flex-col items-start justify-center">
+              <div key={k} className="bg-gray-950/50 border border-gray-800/80 rounded-none p-3 flex flex-col items-start justify-center">
                 <p className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">{k}</p>
                 <p className="text-gray-200 text-xs font-bold mt-1">{v}</p>
               </div>
@@ -118,7 +119,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
 
           {/* Risk summary */}
           {threats.length > 0 ? (
-            <div className="bg-gray-950/30 rounded-lg p-4 border border-gray-800/50">
+            <div className="bg-gray-950/30 rounded-none p-4 border border-gray-800/50">
               <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-3 font-semibold">Risk Landscape Summary</p>
               <div className="grid grid-cols-4 gap-3">
                 {[
@@ -127,7 +128,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
                   { label: 'Medium', count: medium, color: 'text-yellow-500' },
                   { label: 'Mitigated', count: mitigated, color: 'text-emerald-500' },
                 ].map(({ label, count, color }) => (
-                  <div key={label} className={`flex flex-col items-center justify-center py-3 rounded-lg border border-gray-800/50 bg-gray-900/50`}>
+                  <div key={label} className={`flex flex-col items-center justify-center py-3 rounded-none border border-gray-800/50 bg-gray-900/50`}>
                     <p className={`text-xl font-bold ${color}`}>{count}</p>
                     <p className={`text-[10px] uppercase tracking-wider mt-1 font-medium text-gray-500`}>{label}</p>
                   </div>
@@ -135,7 +136,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center p-6 bg-gray-950/30 rounded-lg border border-gray-800/50 border-dashed">
+            <div className="flex flex-col items-center justify-center p-6 bg-gray-950/30 rounded-none border border-gray-800/50 border-dashed">
               <p className="text-gray-500 text-xs text-center">
                 Run an analysis to populate the risk landscape summary.
               </p>
@@ -152,7 +153,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
 
         {/* Blocked state indicator */}
         {isBlocked ? (
-          <div className="bg-red-950/40 border border-red-900/50 rounded-lg p-3 mb-4">
+          <div className="bg-red-950/40 border border-red-900/50 rounded-none p-3 mb-4">
             <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
               Blocked
@@ -162,7 +163,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
             </p>
           </div>
         ) : threats.length > 0 ? (
-          <div className="bg-emerald-950/30 border border-emerald-900/50 rounded-lg p-3 mb-4">
+          <div className="bg-emerald-950/30 border border-emerald-900/50 rounded-none p-3 mb-4">
             <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Ready
@@ -172,7 +173,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
             </p>
           </div>
         ) : (
-          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 mb-4">
+          <div className="bg-gray-800/30 border border-gray-700/50 rounded-none p-3 mb-4">
             <p className="text-gray-500 text-[11px] leading-relaxed">
               Run analysis first to validate report readiness.
             </p>
@@ -182,7 +183,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
         <button
           onClick={generateReport}
           disabled={generating || isBlocked || threats.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:bg-blue-900 disabled:text-blue-300 disabled:cursor-not-allowed text-white text-xs font-semibold py-2.5 rounded-lg transition-colors mb-2 flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:bg-blue-900 disabled:text-blue-300 disabled:cursor-not-allowed text-white text-xs font-semibold py-2.5 rounded-none transition-colors mb-2 flex items-center justify-center gap-2"
         >
           {generating ? (
             <>

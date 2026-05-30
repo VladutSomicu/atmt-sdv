@@ -27,7 +27,7 @@ export default function AssetLibraryPage() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  
+
   // Add/Edit Asset State
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -64,7 +64,7 @@ export default function AssetLibraryPage() {
       toast.error('Name and category are required');
       return;
     }
-    
+
     setSaving(true);
     try {
       if (editingId) {
@@ -128,13 +128,13 @@ export default function AssetLibraryPage() {
     }
   };
 
-  const filteredAssets = assets.filter(a => 
+  const filteredAssets = assets.filter(a =>
     a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.category.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumb={[{ label: 'Asset Library' }]}>
       <div className="max-w-6xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -154,7 +154,7 @@ export default function AssetLibraryPage() {
                 });
                 setShowAssetModal(true);
               }}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-none transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -165,7 +165,7 @@ export default function AssetLibraryPage() {
         </div>
 
         {/* Database Search */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
             <div>
               <h2 className="text-white text-lg font-medium">Global Components</h2>
@@ -177,11 +177,11 @@ export default function AssetLibraryPage() {
                 placeholder="Search components..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-950 border border-gray-700 text-white rounded-none px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -283,7 +283,7 @@ export default function AssetLibraryPage() {
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                 placeholder="e.g., Telematics Control Unit"
               />
             </div>
@@ -292,7 +292,7 @@ export default function AssetLibraryPage() {
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="Connectivity">Connectivity</option>
                 <option value="Infotainment">Infotainment</option>
@@ -300,7 +300,12 @@ export default function AssetLibraryPage() {
                 <option value="Perception">Perception</option>
                 <option value="Safety-Critical">Safety-Critical</option>
                 <option value="Diagnostic">Diagnostic</option>
+                <option value="Gateway">Gateway</option>
+                <option value="Compute">Compute</option>
+                <option value="Body">Body</option>
+                <option value="Chassis">Chassis</option>
                 <option value="Cloud">Cloud</option>
+                <option value="External">External</option>
               </select>
             </div>
           </div>
@@ -311,7 +316,7 @@ export default function AssetLibraryPage() {
               <select
                 value={form.asil_level}
                 onChange={(e) => setForm({ ...form, asil_level: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="None">None</option>
                 <option value="A">ASIL A</option>
@@ -325,11 +330,12 @@ export default function AssetLibraryPage() {
               <select
                 value={form.physical_accessibility}
                 onChange={(e) => setForm({ ...form, physical_accessibility: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="Internal">Internal (Locked)</option>
-                <option value="External">External Facing</option>
+                <option value="External-Facing">External-Facing</option>
                 <option value="OBD-II">OBD-II / Diagnostic Port</option>
+                <option value="Remote">Remote / Cloud</option>
               </select>
             </div>
           </div>
@@ -340,9 +346,9 @@ export default function AssetLibraryPage() {
               <select
                 value={form.default_safety}
                 onChange={(e) => setForm({ ...form, default_safety: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -350,9 +356,9 @@ export default function AssetLibraryPage() {
               <select
                 value={form.default_financial}
                 onChange={(e) => setForm({ ...form, default_financial: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -360,9 +366,9 @@ export default function AssetLibraryPage() {
               <select
                 value={form.default_operational}
                 onChange={(e) => setForm({ ...form, default_operational: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -370,13 +376,13 @@ export default function AssetLibraryPage() {
               <select
                 value={form.default_privacy}
                 onChange={(e) => setForm({ ...form, default_privacy: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>
-          
+
           <p className="text-gray-500 text-[10px] italic">
             * Interfaces and data types can be refined in the editor after placement.
           </p>

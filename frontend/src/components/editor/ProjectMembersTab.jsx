@@ -78,7 +78,7 @@ export default function ProjectMembersTab({ projectId, user }) {
           <p className="text-gray-500 text-sm">Manage who has access to this project</p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-8">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden mb-8">
           <div className="px-5 py-4 border-b border-gray-800">
             <h2 className="text-white text-sm font-medium">Current Members</h2>
           </div>
@@ -124,11 +124,11 @@ export default function ProjectMembersTab({ projectId, user }) {
         </div>
 
         {canManageMembers && (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5 relative" style={{ zIndex: 50 }}>
             <h2 className="text-white text-sm font-medium mb-1">Invite New Member</h2>
             <p className="text-gray-500 text-xs mb-4">Add a new user to this project. They will receive access immediately.</p>
             
-            <form onSubmit={handleInvite} className="flex gap-3">
+            <form onSubmit={handleInvite} className="flex gap-3 relative" style={{ zIndex: 60 }}>
               <UserSelect 
                 value={inviteEmail} 
                 onChange={setInviteEmail} 
@@ -137,7 +137,7 @@ export default function ProjectMembersTab({ projectId, user }) {
               <select
                 value={inviteRole}
                 onChange={e => setInviteRole(e.target.value)}
-                className="w-40 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-40 bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="engineer">Engineer</option>
                 <option value="architect">Architect</option>
@@ -147,7 +147,7 @@ export default function ProjectMembersTab({ projectId, user }) {
               <button
                 type="submit"
                 disabled={inviting || !inviteEmail.trim()}
-                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-5 py-2 rounded-none text-sm font-medium transition-colors"
               >
                 {inviting ? 'Inviting...' : 'Invite Member'}
               </button>

@@ -58,6 +58,18 @@ const threatSources = [
     type: 'ICS Attack Techniques',
     relevantContent: 'Lateral Movement, Inhibit Response Function.',
     usage: 'Reference for Attack Path Visualization.'
+  },
+  {
+    source: 'UNECE R156',
+    type: 'Legal Regulation',
+    relevantContent: 'Software Update Management System (SUMS).',
+    usage: 'Checks OTA mechanisms and update threats.'
+  },
+  {
+    source: 'ISO/SAE 21434',
+    type: 'Industry Standard',
+    relevantContent: 'Cybersecurity engineering for road vehicles.',
+    usage: 'Framework for component-level TARA.'
   }
 ];
 
@@ -169,7 +181,7 @@ export default function ThreatCatalogPage() {
   );
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumb={[{ label: 'Threat Catalog' }]}>
       <div className="max-w-6xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -190,7 +202,7 @@ export default function ThreatCatalogPage() {
                 });
                 setShowThreatModal(true);
               }}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-none transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -201,7 +213,7 @@ export default function ThreatCatalogPage() {
         </div>
 
         {/* Sources Map */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-12">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden mb-12">
           <div className="px-5 py-4 border-b border-gray-800 bg-gray-900/50">
             <h2 className="text-white text-lg font-medium">Sources</h2>
             <p className="text-gray-500 text-xs mt-1">How ATMT-SDV leverages external sources to generate the TARA diagnosis</p>
@@ -239,7 +251,7 @@ export default function ThreatCatalogPage() {
         </div>
 
         {/* Database Search */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
             <div>
               <h2 className="text-white text-lg font-medium">Current Database</h2>
@@ -251,7 +263,7 @@ export default function ThreatCatalogPage() {
                 placeholder="Search threats, categories..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-950 border border-gray-700 text-white rounded-none px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -362,7 +374,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.stride_category}
                 onChange={(e) => setForm({ ...form, stride_category: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="Spoofing">Spoofing</option>
                 <option value="Tampering">Tampering</option>
@@ -377,10 +389,12 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.source}
                 onChange={(e) => setForm({ ...form, source: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="MITRE CAPEC">MITRE CAPEC</option>
                 <option value="UNECE R155">UNECE R155</option>
+                <option value="UNECE R156">UNECE R156</option>
+                <option value="ISO/SAE 21434">ISO/SAE 21434</option>
                 <option value="OWASP">OWASP</option>
                 <option value="LINDDUN">LINDDUN</option>
                 <option value="Custom">Custom / Internal</option>
@@ -394,7 +408,7 @@ export default function ThreatCatalogPage() {
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               placeholder="e.g., CAN Bus Message Injection"
             />
           </div>
@@ -404,7 +418,7 @@ export default function ThreatCatalogPage() {
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 h-24 resize-none"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500 h-24 resize-none"
               placeholder="Describe the threat pattern and its potential impact..."
             />
           </div>
@@ -416,7 +430,7 @@ export default function ThreatCatalogPage() {
                 type="text"
                 value={form.source_ref}
                 onChange={(e) => setForm({ ...form, source_ref: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                 placeholder="e.g., CAPEC-123"
               />
             </div>
@@ -427,7 +441,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.default_impact_safety}
                 onChange={(e) => setForm({ ...form, default_impact_safety: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -437,7 +451,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.default_impact_financial}
                 onChange={(e) => setForm({ ...form, default_impact_financial: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -447,7 +461,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.default_impact_operational}
                 onChange={(e) => setForm({ ...form, default_impact_operational: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -457,7 +471,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.default_impact_privacy}
                 onChange={(e) => setForm({ ...form, default_impact_privacy: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -470,7 +484,7 @@ export default function ThreatCatalogPage() {
               <select
                 value={form.default_feasibility}
                 onChange={(e) => setForm({ ...form, default_feasibility: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value={1}>1 – Negligible</option>
                 <option value={2}>2 – Low</option>

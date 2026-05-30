@@ -438,12 +438,17 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
 
       // Context menu
       paper.on('cell:contextmenu', (cv, evt) => {
-        evt.preventDefault();
+        if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+        if (evt && evt.originalEvent && typeof evt.originalEvent.preventDefault === 'function') evt.originalEvent.preventDefault();
         if (!editableRef.current) return;
         setSelectedCell(cv.model);
         setContextMenu({ cell: cv.model, x: evt.clientX, y: evt.clientY });
       });
-      paper.on('blank:contextmenu', (evt) => { evt.preventDefault(); setContextMenu(null); });
+      paper.on('blank:contextmenu', (evt) => { 
+        if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+        if (evt && evt.originalEvent && typeof evt.originalEvent.preventDefault === 'function') evt.originalEvent.preventDefault();
+        setContextMenu(null); 
+      });
 
       // Double-click inline rename
       paper.on('cell:pointerdblclick', (cv) => {
@@ -466,16 +471,26 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       };
       container.addEventListener('wheel', wheelHandler, { passive: false });
 
+      // Native context menu blocker
+      const preventCtx = (e) => e.preventDefault();
+      container.addEventListener('contextmenu', preventCtx);
+      container._ctxCleanup = () => container.removeEventListener('contextmenu', preventCtx);
+
       // History snapshots
+      let historyTimer;
       const pushSnap = () => {
         if (isRestoringRef.current) return;
-        const snap = JSON.stringify(graph.toJSON());
-        const stack = historyRef.current;
-        if (stack.length > 0 && stack[stack.length - 1] === snap) return;
-        historyRef.current = [...stack.slice(-49), snap];
-        redoStackRef.current = [];
-        setCanUndo(historyRef.current.length > 1);
-        setCanRedo(false);
+        clearTimeout(historyTimer);
+        historyTimer = setTimeout(() => {
+          if (isRestoringRef.current) return;
+          const snap = JSON.stringify(graph.toJSON());
+          const stack = historyRef.current;
+          if (stack.length > 0 && stack[stack.length - 1] === snap) return;
+          historyRef.current = [...stack.slice(-49), snap];
+          redoStackRef.current = [];
+          setCanUndo(historyRef.current.length > 1);
+          setCanRedo(false);
+        }, 200);
       };
       graph.on('add', pushSnap);
       graph.on('remove', pushSnap);
@@ -496,6 +511,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       document.removeEventListener('keydown', handleKeyDown);
       if (canvasRef.current?.removeEventListener && wheelHandler) canvasRef.current.removeEventListener('wheel', wheelHandler);
       if (canvasRef.current?._panCleanup) canvasRef.current._panCleanup();
+      if (canvasRef.current?._ctxCleanup) canvasRef.current._ctxCleanup();
       if (resizeObs) resizeObs.disconnect();
       if (paperRef.current) { paperRef.current.remove(); paperRef.current = null; }
       if (graphRef.current) { graphRef.current.clear(); graphRef.current = null; }
@@ -802,8 +818,8 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       } else {
         cell.attr('body/stroke', strokeColor);
         cell.attr('body/strokeWidth', strokeWidth);
-        const isExt = d.physical_accessibility === 'External-Facing';
-        cell.attr('body/strokeDasharray', isExt ? '4 2' : '');
+        const isExtNode = d.category === 'Cloud' || d.category === 'External' || d.is_external_entity;
+        cell.attr('body/strokeDasharray', isExtNode ? '4 2' : '');
       }
     });
   }, [riskColors, threats, selectedCell, tick]);
@@ -901,9 +917,10 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       {/* ── Context Menu ── */}
       {contextMenu && (
         <div
-          className="fixed z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden"
+          className="fixed z-50 bg-gray-900 border border-gray-700 rounded-none shadow-none overflow-hidden"
           style={{ top: contextMenu.y, left: contextMenu.x, width: 160 }}
           onClick={() => setContextMenu(null)}
+          onContextMenu={(e) => e.preventDefault()}
         >
           <button
             onClick={() => {
@@ -919,21 +936,36 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
             Rename
           </button>
           {!contextMenu.cell.isLink() && !contextMenu.cell.get('data')?.is_trust_boundary && (
-            <button
-              onClick={() => {
-                const c = contextMenu.cell;
-                const d = c.get('data') || {};
-                const isExt = d.physical_accessibility === 'External-Facing';
-                c.set('data', { ...d, physical_accessibility: isExt ? 'Internal' : 'External-Facing' });
-                c.attr('body/strokeDasharray', isExt ? '' : '4 2');
-                setContextMenu(null);
-                setTick(t => t + 1);
-                toast.success(isExt ? 'Marked as internal' : 'Marked as external entity');
-              }}
-              className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 transition-colors border-t border-gray-800"
-            >
-              {contextMenu.cell.get('data')?.physical_accessibility === 'External-Facing' ? 'Mark Internal' : 'Mark External'}
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  const c = contextMenu.cell;
+                  const d = c.get('data') || {};
+                  const isExtEntity = !!d.is_external_entity;
+                  c.set('data', { ...d, is_external_entity: !isExtEntity });
+                  setContextMenu(null);
+                  setTick(t => t + 1);
+                  toast.success(isExtEntity ? 'Marked as internal entity' : 'Marked as external entity');
+                }}
+                className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 transition-colors border-t border-gray-800"
+              >
+                {contextMenu.cell.get('data')?.is_external_entity ? 'Mark Internal Entity' : 'Mark External Entity'}
+              </button>
+              <button
+                onClick={() => {
+                  const c = contextMenu.cell;
+                  const d = c.get('data') || {};
+                  const isExtFacing = d.physical_accessibility === 'External-Facing';
+                  c.set('data', { ...d, physical_accessibility: isExtFacing ? 'Internal' : 'External-Facing' });
+                  setContextMenu(null);
+                  setTick(t => t + 1);
+                  toast.success(isExtFacing ? 'Accessibility set to Internal' : 'Accessibility set to External-Facing');
+                }}
+                className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-gray-800 transition-colors border-t border-gray-800"
+              >
+                {contextMenu.cell.get('data')?.physical_accessibility === 'External-Facing' ? 'Set Internal Access' : 'Set External-Facing'}
+              </button>
+            </>
           )}
           <button
             onClick={() => { setDeleteTarget(contextMenu.cell); setContextMenu(null); }}
@@ -983,7 +1015,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           onChange={(e) => setRenameValue(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') document.querySelector('[data-confirm-btn]')?.click(); }}
           autoFocus
-          className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+          className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
           placeholder="New name..."
         />
       </Modal>

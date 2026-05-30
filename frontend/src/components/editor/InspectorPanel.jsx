@@ -94,7 +94,7 @@ export default function InspectorPanel({ selectedCell, threats, onUpdate }) {
             </div>
 
             {selectedCell.get('crosses_trust_boundary') && !selectedCell.get('has_security_control') && (
-              <div className="bg-red-950 border border-red-800 rounded-lg p-2">
+              <div className="bg-red-950 border border-red-800 rounded-none p-2">
                 <p className="text-red-300 text-xs font-medium">Unsecured boundary crossing</p>
                 <p className="text-red-500 text-[10px] mt-0.5">This connection will be flagged as a threat vector.</p>
               </div>
@@ -190,7 +190,7 @@ export default function InspectorPanel({ selectedCell, threats, onUpdate }) {
             )}
 
             {nodeThreats.length > 0 && (
-              <div className="bg-red-950/50 border border-red-900 rounded-lg p-2">
+              <div className="bg-red-950/50 border border-red-900 rounded-none p-2">
                 <p className="text-red-300 text-xs font-medium">Open threats: {nodeThreats.length}</p>
               </div>
             )}

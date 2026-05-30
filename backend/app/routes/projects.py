@@ -300,6 +300,9 @@ def unlock_project(project_id):
         if not user.is_admin:
             return jsonify({"error": "Only the lock holder can unlock"}), 403
 
+    if not project.is_locked:
+        return jsonify({"message": "Project already unlocked"}), 200
+
     project.is_locked = False
     project.locked_by = None
     project.locked_at = None

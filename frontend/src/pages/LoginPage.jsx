@@ -61,17 +61,16 @@ export default function LoginPage() {
             // Automotive Threat Modeling Tool
           </p>
           <h1 className="text-white text-4xl font-bold leading-tight mb-4">
-            TARA engineering for software-defined vehicles.
+            Security engineering for software-defined vehicles.
           </h1>
           <p className="text-gray-400 text-sm leading-relaxed">
-            Construct item-level E/E topology graphs, execute STRIDE analysis across DFD
-            trust boundaries with CAPEC attack pattern mapping, and generate auditable
-            TARA artefacts aligned with ISO/SAE 21434:2021 and UNECE R155/R156.
+            Accelerate automotive cybersecurity compliance with traceable threat analysis, risk
+            assessments, and audit-ready documentation for ISO/SAE 21434 and UNECE R155/R156.
           </p>
         </div>
 
         {/* Canvas preview */}
-        <div className="bg-gray-950 rounded-xl border border-gray-800 p-5 flex flex-col shadow-2xl w-full">
+        <div className="bg-gray-950 rounded-none border border-gray-800 p-5 flex flex-col shadow-none w-full">
           <div className="flex items-center justify-between mb-5 z-10">
             <div className="flex items-center gap-2">
               <span className="text-gray-400 text-xs font-mono font-bold">VEHICLE_ARCHITECTURE.DFD</span>
@@ -83,7 +82,7 @@ export default function LoginPage() {
           </div>
 
           {/* Realistic automotive DFD */}
-          <div className="relative w-full aspect-[21/9] lg:aspect-[3/1] bg-gray-900/30 rounded-lg border border-gray-800/50 overflow-hidden">
+          <div className="relative w-full aspect-[21/9] lg:aspect-[3/1] bg-gray-900/30 rounded-none border border-gray-800/50 overflow-hidden">
             <svg viewBox="0 0 700 220" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -252,7 +251,7 @@ export default function LoginPage() {
           <p className="text-gray-500 text-sm mb-8">Sign in with your organisation credentials.</p>
 
           {error && (
-            <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">
+            <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-none mb-4">
               {error}
             </div>
           )}
@@ -267,7 +266,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder-gray-600"
+                className="w-full bg-gray-900 border border-gray-700 text-white rounded-none px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder-gray-600"
                 placeholder="you@company.com"
               />
             </div>
@@ -284,7 +283,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors pr-10"
+                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-none px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors pr-10"
                   placeholder="••••••••"
                 />
                 <button
@@ -310,7 +309,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-none text-sm transition-colors flex items-center justify-center gap-2"
             >
               {loading ? 'Authenticating...' : (
                 <>Sign in <span>→</span></>
@@ -325,7 +324,7 @@ export default function LoginPage() {
           </div>
 
           {/* Demo box */}
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-4">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-white text-sm font-medium">Explore the demo workspace</p>

@@ -26,8 +26,7 @@ const riskLabel = (score) => {
 const statusColor = {
   draft: 'text-gray-400',
   in_analysis: 'text-blue-400',
-  mitigating: 'text-yellow-400',
-  completed: 'text-green-400',
+  completed: 'text-emerald-400',
 };
 
 const roleColor = {
@@ -54,7 +53,7 @@ function ProjectContextMenu({ menu, onRename, onDelete, onClose, canManage }) {
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden"
+      className="fixed z-50 bg-gray-900 border border-gray-700 rounded-none  overflow-hidden"
       style={{ top: menu.y, left: menu.x, minWidth: 160 }}
     >
       {canManage ? (
@@ -160,17 +159,15 @@ function AdminDashboard({ projects }) {
         <div className="col-span-8 space-y-6">
           {/* Top 3 Metric Cards */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
-              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Active TARA</p>
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Total Projects</p>
               <div className="flex items-end gap-3">
-                <p className="text-white text-4xl font-black">{stats.inAnalysis}</p>
-                <p className="text-gray-500 text-sm font-medium mb-1">projects</p>
+                <p className="text-white text-4xl font-black">{stats.total}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">in workspace</p>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors" />
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
               <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">OTA Capable</p>
               <div className="flex items-end gap-3">
                 <p className="text-white text-4xl font-black">{stats.otaCapable}</p>
@@ -178,8 +175,7 @@ function AdminDashboard({ projects }) {
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors" />
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
               <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Critical Risks</p>
               <div className="flex items-end gap-3">
                 <p className={`${stats.critical > 0 ? 'text-red-400' : 'text-emerald-400'} text-4xl font-black`}>{stats.critical}</p>
@@ -190,10 +186,10 @@ function AdminDashboard({ projects }) {
 
           {/* Organization Health & Demographics */}
           <div className="grid grid-cols-2 gap-6">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 flex flex-col justify-between">
               <div>
                 <h2 className="text-white text-sm font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-none bg-emerald-500" />
                   Organization Health
                 </h2>
                 <p className="text-gray-500 text-xs mb-6">Percentage of projects successfully completing security lifecycle.</p>
@@ -212,8 +208,7 @@ function AdminDashboard({ projects }) {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 blur-3xl rounded-full" />
+              <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
                 <p className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-wider">Vehicle Architectures</p>
                 <div className="space-y-4 relative z-10">
                   {['Classic', 'SDV'].map(type => {
@@ -225,8 +220,8 @@ function AdminDashboard({ projects }) {
                           <span className="text-gray-400 font-medium">{type}</span>
                           <span className="text-white font-bold">{count}</span>
                         </div>
-                        <div className="w-full bg-gray-800 rounded-full h-1.5">
-                          <div className="bg-indigo-500/60 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                        <div className="w-full bg-gray-800 rounded-none h-1.5">
+                          <div className="bg-blue-500 h-1.5 rounded-none" style={{ width: `${pct}%` }}></div>
                         </div>
                       </div>
                     );
@@ -234,8 +229,7 @@ function AdminDashboard({ projects }) {
                 </div>
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-600/5 blur-3xl rounded-full" />
+              <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
                 <p className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-wider">Fleet Propulsion</p>
                 <div className="space-y-4 relative z-10">
                   {['EV', 'ICE', 'Hybrid'].map(type => {
@@ -247,8 +241,8 @@ function AdminDashboard({ projects }) {
                           <span className="text-gray-400 font-medium">{type}</span>
                           <span className="text-white font-bold">{count}</span>
                         </div>
-                        <div className="w-full bg-gray-800 rounded-full h-1.5">
-                          <div className="bg-teal-500/60 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                        <div className="w-full bg-gray-800 rounded-none h-1.5">
+                          <div className="bg-blue-500 h-1.5 rounded-none" style={{ width: `${pct}%` }}></div>
                         </div>
                       </div>
                     );
@@ -260,24 +254,24 @@ function AdminDashboard({ projects }) {
         </div>
 
         {/* Right: Quick Admin Links */}
-        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-none p-6">
           <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="w-2 h-2 rounded-none bg-orange-500" />
             Management Hub
           </h2>
           <div className="space-y-4">
             {[
-              { label: 'Asset Library', icon: '📦', href: '/assets', color: 'bg-blue-500/10 text-blue-400' },
-              { label: 'Threat Catalog', icon: '⚡', href: '/threats-catalog', color: 'bg-orange-500/10 text-orange-400' },
-              { label: 'Security Controls', icon: '🛡️', href: '/controls-library', color: 'bg-emerald-500/10 text-emerald-400' },
-              { label: 'User Directory', icon: '👥', href: '/admin', color: 'bg-purple-500/10 text-purple-400' },
+              { label: 'Asset Library', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>, href: '/assets', color: 'bg-blue-500/10 text-blue-400' },
+              { label: 'Threat Catalog', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>, href: '/threats-catalog', color: 'bg-orange-500/10 text-orange-400' },
+              { label: 'Security Controls', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, href: '/controls-library', color: 'bg-emerald-500/10 text-emerald-400' },
+              { label: 'User Directory', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M12 14c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5zm0-3a4 4 0 100-8 4 4 0 000 8z" /></svg>, href: '/admin', color: 'bg-purple-500/10 text-purple-400' },
             ].map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group"
+                className="flex items-center gap-4 p-4 rounded-none hover:bg-gray-800 transition-all border border-transparent hover:border-gray-700 group"
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${link.color}`}>
+                <div className={`w-12 h-12 rounded-none flex items-center justify-center text-xl ${link.color}`}>
                   {link.icon}
                 </div>
                 <div>
@@ -309,9 +303,10 @@ function UserDashboard({ projects, user }) {
   const mediumProjects = projects.filter(p => (p.max_risk_score || 0) >= 8 && (p.max_risk_score || 0) < 12).length;
   const lowProjects = projects.filter(p => (p.max_risk_score || 0) > 0 && (p.max_risk_score || 0) < 8).length;
 
-  const compliantProjects = projects.filter(p => p.status === 'completed' || (p.max_risk_score !== null && p.max_risk_score < 12)).length;
-  const healthScore = totalProjects > 0 ? Math.round((compliantProjects / totalProjects) * 100) : 100;
-
+  const evaluatedProjects = projects.filter(p => p.status === 'completed' || (p.max_risk_score !== null && p.max_risk_score > 0));
+  const compliantProjects = evaluatedProjects.filter(p => p.status === 'completed' || p.max_risk_score < 12).length;
+  const healthScore = evaluatedProjects.length > 0 ? Math.round((compliantProjects / evaluatedProjects.length) * 100) : 'N/A';
+  const healthColor = healthScore === 'N/A' ? 'text-gray-500' : healthScore > 80 ? 'text-emerald-400' : healthScore > 50 ? 'text-yellow-400' : 'text-red-400';
   const recentProjects = [...projects].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 4);
 
   return (
@@ -320,7 +315,7 @@ function UserDashboard({ projects, user }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-white text-3xl font-bold tracking-tight">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'User'} 👋
+            Welcome back, {user?.full_name?.split(' ')[0] || 'User'}!
           </h1>
           <p className="text-gray-500 text-sm mt-2">
             You have <span className="text-white font-medium">{projects.length}</span> project{projects.length !== 1 ? 's' : ''} assigned to your workspace.
@@ -334,17 +329,15 @@ function UserDashboard({ projects, user }) {
         {/* Left Column: Stats & Risk Landscape */}
         <div className="col-span-8 space-y-6">
           <div className="grid grid-cols-3 gap-6">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
-              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Active Projects</p>
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Total Projects</p>
               <div className="flex items-end gap-3">
-                <p className="text-white text-4xl font-black">{inProgress}</p>
-                <p className="text-gray-500 text-sm font-medium mb-1">in progress</p>
+                <p className="text-white text-4xl font-black">{totalProjects}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1">in workspace</p>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors" />
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
               <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Critical Risks</p>
               <div className="flex items-end gap-3">
                 <p className={`${criticalProjects > 0 ? "text-red-400" : "text-emerald-400"} text-4xl font-black`}>
@@ -354,21 +347,20 @@ function UserDashboard({ projects, user }) {
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
-              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Compliance Health</p>
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
+              <p className="text-gray-500 text-xs uppercase font-bold mb-2 tracking-wider">Fleet Compliance Status</p>
               <div className="flex items-end gap-3">
-                <p className={`${healthScore > 80 ? 'text-emerald-400' : healthScore > 50 ? 'text-yellow-400' : 'text-red-400'} text-4xl font-black`}>
-                  {healthScore}%
+                <p className={`${healthColor} text-4xl font-black`}>
+                  {healthScore}{healthScore !== 'N/A' ? '%' : ''}
                 </p>
                 <p className="text-gray-500 text-sm font-medium mb-1">compliant</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5">
             <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="w-2 h-2 rounded-none bg-blue-500" />
               Risk Landscape
             </h2>
             <div className="grid grid-cols-4 gap-4">
@@ -378,7 +370,7 @@ function UserDashboard({ projects, user }) {
                 { label: 'Medium', count: mediumProjects, color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
                 { label: 'Low', count: lowProjects, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
               ].map(({ label, count, color, bg, border }) => (
-                <div key={label} className={`flex flex-col items-center justify-center p-4 rounded-xl border ${bg} ${border}`}>
+                <div key={label} className={`flex flex-col items-center justify-center p-4 rounded-none border ${bg} ${border}`}>
                   <p className={`text-3xl font-black ${color}`}>{count}</p>
                   <p className={`text-[10px] uppercase tracking-wider mt-1.5 font-bold ${color} opacity-80`}>{label}</p>
                 </div>
@@ -388,9 +380,9 @@ function UserDashboard({ projects, user }) {
         </div>
 
         {/* Right Column: Recent Activity */}
-        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col">
+        <div className="col-span-4 bg-gray-900 border border-gray-800 rounded-none p-5 flex flex-col">
           <h2 className="text-white text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-purple-500" />
+            <span className="w-2 h-2 rounded-none bg-purple-500" />
             Recent Activity
           </h2>
           {recentProjects.length > 0 ? (
@@ -398,7 +390,7 @@ function UserDashboard({ projects, user }) {
               {recentProjects.map((p, idx) => {
                 return (
                   <div key={p.id} className="relative pl-4 border-l border-gray-800 pb-3 last:border-0 last:pb-0">
-                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-gray-600 border-2 border-gray-900" />
+                    <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-none bg-gray-600 border-2 border-gray-900" />
                     <p className="text-white text-sm font-bold truncate pr-4">{p.name}</p>
                     <p className="text-gray-500 text-[11px] mt-0.5">
                       Status changed to <span className="text-gray-300 capitalize">{p.status?.replace('_', ' ')}</span>
@@ -420,13 +412,13 @@ function UserDashboard({ projects, user }) {
       </div>
 
       {/* Projects Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
+      <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden ">
         <div className="px-6 py-5 border-b border-gray-800 bg-gray-900 flex items-center justify-between">
           <h2 className="text-white text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2 h-2 rounded-none bg-emerald-500" />
             Your Workspace
           </h2>
-          <span className="bg-gray-800 text-gray-400 text-xs font-bold px-3 py-1 rounded-md">{projects.length} PROJECTS</span>
+          <span className="bg-gray-800 text-gray-400 text-xs font-bold px-3 py-1 rounded-none">{projects.length} PROJECTS</span>
         </div>
         <div className="overflow-x-auto custom-scrollbar">
           <ProjectsTable projects={projects} />
@@ -502,12 +494,13 @@ function ProjectsTable({ projects, showAllColumns = false }) {
     <>
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-800">
-            {headers.map(h => (
-              <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">
-                {h}
-              </th>
-            ))}
+          <tr className="border-b border-gray-800 text-gray-600 text-xs font-medium uppercase tracking-wider">
+            <th className="px-5 py-3 text-left">Project</th>
+            <th className="px-5 py-3 text-left">Vehicle Profile</th>
+            <th className="px-5 py-3 text-center">Risk</th>
+            <th className="px-5 py-3 text-center">Status</th>
+            <th className="px-5 py-3 text-center">{showAllColumns ? 'Role' : 'My Role'}</th>
+            <th className="px-5 py-3 text-center">Last Update</th>
           </tr>
         </thead>
         <tbody>
@@ -534,6 +527,8 @@ function ProjectsTable({ projects, showAllColumns = false }) {
 
                 <td className="px-5 py-3.5">
                   <div className="flex flex-wrap gap-1">
+                    {vp.category && <span className="text-gray-300 text-xs font-bold">{vp.category}</span>}
+                    {vp.category && (vp.propulsion || vp.architecture) && <span className="text-gray-600 text-xs">/</span>}
                     {vp.propulsion && <span className="text-gray-400 text-xs">{vp.propulsion}</span>}
                     {vp.architecture && <span className="text-gray-600 text-xs">/ {vp.architecture}</span>}
                     {vp.sae_level !== undefined && <span className="text-gray-600 text-xs">/ SAE {vp.sae_level}</span>}
@@ -541,25 +536,25 @@ function ProjectsTable({ projects, showAllColumns = false }) {
                   </div>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-xs px-2 py-0.5 rounded border font-medium ${riskBadge(p.max_risk_score || 0)}`}>
                     {p.max_risk_score ? riskLabel(p.max_risk_score) : 'DRAFT'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-sm font-medium ${statusColor[p.status] || 'text-gray-400'}`}>
                     {p.status?.replace('_', ' ')}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5">
+                <td className="px-5 py-3.5 text-center">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${roleColor[p.my_role] || 'bg-gray-800 text-gray-400'}`}>
                     {p.my_role || '—'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-gray-500 text-xs">
+                <td className="px-5 py-3.5 text-center text-gray-500 text-xs">
                   {new Date(p.updated_at).toLocaleDateString()}
                 </td>
               </tr>
@@ -598,7 +593,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleRename()}
           autoFocus
-          className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+          className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
           placeholder="Project name..."
         />
       </Modal>

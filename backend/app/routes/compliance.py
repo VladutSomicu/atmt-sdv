@@ -88,7 +88,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-01",
         "regulation": "UNECE R155",
         "title": "External communication channels must be encrypted",
-        "reference": "R155 Annex 5, Table A1, 4.3.2",
+        "reference": "R155 Annex 5, Part B, Table B1, M12",
         "status": status,
         "details": details
     })
@@ -130,7 +130,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-03",
         "regulation": "UNECE R155",
         "title": "All critical risks must have treatment plans",
-        "reference": "R155 Article 7.3.3",
+        "reference": "R155 Article 7.3.3 & 7.3.4",
         "status": status,
         "details": details
     })
@@ -154,7 +154,7 @@ def _run_r155_checks(graph_json, threats):
         "id": "R155-04",
         "regulation": "UNECE R155",
         "title": "Trust boundary crossings must have security controls",
-        "reference": "R155 Annex 5, Table A1, 4.3.7, item 29.2",
+        "reference": "R155 Annex 5, Part A, Table A1, item 29.2",
         "status": status,
         "details": details
     })
@@ -219,7 +219,7 @@ def _run_r156_checks(graph_json, threats, vehicle_profile):
         "id": "R156-02",
         "regulation": "UNECE R156",
         "title": "OTA update threats must have mitigation controls",
-        "reference": "R156 Article 7.1.4",
+        "reference": "R156 Article 7.1.3.2",
         "status": status,
         "details": details
     })
@@ -274,7 +274,7 @@ def _run_general_checks(threats):
         "id": "GEN-01",
         "regulation": "ISO 21434",
         "title": "All identified threats must be reviewed and treated",
-        "reference": "ISO 21434 Clause 15.8",
+        "reference": "ISO 21434 Clause 15.8 & 15.9",
         "status": status,
         "details": details
     })

@@ -116,7 +116,7 @@ export default function SecurityControlsPage() {
   );
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumb={[{ label: 'Security Controls' }]}>
       <div className="max-w-6xl mx-auto py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -136,7 +136,7 @@ export default function SecurityControlsPage() {
                 });
                 setShowControlModal(true);
               }}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-none transition-colors flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -147,7 +147,7 @@ export default function SecurityControlsPage() {
         </div>
 
         {/* List */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/50">
             <div>
               <h2 className="text-white text-lg font-medium">Mitigations & Countermeasures</h2>
@@ -159,7 +159,7 @@ export default function SecurityControlsPage() {
                 placeholder="Search controls..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-950 border border-gray-700 text-white rounded-none px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function SecurityControlsPage() {
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               placeholder="e.g., Secure Boot with Hardware Trust Anchor"
             />
           </div>
@@ -261,7 +261,7 @@ export default function SecurityControlsPage() {
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 h-20 resize-none"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500 h-20 resize-none"
               placeholder="Explain how this control works and what it prevents..."
             />
           </div>
@@ -288,11 +288,11 @@ export default function SecurityControlsPage() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Target Dimension</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Target</label>
               <select
                 value={form.reduction_target}
                 onChange={(e) => setForm({ ...form, reduction_target: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value="Feasibility">Feasibility (Likelihood)</option>
                 <option value="Impact - Safety">Impact - Safety</option>
@@ -302,11 +302,11 @@ export default function SecurityControlsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Reduction Value</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Reduction</label>
               <select
                 value={form.reduction_value}
                 onChange={(e) => setForm({ ...form, reduction_value: parseInt(e.target.value) })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
                 <option value={1}>-1 Level (Partial)</option>
                 <option value={2}>-2 Levels (Strong)</option>
@@ -315,12 +315,12 @@ export default function SecurityControlsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Source Reference</label>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Source Ref</label>
               <input
                 type="text"
                 value={form.source_ref}
                 onChange={(e) => setForm({ ...form, source_ref: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                 placeholder="e.g., ISO 21434 Annex C"
               />
             </div>

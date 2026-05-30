@@ -74,7 +74,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
         <button
           onClick={reevaluate}
           disabled={reevaluating}
-          className="mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-none transition-colors"
         >
           {reevaluating ? 'Evaluating...' : 'Run Compliance Check'}
         </button>
@@ -84,7 +84,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
 
   const { checks, summary } = data;
   const applicableTotal = summary.total - (summary.not_applicable || 0);
-  const pct = applicableTotal > 0 ? Math.round((summary.passed / applicableTotal) * 100) : (summary.total > 0 ? 100 : 0);
+  const pct = applicableTotal > 0 ? Math.round((summary.passed / applicableTotal) * 100) : 'N/A';
 
   const statusBadge = (status) => {
     if (status === 'pass') return 'bg-green-900 text-green-300 border-green-800';
@@ -117,7 +117,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
             <button
               onClick={reevaluate}
               disabled={reevaluating}
-              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-none transition-colors"
             >
               <svg className={`w-3.5 h-3.5 ${reevaluating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -128,7 +128,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
           <button
             onClick={exportCSV}
             disabled={exporting}
-            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-none transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -140,15 +140,15 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
 
       {/* Summary cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 col-span-1">
+        <div className="bg-gray-900 border border-gray-800 rounded-none p-4 col-span-1">
           <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Overall</p>
-          <p className={`text-3xl font-bold ${pct >= 80 ? 'text-green-400' : pct >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
-            {pct}%
+          <p className={`text-3xl font-bold ${pct === 'N/A' ? 'text-gray-500' : pct >= 80 ? 'text-green-400' : pct >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+            {pct === 'N/A' ? 'N/A' : `${pct}%`}
           </p>
           <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2">
             <div
-              className={`h-1.5 rounded-full transition-all ${pct >= 80 ? 'bg-green-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-              style={{ width: `${pct}%` }}
+              className={`h-1.5 rounded-full transition-all ${pct === 'N/A' ? 'bg-gray-600' : pct >= 80 ? 'bg-green-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+              style={{ width: pct === 'N/A' ? '0%' : `${pct}%` }}
             />
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
           { label: 'Failed', value: summary.failed, color: 'text-red-400' },
           { label: 'N/A', value: summary.not_applicable, color: 'text-gray-400' },
         ].map(card => (
-          <div key={card.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div key={card.label} className="bg-gray-900 border border-gray-800 rounded-none p-4">
             <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">{card.label}</p>
             <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
           </div>
@@ -168,7 +168,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
       {Object.entries(grouped).map(([regulation, items]) => {
         const passCount = items.filter(i => i.status === 'pass').length;
         const applicableCount = items.filter(i => i.status !== 'n/a').length;
-        const regPct = applicableCount > 0 ? Math.round((passCount / applicableCount) * 100) : (items.length > 0 ? 100 : 0);
+        const regPct = applicableCount > 0 ? Math.round((passCount / applicableCount) * 100) : 'N/A';
         return (
         <div key={regulation} className="mb-6">
           <div className="flex items-center justify-between mb-3">
@@ -181,14 +181,14 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
             {/* Mini progress bar for each regulation */}
             <div className="w-24 h-1 bg-gray-800 rounded-full overflow-hidden">
               <div
-                className="h-1 bg-green-500 rounded-full"
-                style={{ width: `${regPct}%` }}
+                className={`h-1 rounded-full ${regPct === 'N/A' ? 'bg-gray-600' : 'bg-green-500'}`}
+                style={{ width: regPct === 'N/A' ? '0%' : `${regPct}%` }}
               />
             </div>
           </div>
           <div className="space-y-2">
             {items.map(check => (
-              <div key={check.id} className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 flex items-start justify-between gap-4">
+              <div key={check.id} className="bg-gray-900 border border-gray-800 rounded-none px-4 py-3 flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-blue-400 text-xs font-mono">{check.id}</span>

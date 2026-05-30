@@ -34,6 +34,7 @@ export default function ProjectSetupPage() {
   const [customInput, setCustomInput] = useState('');
 
   // Step 2
+  const [category, setCategory] = useState('');
   const [propulsion, setPropulsion] = useState('');
   const [architecture, setArchitecture] = useState('');
   const [saeLevel, setSaeLevel] = useState(0);
@@ -82,6 +83,7 @@ export default function ProjectSetupPage() {
         name,
         description,
         vehicle_profile: {
+          category,
           propulsion,
           architecture,
           sae_level: saeLevel,
@@ -132,7 +134,7 @@ export default function ProjectSetupPage() {
               {STEPS.map(s => (
                 <div
                   key={s.id}
-                  className={`flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
+                  className={`flex items-start gap-3 px-3 py-2.5 rounded-none cursor-pointer transition-colors ${
                     step === s.id ? 'bg-blue-600/20 border border-blue-700/50' : 'hover:bg-gray-800'
                   }`}
                   onClick={() => s.id < step && setStep(s.id)}
@@ -157,7 +159,7 @@ export default function ProjectSetupPage() {
 
           {/* Right — Step content */}
           <div className="flex-1">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-none p-6">
               <p className="text-gray-500 text-xs mb-1">STEP {step} / {STEPS.length}</p>
 
               {/* ── STEP 1 ── */}
@@ -165,7 +167,7 @@ export default function ProjectSetupPage() {
                 <>
                   <h3 className="text-white text-xl font-bold mb-1">Project & business objectives</h3>
                   <p className="text-gray-500 text-sm mb-6">
-                    Define the operational context. Without it, risk is abstract and cannot be quantified (ISO 21434, Clause 15.3).
+                    Define the operational context. Without it, risk is abstract and cannot be quantified (ISO 21434, Clause 9.3).
                   </p>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
@@ -175,7 +177,7 @@ export default function ProjectSetupPage() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         placeholder="EV-T7 Autonomous"
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
@@ -184,7 +186,7 @@ export default function ProjectSetupPage() {
                         value={description}
                         onChange={e => setDescription(e.target.value)}
                         placeholder="Short description"
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -197,7 +199,7 @@ export default function ProjectSetupPage() {
                       <div
                         key={obj.id}
                         onClick={() => toggleObjective(obj.id)}
-                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        className={`flex items-start gap-3 p-3 rounded-none border cursor-pointer transition-colors ${
                           selectedObjectives.includes(obj.id)
                             ? 'border-blue-700 bg-blue-600/10'
                             : 'border-gray-800 hover:border-gray-700'
@@ -221,7 +223,7 @@ export default function ProjectSetupPage() {
                     {customObjectives.map(obj => (
                       <div
                         key={obj.id}
-                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        className={`flex items-start gap-3 p-3 rounded-none border cursor-pointer transition-colors ${
                           selectedObjectives.includes(obj.id)
                             ? 'border-blue-700 bg-blue-600/10'
                             : 'border-gray-800 hover:border-gray-700'
@@ -261,12 +263,12 @@ export default function ProjectSetupPage() {
                         onChange={e => setCustomInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && addCustomObjective()}
                         placeholder="Add a custom objective..."
-                        className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-gray-600"
+                        className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500 placeholder-gray-600"
                       />
                       <button
                         onClick={addCustomObjective}
                         disabled={!customInput.trim()}
-                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-none transition-colors"
                       >
                         Add
                       </button>
@@ -285,13 +287,32 @@ export default function ProjectSetupPage() {
 
                   <div className="space-y-5">
                     <div>
+                      <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Vehicle Category (UNECE R155/156)</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Passenger (Cat. M)', 'Commercial (Cat. N)', 'Trailer (Cat. O)', 'Motorcycle (Cat. L)', 'Agricultural (Cat. T)'].map(c => (
+                          <button
+                            key={c}
+                            onClick={() => setCategory(c)}
+                            className={`px-4 py-2 rounded-none text-sm font-medium border transition-colors ${
+                              category === c
+                                ? 'bg-blue-600 border-blue-500 text-white'
+                                : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
                       <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Propulsion</label>
                       <div className="flex gap-2">
-                        {['ICE', 'EV', 'Hybrid'].map(p => (
+                        {['ICE', 'EV', 'Hybrid', 'None'].map(p => (
                           <button
                             key={p}
                             onClick={() => setPropulsion(p)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                            className={`px-4 py-2 rounded-none text-sm font-medium border transition-colors ${
                               propulsion === p
                                 ? 'bg-blue-600 border-blue-500 text-white'
                                 : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
@@ -310,7 +331,7 @@ export default function ProjectSetupPage() {
                           <button
                             key={a}
                             onClick={() => setArchitecture(a)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                            className={`px-4 py-2 rounded-none text-sm font-medium border transition-colors ${
                               architecture === a
                                 ? 'bg-blue-600 border-blue-500 text-white'
                                 : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
@@ -356,7 +377,7 @@ export default function ProjectSetupPage() {
                   <div className="mb-5">
                     <div
                       onClick={() => setOtaSupport(!otaSupport)}
-                      className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
+                      className={`flex items-center justify-between p-4 rounded-none border cursor-pointer transition-colors ${
                         otaSupport ? 'border-blue-700 bg-blue-600/10' : 'border-gray-800 hover:border-gray-700'
                       }`}
                     >
@@ -376,7 +397,7 @@ export default function ProjectSetupPage() {
                       <div
                         key={iface}
                         onClick={() => toggleInterface(iface)}
-                        className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        className={`flex items-center gap-2 p-3 rounded-none border cursor-pointer transition-colors ${
                           externalInterfaces.includes(iface)
                             ? 'border-blue-700 bg-blue-600/10'
                             : 'border-gray-800 hover:border-gray-700'
@@ -404,7 +425,7 @@ export default function ProjectSetupPage() {
                   
                   <div className="space-y-3 mb-4">
                     {members.map((m, idx) => (
-                      <div key={idx}>
+                      <div key={idx} className="relative" style={{ zIndex: 50 - idx }}>
                         <div className="flex items-center gap-3">
                           <UserSelect
                             placeholder="user@example.com"
@@ -429,7 +450,7 @@ export default function ProjectSetupPage() {
                                 // ignore network errors during validation
                               }
                             }}
-                            inputClassName={`w-full bg-gray-800 border text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${
+                            inputClassName={`w-full bg-gray-800 border text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500 ${
                               m.valid === false ? 'border-red-600' : m.valid === true ? 'border-green-600' : 'border-gray-700'
                             }`}
                           />
@@ -440,7 +461,7 @@ export default function ProjectSetupPage() {
                               newM[idx].role = e.target.value;
                               setMembers(newM);
                             }}
-                            className="w-40 bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                            className="w-40 bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                           >
                             <option value="engineer">Engineer</option>
                             <option value="architect">Architect</option>
@@ -479,7 +500,7 @@ export default function ProjectSetupPage() {
                   <p className="text-gray-500 text-sm mb-6">Confirm project details before creating.</p>
 
                   {error && (
-                    <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-lg mb-4">
+                    <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-none mb-4">
                       {error}
                     </div>
                   )}
@@ -487,6 +508,7 @@ export default function ProjectSetupPage() {
                   <div className="space-y-3">
                     {[
                       { label: 'Project name', value: name || 'Not set' },
+                      { label: 'Category', value: category || 'Not set' },
                       { label: 'Propulsion', value: propulsion || 'Not set' },
                       { label: 'Architecture', value: architecture || 'Not set' },
                       { label: 'SAE Level', value: `L${saeLevel}` },
@@ -518,9 +540,9 @@ export default function ProjectSetupPage() {
                     onClick={() => setStep(step + 1)}
                     disabled={
                       (step === 1 && (!name || selectedObjectives.length === 0)) ||
-                      (step === 2 && (!propulsion || !architecture))
+                      (step === 2 && (!category || !propulsion || !architecture))
                     }
-                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2 rounded-none transition-colors"
                   >
                     Continue: {STEPS[step].label} →
                   </button>
@@ -528,7 +550,7 @@ export default function ProjectSetupPage() {
                   <button
                     onClick={handleCreate}
                     disabled={loading || !name}
-                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-medium px-5 py-2 rounded-none transition-colors"
                   >
                     {loading ? 'Creating...' : 'Create project →'}
                   </button>

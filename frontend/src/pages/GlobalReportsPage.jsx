@@ -39,7 +39,7 @@ export default function GlobalReportsPage() {
     mitigated_threats: 0,
     open_threats: 0,
     threat_severity: { critical: 0, high: 0, medium: 0, low: 0 },
-    avg_compliance: 100
+    avg_compliance: 'N/A'
   };
 
   const filteredProjects = (data?.projects || []).filter(p => {
@@ -59,21 +59,23 @@ export default function GlobalReportsPage() {
         {/* Top Banner / Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Avg Compliance */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
+
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Fleet Compliance</p>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl font-bold font-mono text-blue-400">{summary.avg_compliance}%</span>
+              <span className="text-3xl font-bold font-mono text-blue-400">
+                {summary.avg_compliance === 'N/A' ? 'N/A' : `${summary.avg_compliance}%`}
+              </span>
             </div>
             <p className="text-gray-500 text-[11px] mt-1">Average UNECE R155/156 checks passed</p>
             <div className="w-full bg-gray-800 h-1.5 rounded-full mt-3 overflow-hidden">
-              <div className="bg-blue-500 h-full rounded-full" style={{ width: `${summary.avg_compliance}%` }} />
+              <div className="bg-blue-500 h-full rounded-full" style={{ width: summary.avg_compliance === 'N/A' ? '0%' : `${summary.avg_compliance}%` }} />
             </div>
           </div>
 
           {/* Active Projects */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
+
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Active Projects</p>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-bold font-mono text-emerald-400">{summary.total_projects}</span>
@@ -85,8 +87,8 @@ export default function GlobalReportsPage() {
           </div>
 
           {/* Mitigation Rate */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
+
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Mitigation Rate</p>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-bold font-mono text-purple-400">{mitigationRate}%</span>
@@ -98,8 +100,8 @@ export default function GlobalReportsPage() {
           </div>
 
           {/* Open Critical Risks */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all" />
+          <div className="bg-gray-900 border border-gray-800 rounded-none p-5 relative overflow-hidden group hover:border-gray-700 transition-all">
+
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Open Critical Threats</p>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-bold font-mono text-red-500">{summary.threat_severity.critical}</span>
@@ -112,12 +114,12 @@ export default function GlobalReportsPage() {
         </div>
 
         {/* Filtering and Projects List */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           {/* Header controls */}
           <div className="p-5 border-b border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-950/50">
             <div>
-              <h2 className="text-base font-semibold text-white">Fleet Security Catalog</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Aggregated audit status and R155 readiness scores.</p>
+              <h2 className="text-base font-semibold text-white">Fleet Security</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Real-time audit monitoring and UNECE R155 compliance readiness tracking.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -127,20 +129,19 @@ export default function GlobalReportsPage() {
                 placeholder="Search project..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 w-44"
+                className="bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 w-44"
               />
 
               {/* Propulsion Filter */}
               <select
                 value={filterPropulsion}
                 onChange={(e) => setFilterPropulsion(e.target.value)}
-                className="bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500"
+                className="bg-gray-800 border border-gray-700 text-white rounded-none px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500"
               >
                 <option value="All">All Propulsion</option>
-                <option value="BEV">BEV</option>
-                <option value="PHEV">PHEV</option>
-                <option value="FCEV">FCEV</option>
                 <option value="ICE">ICE</option>
+                <option value="EV">EV</option>
+                <option value="Hybrid">Hybrid</option>
               </select>
             </div>
           </div>
@@ -151,12 +152,12 @@ export default function GlobalReportsPage() {
               <thead>
                 <tr className="border-b border-gray-800 text-gray-400 font-medium bg-gray-950/20">
                   <th className="p-4">Project Name</th>
-                  <th className="p-4">Propulsion</th>
-                  <th className="p-4">SAE Level</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Open Critical</th>
-                  <th className="p-4">Total Threats</th>
-                  <th className="p-4">Compliance</th>
+                  <th className="p-4 text-center">Propulsion</th>
+                  <th className="p-4 text-center">SAE Level</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Open Critical</th>
+                  <th className="p-4 text-center">Total Threats</th>
+                  <th className="p-4 text-center">Compliance</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -164,18 +165,18 @@ export default function GlobalReportsPage() {
                 {filteredProjects.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-800/40 transition-colors">
                     <td className="p-4 font-medium text-white">{p.name}</td>
-                    <td className="p-4">
+                    <td className="p-4 text-center">
                       <span className="px-2 py-0.5 rounded-full bg-blue-900/30 text-blue-400 border border-blue-800">
                         {p.propulsion}
                       </span>
                     </td>
-                    <td className="p-4 text-gray-300">{p.sae_level}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-0.5 rounded-full font-medium ${p.status === 'completed'
-                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                          : 'bg-amber-950 text-amber-400 border border-amber-800'
+                    <td className="p-4 text-center text-gray-300">{p.sae_level}</td>
+                    <td className="p-4 text-center">
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${p.status === 'completed' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                        p.status === 'in_analysis' ? 'bg-blue-950 text-blue-400 border border-blue-800' :
+                          'bg-gray-900 text-gray-400 border border-gray-700'
                         }`}>
-                        {p.status}
+                        {p.status?.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="p-4 text-center">
@@ -183,17 +184,22 @@ export default function GlobalReportsPage() {
                         {p.open_critical}
                       </span>
                     </td>
-                    <td className="p-4 font-mono text-gray-300">{p.total_threats}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${p.compliance_score >= 80 ? 'bg-emerald-500' : p.compliance_score >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                              }`}
-                            style={{ width: `${p.compliance_score}%` }}
-                          />
-                        </div>
-                        <span className="font-mono font-medium text-gray-300">{p.compliance_score}%</span>
+                    <td className="p-4 text-center font-mono text-gray-300">{p.total_threats}</td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {p.compliance_score === 'N/A' ? (
+                          <span className="font-mono font-medium text-gray-500">N/A</span>
+                        ) : (
+                          <>
+                            <div className="w-12 bg-gray-800 h-1.5 rounded-none overflow-hidden">
+                              <div
+                                className={`h-full rounded-none ${p.compliance_score >= 80 ? 'bg-emerald-500' : p.compliance_score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                style={{ width: `${p.compliance_score}%` }}
+                              />
+                            </div>
+                            <span className="font-mono font-medium text-gray-300">{p.compliance_score}%</span>
+                          </>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 text-right space-x-2">
@@ -201,7 +207,7 @@ export default function GlobalReportsPage() {
                         onClick={() => navigate(`/projects/${p.id}/editor`)}
                         className="px-2.5 py-1 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                       >
-                        Open Editor
+                        Open Project
                       </button>
                     </td>
                   </tr>

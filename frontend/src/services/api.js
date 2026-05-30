@@ -41,7 +41,9 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes('/api/auth/')
+      !originalRequest.url.includes('/api/auth/login') &&
+      !originalRequest.url.includes('/api/auth/refresh') &&
+      !originalRequest.url.includes('/api/auth/register')
     ) {
       if (isRefreshing) {
         // Queue this request until refresh is done

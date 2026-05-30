@@ -1,17 +1,7 @@
-import { useState } from 'react';
 import { useAuth } from '../../store/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Modal from '../shared/Modal';
 
 export default function Navbar({ breadcrumb = [] }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  const { user } = useAuth();
 
   if (!user) return null;
 
@@ -43,28 +33,8 @@ export default function Navbar({ breadcrumb = [] }) {
               DEMO
             </span>
           )}
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="text-gray-600 hover:text-red-600 text-xs transition-colors ml-2"
-          >
-            Sign out
-          </button>
         </div>
       </header>
-
-      {/* Sign out confirmation */}
-      <Modal
-        isOpen={showLogoutConfirm}
-        title="Sign Out"
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={handleLogout}
-        confirmText="Sign out"
-        confirmDanger
-      >
-        <p className="text-gray-300 text-sm">
-          Are you sure you want to sign out? Any unsaved changes will be lost.
-        </p>
-      </Modal>
     </>
   );
 }

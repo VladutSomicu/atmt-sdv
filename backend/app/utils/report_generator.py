@@ -323,19 +323,19 @@ class ReportGenerator:
         elements += self._executive_summary(project, vehicle, threats, compliance_checks)
         elements.append(PageBreak())
 
-        # 4. Item Definition (ISO 21434 §15.3)
+        # 4. Item Definition (ISO 21434 §9.3)
         elements += self._item_definition(project, vehicle)
         elements.append(PageBreak())
 
-        # 5. Asset Identification (ISO 21434 §15.4)
+        # 5. Asset Identification (ISO 21434 §15.3)
         elements += self._asset_identification(diagram_nodes)
         elements.append(PageBreak())
 
-        # 6. Threat Scenarios (ISO 21434 §15.5)
+        # 6. Threat Scenarios (ISO 21434 §15.4)
         elements += self._threat_scenarios(threats)
         elements.append(PageBreak())
 
-        # 7. Impact Assessment (ISO 21434 §15.6)
+        # 7. Impact Assessment (ISO 21434 §15.5)
         elements += self._impact_assessment(threats)
         elements.append(PageBreak())
 
@@ -564,10 +564,10 @@ class ReportGenerator:
 
         toc_entries = [
             "1. Executive Summary",
-            "2. Item Definition (ISO 21434 §15.3)",
-            "3. Asset Identification (ISO 21434 §15.4)",
-            "4. Threat Scenarios (ISO 21434 §15.5)",
-            "5. Impact Assessment (ISO 21434 §15.6)",
+            "2. Item Definition (ISO 21434 §9.3)",
+            "3. Asset Identification (ISO 21434 §15.3)",
+            "4. Threat Scenarios (ISO 21434 §15.4)",
+            "5. Impact Assessment (ISO 21434 §15.5)",
             "6. Attack Feasibility (ISO 21434 §15.7)",
             "7. Risk Assessment (ISO 21434 §15.8)",
             "8. Risk Treatment (ISO 21434 §15.9)",
@@ -659,7 +659,7 @@ class ReportGenerator:
     # ──────────────────────────────────────────────────────────
     def _item_definition(self, project, vehicle):
         els = []
-        els.append(Paragraph("2. Item Definition (ISO 21434 §15.3)", self.styles['SectionHeader']))
+        els.append(Paragraph("2. Item Definition (ISO 21434 §9.3)", self.styles['SectionHeader']))
 
         # 2.1
         els.append(Paragraph("2.1 Item Description", self.styles['SubHeader']))
@@ -686,7 +686,7 @@ class ReportGenerator:
         els.append(Spacer(1, 4 * mm))
 
         # 2.3
-        els.append(Paragraph("2.3 Business Objectives (ISO 21434 §15.3)", self.styles['SubHeader']))
+        els.append(Paragraph("2.3 Business Objectives (ISO 21434 §9.3)", self.styles['SubHeader']))
         objectives = project.business_objectives or []
         if objectives:
             els.append(Paragraph(
@@ -726,12 +726,12 @@ class ReportGenerator:
     # ──────────────────────────────────────────────────────────
     def _asset_identification(self, diagram_nodes):
         els = []
-        els.append(Paragraph("3. Asset Identification (ISO 21434 §15.4)", self.styles['SectionHeader']))
+        els.append(Paragraph("3. Asset Identification (ISO 21434 §15.3)", self.styles['SectionHeader']))
 
         els.append(Paragraph(
             "The following assets have been identified from the system Data Flow Diagram (DFD Level 1). "
             "Each asset represents a component, interface, or data store that may be subject to "
-            "cybersecurity threats as defined in ISO 21434 §15.4.",
+            "cybersecurity threats as defined in ISO 21434 §15.3.",
             self.styles['Body']
         ))
         els.append(Spacer(1, 3 * mm))
@@ -784,7 +784,7 @@ class ReportGenerator:
     # ──────────────────────────────────────────────────────────
     def _threat_scenarios(self, threats):
         els = []
-        els.append(Paragraph("4. Threat Scenarios (ISO 21434 §15.5)", self.styles['SectionHeader']))
+        els.append(Paragraph("4. Threat Scenarios (ISO 21434 §15.4)", self.styles['SectionHeader']))
 
         els.append(Paragraph(
             "The following threat scenarios have been identified through automated analysis "
@@ -823,11 +823,11 @@ class ReportGenerator:
     # ──────────────────────────────────────────────────────────
     def _impact_assessment(self, threats):
         els = []
-        els.append(Paragraph("5. Impact Assessment (ISO 21434 §15.6)", self.styles['SectionHeader']))
+        els.append(Paragraph("5. Impact Assessment (ISO 21434 §15.5)", self.styles['SectionHeader']))
 
         els.append(Paragraph("5.1 Impact Assessment Methodology", self.styles['SubHeader']))
         method_text = (
-            "Impact has been evaluated across four dimensions as defined in ISO 21434 §15.6:"
+            "Impact has been evaluated across four dimensions as defined in ISO 21434 §15.5:"
             "<br/><br/>"
             "• <b>Safety (S):</b> Potential for physical harm to persons<br/>"
             "• <b>Financial (F):</b> Economic losses to users or manufacturers<br/>"

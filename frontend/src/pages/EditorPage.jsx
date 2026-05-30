@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Modal from '../components/shared/Modal';
 import DiagramTab from '../components/editor/DiagramTab';
 import AnalysisTab from '../components/editor/AnalysisTab';
 import ComplianceTab from '../components/editor/ComplianceTab';
@@ -11,9 +12,22 @@ import { useAuth } from '../store/AuthContext';
 
 export default function EditorPage() {
   const { projectId } = useParams();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [project, setProject] = useState(null);
-  const [activeTab, setActiveTab] = useState('diagram');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(`editor_tab_${projectId}`) || 'diagram';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem(`editor_tab_${projectId}`, activeTab);
+  }, [activeTab, projectId]);
   const [loading, setLoading] = useState(true);
   // Threats lifted here so DiagramTab can react to analysis results
   const [threats, setThreats] = useState([]);
@@ -74,23 +88,13 @@ export default function EditorPage() {
     <div className="flex min-h-screen bg-gray-950">
       {/* Sidebar */}
       <aside className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col h-screen sticky top-0">
-        <div className="h-12 flex items-center gap-2 px-4 border-b border-gray-800 shrink-0">
+        <div 
+          className="h-12 flex items-center gap-2 px-4 shrink-0 cursor-pointer hover:bg-gray-800 transition-colors"
+          onClick={() => navigate('/dashboard')}
+          title="Return to Dashboard"
+        >
           <img src="/atmt_logo.png" alt="ATMT Logo" className="w-6 h-6 object-contain" />
           <span className="text-white font-bold text-sm tracking-wide">ATMT-SDV</span>
-          <span className="text-gray-600 text-xs ml-auto">v0.9</span>
-        </div>
-
-        <div className="px-3 py-3 border-b border-gray-800">
-          <div className="bg-gray-800 rounded-lg px-3 py-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-5 h-5 bg-blue-600 rounded text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                {vp.propulsion?.slice(0, 2) || 'P'}
-              </div>
-              <p className="text-white text-xs font-medium truncate">{project.name}</p>
-            </div>
-            <p className="text-gray-500 text-xs">{vpLabel}</p>
-            <p className="text-blue-400 text-xs mt-1 capitalize">Role: {myRole}</p>
-          </div>
         </div>
 
         <nav className="flex-1 px-2 py-3 overflow-y-auto">
@@ -99,7 +103,7 @@ export default function EditorPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors text-left ${
+              className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm mb-0.5 transition-colors text-left ${
                 activeTab === tab.id
                   ? 'bg-blue-600/20 text-blue-400'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
@@ -111,11 +115,11 @@ export default function EditorPage() {
 
           <p className="text-gray-600 text-xs uppercase tracking-widest px-2 mb-2 mt-4">Context</p>
           {user?.is_admin && (
-            <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
+            <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-none text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
           )}
           <button
             onClick={() => setActiveTab('audit')}
-            className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm mb-0.5 transition-colors text-left ${
+            className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm mb-0.5 transition-colors text-left ${
               activeTab === 'audit'
                 ? 'bg-blue-600/20 text-blue-400'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
@@ -126,7 +130,7 @@ export default function EditorPage() {
           {['admin', 'manager'].includes(myRole) && (
             <button
               onClick={() => setActiveTab('members')}
-              className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors text-left ${
+              className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm transition-colors text-left ${
                 activeTab === 'members'
                   ? 'bg-blue-600/20 text-blue-400'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
@@ -137,14 +141,52 @@ export default function EditorPage() {
           )}
         </nav>
 
-        <div className="px-3 py-3 border-t border-gray-800">
-          <div className="flex gap-1.5">
-            <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">ISO 21434</span>
-            <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">R155</span>
-            <span className="bg-gray-800 text-gray-500 text-xs px-1.5 py-0.5 rounded">R156</span>
+        <div className="px-3 pb-3">
+          <div className="bg-gray-800 rounded-none px-3 py-2">
+            <div className="flex items-center mb-1">
+              <p className="text-white text-xs font-medium line-clamp-2 break-words leading-snug" title={project.name}>{project.name}</p>
+            </div>
+            {vp.category && (
+              <p className="text-gray-400 text-[10px] uppercase font-medium tracking-tight mb-0.5 truncate" title={vp.category}>{vp.category}</p>
+            )}
+            <p className="text-gray-500 text-[9px] uppercase font-mono tracking-tighter mb-1 whitespace-nowrap overflow-hidden text-ellipsis" title={vpLabel}>{vpLabel}</p>
+            <p className="text-blue-400 text-[10px] uppercase font-mono tracking-wide capitalize">Role: {myRole}</p>
+          </div>
+        </div>
+
+        {/* Bottom Status Area */}
+        <div className="mt-auto shrink-0">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex flex-col min-w-0">
+              <span className="text-gray-300 text-xs font-medium truncate" title={user?.full_name}>
+                {user?.full_name}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 transition-colors rounded-sm"
+              title="Disconnect"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>
+
+      <Modal
+        isOpen={showLogoutConfirm}
+        title="Sign Out"
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        confirmText="Sign out"
+        confirmDanger
+      >
+        <p className="text-gray-300 text-sm">
+          Are you sure you want to sign out? Any unsaved changes will be lost.
+        </p>
+      </Modal>
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen">
