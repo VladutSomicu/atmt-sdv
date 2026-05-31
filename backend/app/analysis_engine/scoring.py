@@ -102,6 +102,16 @@ class ScoringEngine:
         if node.get('category') == 'Safety-Critical':
             s = max(s, 3)
 
+        # ASIL Integration
+        # If the asset has a specific ASIL rating, ensure safety impact matches its criticality
+        asil = node.get('asil_level')
+        if asil == 'D':
+            s = max(s, 4)
+        elif asil in ['C', 'B']:
+            s = max(s, 3)
+        elif asil == 'A':
+            s = max(s, 2)
+
         # EV propulsion with Powertrain: high safety (battery fire risk)
         if (node.get('category') == 'Powertrain' and
                 vp.get('propulsion') in ['EV', 'Hybrid']):

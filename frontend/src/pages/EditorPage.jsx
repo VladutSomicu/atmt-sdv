@@ -16,6 +16,7 @@ export default function EditorPage() {
   const { user, logout } = useAuth();
   const [project, setProject] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isDiagramDirty, setIsDiagramDirty] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -200,13 +201,27 @@ export default function EditorPage() {
             <span className="text-white font-medium capitalize">{activeTab}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-green-400 text-xs">Saved</span>
-
+            {activeTab === 'diagram' && (
+              isDiagramDirty ? (
+                <span className="text-amber-400 text-xs flex items-center gap-1.5" title="You have unsaved changes">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  Unsaved
+                </span>
+              ) : (
+                <span className="text-green-400 text-xs flex items-center gap-1.5">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  Saved
+                </span>
+              )
+            )}
           </div>
         </header>
 
         <main className="flex-1 overflow-hidden">
-          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => {}} canEdit={canEditDiagram} />}
+          {activeTab === 'diagram' && <DiagramTab projectId={projectId} project={project} threats={threats} onDiagramSaved={() => setIsDiagramDirty(false)} onDiagramChanged={() => setIsDiagramDirty(true)} canEdit={canEditDiagram} />}
           {activeTab === 'analysis' && <AnalysisTab projectId={projectId} onThreatsLoaded={setThreats} onSelectAsset={(id) => { setSelectedAssetId(id); setActiveTab('diagram'); }} isReadOnly={!canRunAnalysis} />}
           {activeTab === 'compliance' && <ComplianceTab projectId={projectId} isReadOnly={!canRunCompliance} />}
           {activeTab === 'report' && <ReportTab projectId={projectId} project={project} threats={threats} />}

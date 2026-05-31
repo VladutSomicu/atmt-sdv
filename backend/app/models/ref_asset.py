@@ -32,6 +32,8 @@ class RefAsset(db.Model):
     vehicle_types = db.Column(db.ARRAY(db.Text), nullable=True)
     # Classic / SDV -- filters by architecture
     architectures = db.Column(db.ARRAY(db.Text), nullable=True)
+    # Passenger / Commercial / Trailer etc -- filters by vehicle category
+    vehicle_categories = db.Column(db.ARRAY(db.Text), nullable=True)
 
     def __repr__(self):
         return f'<RefAsset {self.name}>'

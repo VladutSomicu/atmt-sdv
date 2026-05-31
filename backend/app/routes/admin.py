@@ -208,6 +208,7 @@ def get_assets():
                 "category": a.category,
                 "interface_types": a.interface_types,
                 "vehicle_types": a.vehicle_types,
+                "vehicle_categories": a.vehicle_categories,
                 "data_types": a.data_types,
                 "physical_accessibility": a.physical_accessibility,
                 "asil_level": a.asil_level,
@@ -246,8 +247,9 @@ def create_asset():
         default_operational=int(data.get('default_operational', 3)),
         default_privacy=int(data.get('default_privacy', 3)),
         flags=data.get('flags', []),
-        vehicle_types=data.get('vehicle_types', ['ICE', 'EV', 'Hybrid']),
-        architectures=data.get('architectures', ['Classic', 'SDV'])
+        vehicle_types=data.get('vehicle_types', ['ALL']),
+        architectures=data.get('architectures', ['ALL']),
+        vehicle_categories=data.get('vehicle_categories', ['ALL'])
     )
     
     db.session.add(new_asset)
@@ -385,11 +387,19 @@ def create_control():
 @admin_bp.route('/public/assets', methods=['GET'])
 @jwt_required()
 def get_public_assets():
-    """Return ref_assets filtered by vehicle_type. Used by canvas sidebar."""
+    """Return ref_assets filtered by vehicle_type, architecture and vehicle_category. Used by canvas sidebar."""
     vehicle_type = request.args.get('vehicle_type')
     architecture = request.args.get('architecture')
+    vehicle_category = request.args.get('vehicle_category')
 
     query = RefAsset.query
+    if vehicle_category:
+        from sqlalchemy import or_
+        query = query.filter(or_(
+            RefAsset.vehicle_categories.any(vehicle_category),
+            RefAsset.vehicle_categories.any('ALL'),
+            RefAsset.vehicle_categories == None
+        ))
     if vehicle_type:
         from sqlalchemy import or_
         query = query.filter(or_(
@@ -421,6 +431,7 @@ def get_public_assets():
                 "default_privacy": a.default_privacy or 3,
                 "flags": a.flags,
                 "vehicle_types": a.vehicle_types,
+                "vehicle_categories": a.vehicle_categories,
                 "architectures": a.architectures
             }
             for a in assets
@@ -574,6 +585,8 @@ def update_asset(asset_id):
         asset.vehicle_types = data['vehicle_types']
     if 'architectures' in data:
         asset.architectures = data['architectures']
+    if 'vehicle_categories' in data:
+        asset.vehicle_categories = data['vehicle_categories']
         
     db.session.commit()
     return jsonify({"message": "Asset updated successfully", "asset": {"id": str(asset.id), "name": asset.name}}), 200

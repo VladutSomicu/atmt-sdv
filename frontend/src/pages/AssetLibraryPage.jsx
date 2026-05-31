@@ -22,12 +22,44 @@ const scoreColor = (n) => {
   return 'text-gray-400';
 };
 
+const PillSelect = ({ options, selected, onChange }) => {
+  const toggle = (opt) => {
+    if (opt === 'ALL') {
+      onChange(['ALL']);
+      return;
+    }
+    let newSel = selected.includes(opt) 
+      ? selected.filter(x => x !== opt) 
+      : [...selected.filter(x => x !== 'ALL'), opt];
+    if (newSel.length === 0) newSel = ['ALL'];
+    onChange(newSel);
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map(opt => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => toggle(opt)}
+          className={`px-2 py-1 text-[10px] font-medium uppercase tracking-wider rounded border transition-colors ${
+            selected.includes(opt) 
+              ? 'bg-blue-600 border-blue-500 text-white' 
+              : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export default function AssetLibraryPage() {
   const { user } = useAuth();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-
+  
   // Add/Edit Asset State
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -44,7 +76,8 @@ export default function AssetLibraryPage() {
     default_operational: 3,
     default_privacy: 3,
     flags: [],
-    vehicle_types: ['ICE', 'EV']
+    vehicle_categories: ['ALL'],
+    vehicle_types: ['ALL']
   });
 
   const loadAssets = () => {
@@ -64,7 +97,7 @@ export default function AssetLibraryPage() {
       toast.error('Name and category are required');
       return;
     }
-
+    
     setSaving(true);
     try {
       if (editingId) {
@@ -88,7 +121,8 @@ export default function AssetLibraryPage() {
         default_operational: 3,
         default_privacy: 3,
         flags: [],
-        vehicle_types: ['ICE', 'EV']
+        vehicle_categories: ['ALL'],
+        vehicle_types: ['ALL']
       });
       loadAssets();
     } catch (err) {
@@ -111,7 +145,8 @@ export default function AssetLibraryPage() {
       default_operational: asset.default_operational || 3,
       default_privacy: asset.default_privacy || 3,
       flags: asset.flags || [],
-      vehicle_types: asset.vehicle_types || ['ICE', 'EV']
+      vehicle_categories: asset.vehicle_categories || ['ALL'],
+      vehicle_types: asset.vehicle_types || ['ALL']
     });
     setEditingId(asset.id);
     setShowAssetModal(true);
@@ -128,7 +163,7 @@ export default function AssetLibraryPage() {
     }
   };
 
-  const filteredAssets = assets.filter(a =>
+  const filteredAssets = assets.filter(a => 
     a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.category.toLowerCase().includes(search.toLowerCase())
   );
@@ -150,7 +185,8 @@ export default function AssetLibraryPage() {
                 setForm({
                   name: '', category: 'Connectivity', interface_types: [], data_types: [],
                   physical_accessibility: 'Internal', asil_level: 'None', default_safety: 3,
-                  default_financial: 3, default_operational: 3, default_privacy: 3, flags: [], vehicle_types: ['ICE', 'EV']
+                  default_financial: 3, default_operational: 3, default_privacy: 3, flags: [], 
+                  vehicle_categories: ['ALL'], vehicle_types: ['ALL']
                 });
                 setShowAssetModal(true);
               }}
@@ -181,7 +217,7 @@ export default function AssetLibraryPage() {
               />
             </div>
           </div>
-
+          
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -213,9 +249,16 @@ export default function AssetLibraryPage() {
                     filteredAssets.map((a) => (
                       <tr key={a.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-5 py-3">
-                          <span className="px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">
-                            {a.category}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="w-max px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">
+                              {a.category}
+                            </span>
+                            {a.vehicle_categories && !a.vehicle_categories.includes('ALL') && (
+                              <span className="w-max text-[9px] text-gray-500 font-mono uppercase truncate max-w-[120px]" title={a.vehicle_categories.join(', ')}>
+                                {a.vehicle_categories.join(', ')}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-3">
                           <span className="text-gray-300 text-sm font-medium">{a.name}</span>
@@ -340,6 +383,34 @@ export default function AssetLibraryPage() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Interfaces (Optional)</label>
+            <PillSelect 
+              options={['CAN', 'CAN-FD', 'Ethernet', 'LIN', 'FlexRay', 'Cellular', 'Wi-Fi', 'Bluetooth', 'V2X', 'OBD-II', 'USB', 'NFC']}
+              selected={form.interface_types}
+              onChange={(val) => setForm({...form, interface_types: val})}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Allowed Vehicle Categories</label>
+              <PillSelect 
+                options={['ALL', 'Passenger (Cat. M)', 'Commercial (Cat. N)', 'Trailer (Cat. O)', 'Motorcycle (Cat. L)', 'Agricultural (Cat. T)']}
+                selected={form.vehicle_categories}
+                onChange={(val) => setForm({...form, vehicle_categories: val})}
+              />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Allowed Propulsion Types</label>
+              <PillSelect 
+                options={['ALL', 'ICE', 'EV', 'Hybrid', 'None']}
+                selected={form.vehicle_types}
+                onChange={(val) => setForm({...form, vehicle_types: val})}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-4 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Safety</label>
@@ -348,7 +419,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_safety: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -358,7 +429,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_financial: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -368,7 +439,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_operational: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -378,11 +449,11 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_privacy: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>
-
+          
           <p className="text-gray-500 text-[10px] italic">
             * Interfaces and data types can be refined in the editor after placement.
           </p>

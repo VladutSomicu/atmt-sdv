@@ -71,7 +71,7 @@ const riskStroke = (score) => {
   return '#16a34a';
 };
 
-export default function DiagramTab({ projectId, project, threats = [], onDiagramSaved, canEdit = true }) {
+export default function DiagramTab({ projectId, project, threats = [], onDiagramSaved, onDiagramChanged, canEdit = true }) {
   const canvasRef = useRef(null);
   const graphRef = useRef(null);
   const paperRef = useRef(null);
@@ -196,11 +196,12 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   }, [projectId, canEdit]);
 
   useEffect(() => {
+    const vehicleCategory = vp.category || '';
     const vehicleType = vp.propulsion || 'ICE';
     const architecture = vp.architecture || 'Classic';
     const ext = vp.external_interfaces || [];
 
-    api.get(`/api/admin/public/assets?vehicle_type=${vehicleType}&architecture=${architecture}`)
+    api.get(`/api/admin/public/assets?vehicle_category=${encodeURIComponent(vehicleCategory)}&vehicle_type=${vehicleType}&architecture=${architecture}`)
       .then(res => {
         let fetched = res.data.assets || [];
 
@@ -490,6 +491,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           redoStackRef.current = [];
           setCanUndo(historyRef.current.length > 1);
           setCanRedo(false);
+          onDiagramChanged?.();
         }, 200);
       };
       graph.on('add', pushSnap);

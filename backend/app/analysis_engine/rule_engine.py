@@ -212,6 +212,62 @@ STRIDE_RULES = [
     {
         'id': 'R050', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Lateral Movement via Gateway',
         'condition': lambda n, vp: n.get('category') == 'Gateway'
+    },
+
+    # ─── EXTENDED E/E SENSORS & ACTUATORS ───
+    {
+        'id': 'R051', 'trigger_type': 'node', 'stride': 'Spoofing', 'threat_title': 'Physical Signal Spoofing / Short-to-Ground',
+        'condition': lambda n, vp: 'Sensor' in n.get('name', '') and n.get('category') in ['Perception', 'Chassis']
+    },
+    {
+        'id': 'R052', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Anti-Pinch Safety Bypass',
+        'condition': lambda n, vp: 'Window Lift' in n.get('name', '') or 'Sunroof' in n.get('name', '')
+    },
+    {
+        'id': 'R053', 'trigger_type': 'node', 'stride': 'Elevation of Privilege', 'threat_title': 'Forced Physical Actuation',
+        'condition': lambda n, vp: 'Door Lock' in n.get('name', '') or 'Tailgate' in n.get('name', '')
+    },
+
+    # ─── MOTORCYCLES (CAT. L) ───
+    {
+        'id': 'R054', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Electronic Suspension Manipulation',
+        'condition': lambda n, vp: 'Suspension' in n.get('name', '')
+    },
+    {
+        'id': 'R055', 'trigger_type': 'node', 'stride': 'Information Disclosure', 'threat_title': 'Helmet HUD Eavesdropping',
+        'condition': lambda n, vp: 'Helmet' in n.get('name', '') or 'HUD' in n.get('name', '')
+    },
+    {
+        'id': 'R056', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'eCall / Telematics Disable',
+        'condition': lambda n, vp: 'eCall' in n.get('name', '') or 'Telematics' in n.get('name', '')
+    },
+
+    # ─── AGRICULTURAL (CAT. T) ───
+    {
+        'id': 'R057', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Crop Yield Data Falsification',
+        'condition': lambda n, vp: 'Yield' in n.get('name', '') or 'Grain' in n.get('name', '')
+    },
+    {
+        'id': 'R058', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Agricultural Application Manipulation (Spray/Seed)',
+        'condition': lambda n, vp: 'Seed' in n.get('name', '') or 'Spray' in n.get('name', '')
+    },
+    {
+        'id': 'R059', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'ISOBUS Network Flooding',
+        'condition': lambda n, vp: 'ISOBUS' in n.get('name', '')
+    },
+
+    # ─── TRAILERS & COMMERCIAL TRUCKS (CAT. O / N) ───
+    {
+        'id': 'R060', 'trigger_type': 'node', 'stride': 'Denial of Service', 'threat_title': 'Refrigeration Shutdown / Spoilage Attack',
+        'condition': lambda n, vp: 'Reefer' in n.get('name', '') or 'Refrigeration' in n.get('name', '')
+    },
+    {
+        'id': 'R061', 'trigger_type': 'node', 'stride': 'Tampering', 'threat_title': 'Trailer Braking System (EBS/TEBS) Manipulation',
+        'condition': lambda n, vp: 'EBS' in n.get('name', '') or 'Braking' in n.get('name', '')
+    },
+    {
+        'id': 'R062', 'trigger_type': 'node', 'stride': 'Repudiation', 'threat_title': 'Tachograph Record Forgery',
+        'condition': lambda n, vp: 'Tachograph' in n.get('name', '')
     }
 ]
 

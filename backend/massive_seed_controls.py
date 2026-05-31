@@ -58,7 +58,27 @@ CONTROLS_DATA = [
     ("Android APK Code Signing Verification", "Validates app developer certificates.", ["Tampering"], ["Internal API"], 4, "Feasibility", "OWASP-Mobile"),
     ("Display Framebuffer Integrity Check", "Validates HUD display signals against physical sensors.", ["Tampering"], ["LVDS", "Ethernet"], 2, "Impact - Safety", "ISO_26262"),
     ("USB Device Whitelisting & Sandboxing", "Prevents malware execution from media ports.", ["Tampering"], ["USB"], 3, "Feasibility", "Android_Security"),
-    ("eCall Cellular Cryptographic Authentication", "Secures the emergency dialer channel.", ["Spoofing"], ["Cellular"], 3, "Feasibility", "3GPP_Sec")
+    ("eCall Cellular Cryptographic Authentication", "Secures the emergency dialer channel.", ["Spoofing"], ["Cellular"], 3, "Feasibility", "3GPP_Sec"),
+
+    # ─── E/E SENSORS & ACTUATORS ───
+    ("Analog Sensor Redundancy & Plausibility", "Uses redundant sensors and cross-checks values (e.g. Speed vs GPS) to detect physical spoofing.", ["Spoofing"], ["LIN", "Analog"], 3, "Feasibility", "ISO_26262"),
+    ("Actuator Current Signature Analysis", "Monitors electrical current draw to detect mechanical tampering (e.g., Anti-Pinch defeat).", ["Tampering", "Elevation of Privilege"], ["LIN", "CAN"], 3, "Feasibility", "Best_Practice"),
+    ("Physical Anti-Theft Enclosures", "Hardened physical casings for Door/Tailgate actuators to prevent forced physical actuation.", ["Elevation of Privilege"], ["Physical"], 2, "Feasibility", "Thatcham"),
+
+    # ─── MOTORCYCLES ───
+    ("Suspension Parameter Whitelisting", "Rejects out-of-bounds suspension adjustment commands on the CAN bus.", ["Tampering"], ["CAN"], 4, "Feasibility", "UNECE_R155"),
+    ("BLE Secure Connections (BLE-SC)", "Enforces ECDH pairing and AES-CCM encryption for Helmet HUDs to prevent eavesdropping.", ["Information Disclosure"], ["Bluetooth"], 4, "Feasibility", "Bluetooth_SIG"),
+    ("eCall Fallback Antenna & Dual-SIM", "Hardware redundancy to prevent DoS attacks on the emergency dialer.", ["Denial of Service"], ["Cellular"], 3, "Impact - Operational", "eCall_Standard"),
+
+    # ─── AGRICULTURAL ───
+    ("Cryptographic Signing of Yield Data", "Applies SecOC to yield monitor telemetry to prevent financial fraud.", ["Tampering"], ["CAN", "ISOBUS"], 4, "Feasibility", "ISO_11783"),
+    ("Implement Control Integrity Checks", "Validates seed/spray rate commands against operator limits and safety boundaries.", ["Tampering"], ["ISOBUS", "CAN"], 3, "Feasibility", "ISO_25119"),
+    ("ISOBUS Gateway Traffic Filtering (IDPS)", "Filters anomalous traffic on the ISOBUS network to prevent flooding.", ["Denial of Service"], ["ISOBUS"], 3, "Feasibility", "UNECE_R155"),
+
+    # ─── TRAILERS & COMMERCIAL TRUCKS ───
+    ("Reefer Telematics Backup Battery", "Independent power and alerting system if the main refrigeration unit is shut down.", ["Denial of Service"], ["Cellular"], 4, "Impact - Operational", "Cold_Chain_Logistics"),
+    ("EBS Message Authentication (MAC)", "Cryptographic authentication for Trailer Braking System messages.", ["Tampering"], ["CAN", "PLC"], 4, "Feasibility", "UNECE_R155"),
+    ("Tachograph Hardware Security Module (HSM)", "Uses PKI and physical smart cards to sign and seal driver records immutably.", ["Repudiation", "Tampering"], ["CAN", "Cellular"], 4, "Feasibility", "EU_Digital_Tachograph")
 ]
 
 def seed_controls():

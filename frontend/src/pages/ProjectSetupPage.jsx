@@ -393,7 +393,7 @@ export default function ProjectSetupPage() {
 
                   <label className="block text-gray-400 text-xs uppercase tracking-wider mb-3">Interfaces</label>
                   <div className="grid grid-cols-2 gap-2">
-                    {['OBD-II', 'V2X', 'Cloud', 'USB', 'Bluetooth', 'Wi-Fi', 'Cellular'].map(iface => (
+                    {['OBD-II', 'V2X', 'Cloud', 'USB', 'Bluetooth', 'Wi-Fi', 'Cellular', 'NFC'].map(iface => (
                       <div
                         key={iface}
                         onClick={() => toggleInterface(iface)}
