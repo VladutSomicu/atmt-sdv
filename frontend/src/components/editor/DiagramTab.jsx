@@ -516,7 +516,11 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
       if (canvasRef.current?._ctxCleanup) canvasRef.current._ctxCleanup();
       if (resizeObs) resizeObs.disconnect();
       if (paperRef.current) { paperRef.current.remove(); paperRef.current = null; }
-      if (graphRef.current) { graphRef.current.clear(); graphRef.current = null; }
+      if (graphRef.current) { 
+        isRestoringRef.current = true;
+        graphRef.current.clear(); 
+        graphRef.current = null; 
+      }
     };
   }, [projectId]);
 

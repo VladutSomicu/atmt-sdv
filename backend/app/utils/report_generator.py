@@ -446,9 +446,9 @@ class ReportGenerator:
 
         # Document metadata
         meta_data = [
-            [self._c("Document ID", True), self._c(doc_id)],
-            [self._c("Date", True), self._c(self._gen_time.strftime("%Y-%m-%d"))],
-            [self._c("Classification", True), self._c("Confidential — Restricted Distribution")],
+            [self._c("Document ID", bold=True, white=True), self._c(doc_id)],
+            [self._c("Date", bold=True, white=True), self._c(self._gen_time.strftime("%Y-%m-%d"))],
+            [self._c("Classification", bold=True, white=True), self._c("Confidential — Restricted Distribution")],
         ]
         meta_t = Table(meta_data, colWidths=[40 * mm, CONTENT_W - 40 * mm])
         meta_t.setStyle(TableStyle(
