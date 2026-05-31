@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 
 export default function GlobalReportsPage() {
   const [data, setData] = useState(null);
@@ -10,6 +12,8 @@ export default function GlobalReportsPage() {
   const [filterPropulsion, setFilterPropulsion] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+
+  const { items: sortedProjects, requestSort, sortConfig } = useSortableData(data?.projects || []);
 
   useEffect(() => {
     api.get('/api/reports/global')
@@ -42,7 +46,8 @@ export default function GlobalReportsPage() {
     avg_compliance: 'N/A'
   };
 
-  const filteredProjects = (data?.projects || []).filter(p => {
+
+  const filteredProjects = sortedProjects.filter(p => {
     const matchesPropulsion = filterPropulsion === 'All' || p.propulsion === filterPropulsion;
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesPropulsion && matchesSearch;
@@ -151,13 +156,13 @@ export default function GlobalReportsPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-gray-800 text-gray-400 font-medium bg-gray-950/20">
-                  <th className="p-4">Project Name</th>
-                  <th className="p-4 text-center">Propulsion</th>
-                  <th className="p-4 text-center">SAE Level</th>
-                  <th className="p-4 text-center">Status</th>
-                  <th className="p-4 text-center">Open Critical</th>
-                  <th className="p-4 text-center">Total Threats</th>
-                  <th className="p-4 text-center">Compliance</th>
+                  <SortableHeader label="Project Name" sortKey="name" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-left" />
+                  <SortableHeader label="Propulsion" sortKey="propulsion" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
+                  <SortableHeader label="SAE Level" sortKey="sae_level" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
+                  <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
+                  <SortableHeader label="Open Critical" sortKey="open_critical" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
+                  <SortableHeader label="Total Threats" sortKey="total_threats" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
+                  <SortableHeader label="Compliance" sortKey="compliance_score" currentSort={sortConfig} requestSort={requestSort} className="p-4 text-center" />
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>

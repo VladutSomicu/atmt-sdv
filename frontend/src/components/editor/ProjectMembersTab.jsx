@@ -3,10 +3,14 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import Modal from '../shared/Modal';
 import UserSelect from '../shared/UserSelect';
+import useSortableData from '../../hooks/useSortableData';
+import SortableHeader from '../shared/SortableHeader';
 
 export default function ProjectMembersTab({ projectId, user }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const { items: sortedMembers, requestSort, sortConfig } = useSortableData(members);
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('engineer');
@@ -85,14 +89,14 @@ export default function ProjectMembersTab({ projectId, user }) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/50">
-                <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">User</th>
-                <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">Role</th>
-                <th className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase">Joined</th>
+                <SortableHeader label="User" sortKey="full_name" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase" />
+                <SortableHeader label="Role" sortKey="role" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase" />
+                <SortableHeader label="Joined" sortKey="joined_at" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left text-xs text-gray-500 font-medium uppercase" />
                 {canManageMembers && <th className="px-5 py-3 text-right text-xs text-gray-500 font-medium uppercase">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {members.map(m => (
+              {sortedMembers.map(m => (
                 <tr key={m.user_id} className="border-b border-gray-800">
                   <td className="px-5 py-3">
                     <p className="text-white text-sm font-medium">{m.full_name || 'N/A'}</p>

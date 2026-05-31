@@ -5,6 +5,8 @@ import Modal from '../components/shared/Modal';
 import toast from 'react-hot-toast';
 import { useAuth } from '../store/AuthContext';
 import { Navigate } from 'react-router-dom';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 
 /* ── Create User Modal ────────────────────────────────── */
 function CreateUserModal({ isOpen, onClose, onCreated }) {
@@ -276,6 +278,9 @@ export default function AdminPage() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
 
+  const { items: sortedUsers, requestSort: sortUsers, sortConfig: userSortConfig } = useSortableData(users);
+  const { items: sortedAudit, requestSort: sortAudit, sortConfig: auditSortConfig } = useSortableData(auditLogs, { key: 'created_at', direction: 'descending' });
+
   // Guard: only admin can access this page
   if (!currentUser?.is_admin) return <Navigate to="/dashboard" replace />;
 
@@ -330,7 +335,7 @@ export default function AdminPage() {
     }
   };
 
-  const filtered = users.filter(u =>
+  const filtered = sortedUsers.filter(u =>
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
@@ -434,9 +439,12 @@ export default function AdminPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-800">
-                    {['USER', 'EMAIL', 'ROLE', 'STATUS', 'JOINED', 'ACTIONS'].map(h => (
-                      <th key={h} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">{h}</th>
-                    ))}
+                    <SortableHeader label="USER" sortKey="full_name" currentSort={userSortConfig} requestSort={sortUsers} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider" />
+                    <SortableHeader label="EMAIL" sortKey="email" currentSort={userSortConfig} requestSort={sortUsers} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider" />
+                    <SortableHeader label="ROLE" sortKey="is_admin" currentSort={userSortConfig} requestSort={sortUsers} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider" />
+                    <SortableHeader label="STATUS" sortKey="is_active" currentSort={userSortConfig} requestSort={sortUsers} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider" />
+                    <SortableHeader label="JOINED" sortKey="created_at" currentSort={userSortConfig} requestSort={sortUsers} className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider" />
+                    <th className="px-5 py-3 text-left text-xs text-gray-600 font-medium uppercase tracking-wider">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -583,15 +591,15 @@ export default function AdminPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-800 bg-gray-900/50">
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-48">Timestamp</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">User</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">Project</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">Action</th>
+                    <SortableHeader label="Timestamp" sortKey="created_at" currentSort={auditSortConfig} requestSort={sortAudit} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-48" />
+                    <SortableHeader label="User" sortKey="user" currentSort={auditSortConfig} requestSort={sortAudit} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40" />
+                    <SortableHeader label="Project" sortKey="project_name" currentSort={auditSortConfig} requestSort={sortAudit} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40" />
+                    <SortableHeader label="Action" sortKey="action" currentSort={auditSortConfig} requestSort={sortAudit} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40" />
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {auditLogs.map(log => (
+                  {sortedAudit.map(log => (
                     <tr key={log.id} className="hover:bg-gray-800/30 transition-colors align-top">
                       <td className="px-5 py-4">
                         <span className="text-gray-400 text-xs whitespace-nowrap">

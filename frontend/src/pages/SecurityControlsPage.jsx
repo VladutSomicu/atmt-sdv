@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import Modal from '../components/shared/Modal';
 import { useAuth } from '../store/AuthContext';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -10,6 +12,8 @@ export default function SecurityControlsPage() {
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  const { items: sortedControls, requestSort, sortConfig } = useSortableData(controls);
   
   // Add/Edit Control State
   const [showControlModal, setShowControlModal] = useState(false);
@@ -110,7 +114,7 @@ export default function SecurityControlsPage() {
     }));
   };
 
-  const filteredControls = controls.filter(c => 
+  const filteredControls = sortedControls.filter(c => 
     c.title.toLowerCase().includes(search.toLowerCase()) ||
     (c.source_ref && c.source_ref.toLowerCase().includes(search.toLowerCase()))
   );
@@ -173,11 +177,11 @@ export default function SecurityControlsPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-800 bg-gray-950">
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3">Control Title</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Applies To (STRIDE)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Target</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reduction Value</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Reference</th>
+                    <SortableHeader label="Control Title" sortKey="title" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3" />
+                    <SortableHeader label="Applies To (STRIDE)" sortKey="applies_to_stride" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Reduction Target" sortKey="reduction_target" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Reduction Value" sortKey="reduction_value" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Reference" sortKey="reference" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
                     {user?.is_admin && <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase text-right">Actions</th>}
                   </tr>
                 </thead>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import useSortableData from '../../hooks/useSortableData';
+import SortableHeader from '../shared/SortableHeader';
 
 const actionLabels = {
   project_created: 'Project Created',
@@ -23,6 +25,8 @@ const actionColors = {
 export default function ProjectAuditLogTab({ projectId }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const { items: sortedLogs, requestSort, sortConfig } = useSortableData(logs, { key: 'created_at', direction: 'descending' });
 
   useEffect(() => {
     // Load audit logs
@@ -52,14 +56,14 @@ export default function ProjectAuditLogTab({ projectId }) {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-800 bg-gray-900/50">
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-48">Timestamp</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">User</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40">Action</th>
+                    <SortableHeader label="Timestamp" sortKey="created_at" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-48" />
+                    <SortableHeader label="User" sortKey="user" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40" />
+                    <SortableHeader label="Action" sortKey="action" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-40" />
                     <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {logs.map(log => (
+                  {sortedLogs.map(log => (
                     <tr key={log.id} className="hover:bg-gray-800/30 transition-colors align-top">
                       <td className="px-5 py-4">
                         <span className="text-gray-400 text-xs whitespace-nowrap">

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import Modal from '../components/shared/Modal';
 import { useAuth } from '../store/AuthContext';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -79,6 +81,8 @@ export default function ThreatCatalogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const { items: sortedThreats, requestSort, sortConfig } = useSortableData(threats);
+
   // Add/Edit Threat State
   const [showThreatModal, setShowThreatModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -88,7 +92,6 @@ export default function ThreatCatalogPage() {
     title: '',
     description: '',
     source: 'MITRE CAPEC',
-    source_ref: '',
     source_ref: '',
     default_impact_safety: 3,
     default_impact_financial: 3,
@@ -174,7 +177,7 @@ export default function ThreatCatalogPage() {
     }
   };
 
-  const filteredThreats = threats.filter(t =>
+  const filteredThreats = sortedThreats.filter(t =>
     t.title.toLowerCase().includes(search.toLowerCase()) ||
     t.stride_category.toLowerCase().includes(search.toLowerCase()) ||
     (t.source_ref && t.source_ref.toLowerCase().includes(search.toLowerCase()))
@@ -277,14 +280,14 @@ export default function ThreatCatalogPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-800 bg-gray-950">
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Category</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3">Title / Description</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Source</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Safety (S)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Financial (F)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Operational (O)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Privacy (P)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Feasibility</th>
+                    <SortableHeader label="Category" sortKey="stride_category" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Title / Description" sortKey="title" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/3" />
+                    <SortableHeader label="Source" sortKey="source" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Safety (S)" sortKey="default_impact_safety" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Financial (F)" sortKey="default_impact_financial" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Operational (O)" sortKey="default_impact_operational" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Privacy (P)" sortKey="default_impact_privacy" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Feasibility" sortKey="default_feasibility" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
                     {user?.is_admin && <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase text-right">Actions</th>}
                   </tr>
                 </thead>

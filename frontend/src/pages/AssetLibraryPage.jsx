@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import Modal from '../components/shared/Modal';
 import { useAuth } from '../store/AuthContext';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -60,6 +62,8 @@ export default function AssetLibraryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
+  const { items: sortedAssets, requestSort, sortConfig } = useSortableData(assets);
+
   // Add/Edit Asset State
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -163,7 +167,7 @@ export default function AssetLibraryPage() {
     }
   };
 
-  const filteredAssets = assets.filter(a => 
+  const filteredAssets = sortedAssets.filter(a => 
     a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.category.toLowerCase().includes(search.toLowerCase())
   );
@@ -227,14 +231,14 @@ export default function AssetLibraryPage() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-800 bg-gray-950">
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Category</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/4">Name</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">ASIL</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Interfaces</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Safety (S)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Financial (F)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Operational (O)</th>
-                    <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase">Privacy (P)</th>
+                    <SortableHeader label="Category" sortKey="category" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Name" sortKey="name" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase w-1/4" />
+                    <SortableHeader label="ASIL" sortKey="asil_level" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Interfaces" sortKey="interface_types" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Safety (S)" sortKey="default_safety" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Financial (F)" sortKey="default_financial" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Operational (O)" sortKey="default_operational" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
+                    <SortableHeader label="Privacy (P)" sortKey="default_privacy" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-xs text-gray-500 font-medium uppercase" />
                     {user?.is_admin && <th className="px-5 py-3 text-xs text-gray-500 font-medium uppercase text-right">Actions</th>}
                   </tr>
                 </thead>

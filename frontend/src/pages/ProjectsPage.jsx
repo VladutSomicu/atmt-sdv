@@ -5,6 +5,8 @@ import { useAuth } from '../store/AuthContext';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/shared/Modal';
+import useSortableData from '../hooks/useSortableData';
+import SortableHeader from '../components/shared/SortableHeader';
 
 /* ── Helpers ─────────────────────────────────────────── */
 const riskBadge = (score) => {
@@ -94,6 +96,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [newName, setNewName] = useState('');
   const [projects_, setProjects] = useState(projects);
+  const { items: sortedProjects, requestSort, sortConfig } = useSortableData(projects_);
 
   useEffect(() => setProjects(projects), [projects]);
 
@@ -148,16 +151,16 @@ function ProjectsTable({ projects, showAllColumns = false }) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-800 text-gray-600 text-xs font-medium uppercase tracking-wider">
-            <th className="px-5 py-3 text-left">Project</th>
-            <th className="px-5 py-3 text-left">Vehicle Profile</th>
-            <th className="px-5 py-3 text-center">Risk</th>
-            <th className="px-5 py-3 text-center">Status</th>
-            <th className="px-5 py-3 text-center">{showAllColumns ? 'Role' : 'My Role'}</th>
-            <th className="px-5 py-3 text-center">Last Update</th>
+            <SortableHeader label="Project" sortKey="name" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
+            <SortableHeader label="Vehicle Profile" sortKey="vehicle_profile.category" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
+            <SortableHeader label="Risk" sortKey="max_risk_score" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
+            <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
+            <SortableHeader label={showAllColumns ? 'Role' : 'My Role'} sortKey="my_role" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
+            <SortableHeader label="Last Update" sortKey="updated_at" currentSort={sortConfig} requestSort={requestSort} className="px-5 py-3 text-left" />
           </tr>
         </thead>
         <tbody>
-          {projects_.map((p) => {
+          {sortedProjects.map((p) => {
             const vp = p.vehicle_profile || {};
             return (
               <tr
@@ -189,25 +192,25 @@ function ProjectsTable({ projects, showAllColumns = false }) {
                   </div>
                 </td>
 
-                <td className="px-5 py-3.5 text-center">
+                <td className="px-5 py-3.5 text-left">
                   <span className={`text-xs px-2 py-0.5 rounded border font-medium ${riskBadge(p.max_risk_score || 0)}`}>
                     {p.max_risk_score ? riskLabel(p.max_risk_score) : 'DRAFT'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-center">
+                <td className="px-5 py-3.5 text-left">
                   <span className={`text-sm font-medium ${statusColor[p.status] || 'text-gray-400'}`}>
                     {p.status?.replace('_', ' ')}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-center">
+                <td className="px-5 py-3.5 text-left">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${roleColor[p.my_role] || 'bg-gray-800 text-gray-400'}`}>
                     {p.my_role || '—'}
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-center text-gray-500 text-xs">
+                <td className="px-5 py-3.5 text-left text-gray-500 text-xs">
                   {new Date(p.updated_at).toLocaleDateString()}
                 </td>
               </tr>
