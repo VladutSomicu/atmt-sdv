@@ -19,17 +19,13 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Editor route — additionally blocks mobile screens
-function EditorProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <MobileGuard>{children}</MobileGuard>;
-}
+// Removed EditorProtectedRoute
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <MobileGuard>
+      <BrowserRouter>
+        <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -42,9 +38,9 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/projects/:projectId/editor" element={
-          <EditorProtectedRoute>
+          <ProtectedRoute>
             <EditorPage />
-          </EditorProtectedRoute>
+          </ProtectedRoute>
         } />
         <Route path="/admin" element={
           <ProtectedRoute>
@@ -79,7 +75,8 @@ function App() {
         } />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </MobileGuard>
   );
 }
 
