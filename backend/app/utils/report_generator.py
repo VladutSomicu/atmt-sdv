@@ -24,25 +24,25 @@ import io
 # ──────────────────────────────────────────────────────────────
 # Color Palette
 # ──────────────────────────────────────────────────────────────
-_NAVY      = colors.HexColor('#1F4E79')
-_CHARCOAL  = colors.HexColor('#1f2937')
-_SLATE     = colors.HexColor('#374151')
-_GRAY500   = colors.HexColor('#6b7280')
-_GRAY200   = colors.HexColor('#e5e7eb')
-_GRAY50    = colors.HexColor('#f8fafc')
+_NAVY      = colors.HexColor('#111827')  # Gray-900 (used for headers to match UI)
+_CHARCOAL  = colors.HexColor('#1f2937')  # Gray-800
+_SLATE     = colors.HexColor('#4b5563')  # Gray-600
+_GRAY500   = colors.HexColor('#6b7280')  # Gray-500
+_GRAY200   = colors.HexColor('#e5e7eb')  # Gray-200
+_GRAY50    = colors.HexColor('#f9fafb')  # Gray-50
 _WHITE     = colors.white
 _BLACK     = colors.black
 
-# Functional risk colors
-_CRITICAL  = colors.HexColor('#dc2626')
-_HIGH      = colors.HexColor('#ea580c')
-_MEDIUM    = colors.HexColor('#ca8a04')
-_LOW       = colors.HexColor('#2563eb')
-_NEGLIG    = colors.HexColor('#16a34a')
+# Functional risk colors (matching UI)
+_CRITICAL  = colors.HexColor('#ef4444')  # Red-500
+_HIGH      = colors.HexColor('#f97316')  # Orange-500
+_MEDIUM    = colors.HexColor('#eab308')  # Yellow-500
+_LOW       = colors.HexColor('#3b82f6')  # Blue-500
+_NEGLIG    = colors.HexColor('#10b981')  # Emerald-500
 
-_PASS      = colors.HexColor('#16a34a')
-_FAIL      = colors.HexColor('#dc2626')
-_NA        = colors.HexColor('#6b7280')
+_PASS      = colors.HexColor('#10b981')  # Emerald-500
+_FAIL      = colors.HexColor('#ef4444')  # Red-500
+_NA        = colors.HexColor('#6b7280')  # Gray-500
 
 PAGE_W, PAGE_H = A4
 MARGIN = 20 * mm
@@ -391,7 +391,7 @@ class ReportGenerator:
 
         # ATMT Logo (text-based)
         els.append(Paragraph(
-            '<font color="#1F4E79" size="28"><b>ATMT</b></font>',
+            '<font color="#111827" size="28"><b>ATMT</b></font>',
             self.styles['CoverTitle']
         ))
         els.append(Paragraph(
