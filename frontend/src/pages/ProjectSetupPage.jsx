@@ -529,7 +529,7 @@ export default function ProjectSetupPage() {
               {/* Navigation buttons */}
               <div className="flex items-center justify-between mt-8">
                 <button
-                  onClick={() => step > 1 ? setStep(step - 1) : window.location.href = '/dashboard'}
+                  onClick={() => step > 1 ? setStep(step - 1) : window.location.href = '/projects'}
                   className="text-gray-400 hover:text-white text-sm transition-colors"
                 >
                   {step > 1 ? 'Back' : 'Cancel'}

@@ -234,7 +234,7 @@ function AdminDashboard({ projects }) {
               <div className="bg-gray-900 border border-gray-800 rounded-none p-6 relative overflow-hidden group">
                 <p className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-wider">Fleet Propulsion</p>
                 <div className="space-y-4 relative z-10">
-                  {['EV', 'ICE', 'Hybrid'].map(type => {
+                  {['EV', 'ICE', 'Hybrid', 'None'].map(type => {
                     const count = projects.filter(p => p.vehicle_profile?.propulsion === type).length;
                     const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
                     return (
