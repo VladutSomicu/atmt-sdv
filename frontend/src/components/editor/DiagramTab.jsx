@@ -525,7 +525,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   }, [projectId]);
 
   // ── Add Node ──
-  const addNode = useCallback((asset) => {
+  const addNode = useCallback((asset, x = null, y = null) => {
     if (!graphRef.current || !editableRef.current) return;
     const colors = CAT_COLORS[asset.category] || { fill: '#111827', stroke: '#374151', text: '#9ca3af' };
     const cell = new shapes.standard.Rectangle({
@@ -560,7 +560,9 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         ]
       }
     });
-    cell.position(80 + Math.random() * 400, 80 + Math.random() * 300);
+    const px = x !== null ? x : (80 + Math.random() * 400);
+    const py = y !== null ? y : (80 + Math.random() * 300);
+    cell.position(px, py);
     cell.resize(140, 60);
     const isExtCat = asset.category === 'Cloud' || asset.category === 'External';
 
@@ -853,9 +855,14 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
                 {items.map(asset => (
                   <div
                     key={asset.id}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/json', JSON.stringify(asset));
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
                     onClick={() => addNode(asset)}
                     className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
-                    title={`${asset.name} - (Click to add)`}
+                    title={`${asset.name} - (Drag & Drop or Click to add)`}
                   >
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
                     <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
@@ -914,7 +921,31 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
           </div>
         </div>
 
-        <div ref={canvasRef} style={{ flex: 1, overflow: 'hidden' }} onContextMenu={(e) => e.preventDefault()} />
+        <div 
+          ref={canvasRef} 
+          style={{ flex: 1, overflow: 'hidden' }} 
+          onContextMenu={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const assetStr = e.dataTransfer.getData('application/json');
+            if (assetStr) {
+              try {
+                const asset = JSON.parse(assetStr);
+                if (paperRef.current) {
+                  const localPoint = paperRef.current.clientToLocalPoint({ x: e.clientX, y: e.clientY });
+                  // Center the node roughly under the mouse cursor (140x60 dimensions)
+                  addNode(asset, localPoint.x - 70, localPoint.y - 30);
+                }
+              } catch (err) {
+                console.error('Drop error:', err);
+              }
+            }
+          }}
+        />
       </div>
 
       {/* ── Inspector ── */}
