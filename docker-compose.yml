@@ -1,6 +1,9 @@
+name: atmt-sdv
+
 services:
   postgres_db:
     image: postgres:16
+    container_name: atmt-sdv-postgres_db-1
     environment:
       POSTGRES_USER: atmt_admin
       POSTGRES_PASSWORD: devpassword

@@ -38,7 +38,7 @@ export default {
         sans: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       }
-    },
+    }
   },
   plugins: [],
 }
