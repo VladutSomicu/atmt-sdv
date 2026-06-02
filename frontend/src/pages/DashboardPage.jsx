@@ -406,7 +406,11 @@ function UserDashboard({ projects, user }) {
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-              <span className="text-gray-700 text-3xl mb-2">📭</span>
+              <div className="w-12 h-12 rounded-full bg-gray-800/50 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <p className="text-gray-500 text-sm">No recent activity.</p>
             </div>
           )}

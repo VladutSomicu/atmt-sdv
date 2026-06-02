@@ -57,7 +57,9 @@ export default function ReportTab({ projectId, project, threats = [] }) {
         {isBlocked && (
           <div className="w-full max-w-2xl bg-red-950/40 border border-red-500/30 rounded-none p-5 flex gap-4 items-start shadow-[0_0_30px_rgba(239,68,68,0.1)] backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30">
-              <span className="text-red-400 text-lg">⚠️</span>
+              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
             <div className="flex-1">
               <p className="text-red-300 text-base font-semibold mb-1">
@@ -203,7 +205,7 @@ export default function ReportTab({ projectId, project, threats = [] }) {
         </p>
 
         <div className="mt-auto pt-4 border-t border-gray-800">
-          <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-2 font-semibold">Telemetry</p>
+          <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-2 font-semibold">Summary</p>
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-gray-500">Status</span>

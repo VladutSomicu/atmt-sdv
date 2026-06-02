@@ -144,7 +144,7 @@ export default function ProjectSetupPage() {
                     step === s.id ? 'bg-blue-600 text-white' :
                     'bg-gray-800 text-gray-500'
                   }`}>
-                    {step > s.id ? '✓' : s.id}
+                    {step > s.id ? <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : s.id}
                   </div>
                   <div>
                     <p className={`text-sm font-medium ${step === s.id ? 'text-blue-400' : 'text-gray-400'}`}>
@@ -209,7 +209,7 @@ export default function ProjectSetupPage() {
                           selectedObjectives.includes(obj.id) ? 'bg-blue-600' : 'bg-gray-800 border border-gray-600'
                         }`}>
                           {selectedObjectives.includes(obj.id) && (
-                            <span className="text-white text-xs">✓</span>
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                           )}
                         </div>
                         <div>
@@ -236,7 +236,7 @@ export default function ProjectSetupPage() {
                           }`}
                         >
                           {selectedObjectives.includes(obj.id) && (
-                            <span className="text-white text-xs">✓</span>
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                           )}
                         </div>
                         <div className="flex-1" onClick={() => toggleObjective(obj.id)}>
@@ -347,8 +347,8 @@ export default function ProjectSetupPage() {
                       <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">
                         SAE Automation Level — <span className="text-blue-400">Level {saeLevel}</span>
                         {saeLevel <= 2 && <span className="text-gray-400 ml-2">Driver intervention possible. Standard safety scoring.</span>}
-                        {(saeLevel === 3 || saeLevel === 4) && <span className="text-yellow-500 ml-2">⚠️ Perception sensors auto-scored as Severe (4).</span>}
-                        {saeLevel === 5 && <span className="text-red-500 ml-2">🔴 All safety-critical systems auto-scored as Severe (4).</span>}
+                        {(saeLevel === 3 || saeLevel === 4) && <span className="text-yellow-500 ml-2 inline-flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> Perception sensors auto-scored as Severe (4).</span>}
+                        {saeLevel === 5 && <span className="text-red-500 ml-2 inline-flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> All safety-critical systems auto-scored as Severe (4).</span>}
                       </label>
                       <input
                         type="range"
@@ -406,7 +406,7 @@ export default function ProjectSetupPage() {
                         <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center ${
                           externalInterfaces.includes(iface) ? 'bg-blue-600' : 'bg-gray-800 border border-gray-600'
                         }`}>
-                          {externalInterfaces.includes(iface) && <span className="text-white text-xs">✓</span>}
+                          {externalInterfaces.includes(iface) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                         </div>
                         <span className="text-white text-sm">{iface}</span>
                       </div>
@@ -479,7 +479,7 @@ export default function ProjectSetupPage() {
                           <p className="text-red-400 text-xs mt-1 ml-1">User not found. They must register first.</p>
                         )}
                         {m.valid === true && m.validName && (
-                          <p className="text-green-400 text-xs mt-1 ml-1">✓ {m.validName}</p>
+                          <p className="text-green-400 text-xs mt-1 ml-1 flex items-center gap-1"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> {m.validName}</p>
                         )}
                       </div>
                     ))}

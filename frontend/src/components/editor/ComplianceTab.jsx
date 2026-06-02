@@ -92,10 +92,10 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
     return 'bg-gray-800 text-gray-400 border-gray-700';
   };
 
-  const statusIcon = (status) => {
-    if (status === 'pass') return '✓';
-    if (status === 'fail') return '✗';
-    return '—';
+  const StatusIcon = ({status}) => {
+    if (status === 'pass') return <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
+    if (status === 'fail') return <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
+    return <span>—</span>;
   };
 
   const grouped = checks.reduce((acc, c) => {
@@ -200,7 +200,7 @@ export default function ComplianceTab({ projectId, isReadOnly = false }) {
                   )}
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded border font-mono flex-shrink-0 flex items-center gap-1 ${statusBadge(check.status)}`}>
-                  <span>{statusIcon(check.status)}</span>
+                  <span><StatusIcon status={check.status} /></span>
                   {check.status.toUpperCase()}
                 </span>
               </div>
