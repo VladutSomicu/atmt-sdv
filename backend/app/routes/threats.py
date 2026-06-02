@@ -72,9 +72,52 @@ def get_threat_detail(threat_id):
         return jsonify({"error": "Threat not found"}), 404
 
     # Find controls that apply to this threat's STRIDE category
-    available_controls = Control.query.filter(
+    candidate_controls = Control.query.filter(
         Control.applies_to_stride.any(threat.stride_category)
     ).all()
+
+    import re
+    available_controls = []
+    threat_context = f"{threat.title} {threat.asset_name} {threat.description or ''}".lower()
+
+    for c in candidate_controls:
+        protocols = c.applies_to_protocols or []
+        
+        # If control applies to ALL or has no specific protocols, it's globally applicable
+        if not protocols or 'ALL' in protocols:
+            available_controls.append(c)
+            continue
+            
+        matched = False
+        for p in protocols:
+            p_lower = p.lower()
+            
+            # Map abstract protocol names to likely threat keywords
+            keywords = [p_lower]
+            if p_lower == 'internal api' or p_lower == 'sdv_arch':
+                keywords.extend(['sdv', 'container', 'hypervisor', 'os', 'software', 'api'])
+            elif p_lower == 'physical':
+                keywords.extend(['physical', 'hardware', 'implant', 'enclosure', 'actuator'])
+            elif p_lower == 'rf':
+                keywords.extend(['rf', 'tpms', 'radio'])
+            elif p_lower == 'lf':
+                keywords.extend(['lf', 'immobilizer', 'transponder', 'keyless'])
+            
+            for kw in keywords:
+                if kw == 'can':
+                    # Strictly match "can" so we don't match the English word "can" in descriptions
+                    if re.search(r'\bcan\b', f"{threat.title} {threat.asset_name}".lower()):
+                        matched = True
+                        break
+                elif kw in threat_context:
+                    matched = True
+                    break
+            
+            if matched:
+                break
+                
+        if matched:
+            available_controls.append(c)
 
     return jsonify({
         "threat": {
