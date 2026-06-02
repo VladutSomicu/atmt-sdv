@@ -30,8 +30,8 @@ const PillSelect = ({ options, selected, onChange }) => {
       onChange(['ALL']);
       return;
     }
-    let newSel = selected.includes(opt) 
-      ? selected.filter(x => x !== opt) 
+    let newSel = selected.includes(opt)
+      ? selected.filter(x => x !== opt)
       : [...selected.filter(x => x !== 'ALL'), opt];
     if (newSel.length === 0) newSel = ['ALL'];
     onChange(newSel);
@@ -43,11 +43,10 @@ const PillSelect = ({ options, selected, onChange }) => {
           key={opt}
           type="button"
           onClick={() => toggle(opt)}
-          className={`px-2 py-1 text-[10px] font-medium uppercase tracking-wider rounded border transition-colors ${
-            selected.includes(opt) 
-              ? 'bg-blue-600 border-blue-500 text-white' 
+          className={`px-2 py-1 text-[10px] font-medium uppercase tracking-wider rounded border transition-colors ${selected.includes(opt)
+              ? 'bg-blue-600 border-blue-500 text-white'
               : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
-          }`}
+            }`}
         >
           {opt}
         </button>
@@ -61,11 +60,12 @@ export default function AssetLibraryPage() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  
+
   const { items: sortedAssets, requestSort, sortConfig } = useSortableData(assets);
 
   // Add/Edit Asset State
   const [showAssetModal, setShowAssetModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -101,7 +101,7 @@ export default function AssetLibraryPage() {
       toast.error('Name and category are required');
       return;
     }
-    
+
     setSaving(true);
     try {
       if (editingId) {
@@ -156,18 +156,24 @@ export default function AssetLibraryPage() {
     setShowAssetModal(true);
   };
 
-  const handleDelete = async (asset) => {
-    if (!window.confirm(`Are you sure you want to delete ${asset.name}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/api/admin/library/assets/${asset.id}`);
+      await api.delete(`/api/admin/library/assets/${deleteTarget.id}`);
       toast.success('Asset deleted successfully');
       loadAssets();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to delete asset');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  const filteredAssets = sortedAssets.filter(a => 
+  const handleDelete = (asset) => {
+    setDeleteTarget(asset);
+  };
+
+  const filteredAssets = sortedAssets.filter(a =>
     a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.category.toLowerCase().includes(search.toLowerCase())
   );
@@ -189,7 +195,7 @@ export default function AssetLibraryPage() {
                 setForm({
                   name: '', category: 'Connectivity', interface_types: [], data_types: [],
                   physical_accessibility: 'Internal', asil_level: 'None', default_safety: 3,
-                  default_financial: 3, default_operational: 3, default_privacy: 3, flags: [], 
+                  default_financial: 3, default_operational: 3, default_privacy: 3, flags: [],
                   vehicle_categories: ['ALL'], vehicle_types: ['ALL']
                 });
                 setShowAssetModal(true);
@@ -221,7 +227,7 @@ export default function AssetLibraryPage() {
               />
             </div>
           </div>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -387,30 +393,40 @@ export default function AssetLibraryPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Interfaces (Optional)</label>
-            <PillSelect 
-              options={['CAN', 'CAN-FD', 'Ethernet', 'LIN', 'FlexRay', 'Cellular', 'Wi-Fi', 'Bluetooth', 'V2X', 'OBD-II', 'USB', 'NFC']}
-              selected={form.interface_types}
-              onChange={(val) => setForm({...form, interface_types: val})}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Interfaces</label>
+              <PillSelect
+                options={['CAN', 'CAN-FD', 'Ethernet', 'LIN', 'FlexRay', 'Cellular', 'Wi-Fi', 'Bluetooth', 'V2X', 'OBD-II', 'USB', 'NFC']}
+                selected={form.interface_types}
+                onChange={(val) => setForm({ ...form, interface_types: val })}
+              />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Data Types</label>
+              <PillSelect
+                options={['Control Commands', 'Sensor Data', 'Auth Tokens', 'Telemetry', 'Media', 'PII', 'Location Data', 'System Metadata', 'Keys / Credentials', 'All']}
+                selected={form.data_types}
+                onChange={(val) => setForm({ ...form, data_types: val })}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Allowed Vehicle Categories</label>
-              <PillSelect 
+              <PillSelect
                 options={['ALL', 'Passenger (Cat. M)', 'Commercial (Cat. N)', 'Trailer (Cat. O)', 'Motorcycle (Cat. L)', 'Agricultural (Cat. T)']}
                 selected={form.vehicle_categories}
-                onChange={(val) => setForm({...form, vehicle_categories: val})}
+                onChange={(val) => setForm({ ...form, vehicle_categories: val })}
               />
             </div>
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2">Allowed Propulsion Types</label>
-              <PillSelect 
+              <PillSelect
                 options={['ALL', 'ICE', 'EV', 'Hybrid', 'None']}
                 selected={form.vehicle_types}
-                onChange={(val) => setForm({...form, vehicle_types: val})}
+                onChange={(val) => setForm({ ...form, vehicle_types: val })}
               />
             </div>
           </div>
@@ -423,7 +439,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_safety: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -433,7 +449,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_financial: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -443,7 +459,7 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_operational: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -453,15 +469,22 @@ export default function AssetLibraryPage() {
                 onChange={(e) => setForm({ ...form, default_privacy: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>
-          
-          <p className="text-gray-500 text-[10px] italic">
-            * Interfaces and data types can be refined in the editor after placement.
-          </p>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        title="Confirm Deletion"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        confirmDanger
+      >
+        <p className="text-gray-300 text-sm">Are you sure you want to delete {deleteTarget?.name}?</p>
       </Modal>
     </AppLayout>
   );

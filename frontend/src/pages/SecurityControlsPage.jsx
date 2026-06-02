@@ -17,6 +17,7 @@ export default function SecurityControlsPage() {
   
   // Add/Edit Control State
   const [showControlModal, setShowControlModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -89,15 +90,21 @@ export default function SecurityControlsPage() {
     setShowControlModal(true);
   };
 
-  const handleDelete = async (control) => {
-    if (!window.confirm(`Are you sure you want to delete ${control.title}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/api/admin/library/controls/${control.id}`);
+      await api.delete(`/api/admin/library/controls/${deleteTarget.id}`);
       toast.success('Security control deleted');
       loadControls();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to delete control');
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const handleDelete = (control) => {
+    setDeleteTarget(control);
   };
 
   const strideCategories = [
@@ -330,6 +337,17 @@ export default function SecurityControlsPage() {
             </div>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        title="Confirm Deletion"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        confirmDanger
+      >
+        <p className="text-gray-300 text-sm">Are you sure you want to delete {deleteTarget?.title}?</p>
       </Modal>
     </AppLayout>
   );

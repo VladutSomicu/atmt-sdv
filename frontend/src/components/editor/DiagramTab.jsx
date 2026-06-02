@@ -822,7 +822,7 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
         cell.attr('line/strokeWidth', strokeWidth);
         const crosses = cell.get('crosses_trust_boundary');
         const hasCtrl = cell.get('has_security_control');
-        cell.attr('line/strokeDasharray', (!riskColors && crosses && !hasCtrl) ? '8 4' : '');
+        cell.attr('line/strokeDasharray', (!riskColors && crosses) ? '8 4' : '');
       } else {
         cell.attr('body/stroke', strokeColor);
         cell.attr('body/strokeWidth', strokeWidth);

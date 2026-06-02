@@ -85,6 +85,7 @@ export default function ThreatCatalogPage() {
 
   // Add/Edit Threat State
   const [showThreatModal, setShowThreatModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -166,15 +167,21 @@ export default function ThreatCatalogPage() {
     setShowThreatModal(true);
   };
 
-  const handleDelete = async (threat) => {
-    if (!window.confirm(`Are you sure you want to delete ${threat.title}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/api/admin/library/threats/${threat.id}`);
+      await api.delete(`/api/admin/library/threats/${deleteTarget.id}`);
       toast.success('Threat deleted successfully');
       loadThreats();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to delete threat');
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const handleDelete = (threat) => {
+    setDeleteTarget(threat);
   };
 
   const filteredThreats = sortedThreats.filter(t =>
@@ -498,6 +505,17 @@ export default function ThreatCatalogPage() {
             </div>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        title="Confirm Deletion"
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        confirmDanger
+      >
+        <p className="text-gray-300 text-sm">Are you sure you want to delete {deleteTarget?.title}?</p>
       </Modal>
     </AppLayout>
   );
