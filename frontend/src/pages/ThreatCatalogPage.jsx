@@ -376,6 +376,7 @@ export default function ThreatCatalogPage() {
         onClose={() => setShowThreatModal(false)}
         onConfirm={handleSaveThreat}
         confirmText={saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Threat')}
+        maxWidth="max-w-2xl"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

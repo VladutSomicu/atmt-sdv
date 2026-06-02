@@ -254,6 +254,7 @@ export default function SecurityControlsPage() {
         onClose={() => setShowControlModal(false)}
         onConfirm={handleSaveControl}
         confirmText={saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Control')}
+        maxWidth="max-w-xl"
       >
         <div className="space-y-4">
           <div>

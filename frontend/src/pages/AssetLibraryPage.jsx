@@ -327,6 +327,7 @@ export default function AssetLibraryPage() {
         onClose={() => setShowAssetModal(false)}
         onConfirm={handleSaveAsset}
         confirmText={saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Add Asset')}
+        maxWidth="max-w-3xl"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

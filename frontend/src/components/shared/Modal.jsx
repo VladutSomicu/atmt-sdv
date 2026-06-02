@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function Modal({ isOpen, title, children, onClose, onConfirm, confirmText = 'Confirm', confirmDanger = false }) {
+export default function Modal({ isOpen, title, children, onClose, onConfirm, confirmText = 'Confirm', confirmDanger = false, maxWidth = 'max-w-md' }) {
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -41,9 +41,9 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
       <div 
         ref={modalRef}
         tabIndex={-1}
-        className="bg-gray-900 border border-gray-800 rounded-none shadow-none w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 focus:outline-none"
+        className={`bg-gray-900 border border-gray-800 rounded-none shadow-none w-full ${maxWidth} overflow-hidden animate-in fade-in zoom-in-95 duration-200 focus:outline-none flex flex-col max-h-[90vh]`}
       >
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
+        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0">
           <h3 className="text-white font-medium">{title}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,10 +51,10 @@ export default function Modal({ isOpen, title, children, onClose, onConfirm, con
             </svg>
           </button>
         </div>
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 overflow-y-auto min-h-0">
           {children}
         </div>
-        <div className="px-6 py-4 bg-gray-950 border-t border-gray-800 flex justify-end gap-3">
+        <div className="px-6 py-4 bg-gray-950 border-t border-gray-800 flex justify-end gap-3 flex-shrink-0">
           <button 
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
