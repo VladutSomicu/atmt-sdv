@@ -3,6 +3,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import useSortableData from '../../hooks/useSortableData';
 import SortableHeader from '../shared/SortableHeader';
+import AuditPayload from '../shared/AuditPayload';
 
 const actionLabels = {
   project_created: 'Project Created',
@@ -93,9 +94,7 @@ export default function ProjectAuditLogTab({ projectId }) {
                         {log.new_value && (
                           <div>
                             <span className="text-gray-500 text-xs uppercase tracking-wider block mb-0.5">Payload Data</span>
-                            <pre className="text-gray-400 text-xs bg-gray-950 p-2 rounded border border-gray-800 overflow-x-auto">
-                              {JSON.stringify(log.new_value, null, 2)}
-                            </pre>
+                            <AuditPayload oldValue={log.old_value} newValue={log.new_value} />
                           </div>
                         )}
                       </td>

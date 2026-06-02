@@ -7,6 +7,7 @@ import { useAuth } from '../store/AuthContext';
 import { Navigate } from 'react-router-dom';
 import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
+import AuditPayload from '../components/shared/AuditPayload';
 
 /* ── Create User Modal ────────────────────────────────── */
 function CreateUserModal({ isOpen, onClose, onCreated }) {
@@ -667,9 +668,7 @@ export default function AdminPage() {
                         {log.new_value && (
                           <div>
                             <span className="text-gray-500 text-xs uppercase tracking-wider block mb-0.5">Payload Data</span>
-                            <pre className="text-gray-400 text-xs bg-gray-950 p-2 rounded border border-gray-800 overflow-x-auto max-h-32">
-                              {JSON.stringify(log.new_value, null, 2)}
-                            </pre>
+                            <AuditPayload oldValue={log.old_value} newValue={log.new_value} />
                           </div>
                         )}
                       </td>
