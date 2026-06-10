@@ -24,7 +24,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://localhost:3000"]}})
+    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     bcrypt.init_app(app)
 
     # JWT blacklist callback - checks if token has been revoked

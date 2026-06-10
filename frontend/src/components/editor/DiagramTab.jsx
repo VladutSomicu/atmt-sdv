@@ -165,7 +165,8 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
     const releaseLock = () => {
       if (lockAcquiredRef.current) {
         const token = localStorage.getItem('access_token');
-        const baseUrl = api.defaults.baseURL || 'http://localhost:5000';
+        // For API calls
+        const baseUrl = api.defaults.baseURL || '';
 
         // 1. Use modern keepalive fetch (extremely reliable during unload and supports query string authentication)
         if (token) {
@@ -835,48 +836,46 @@ export default function DiagramTab({ projectId, project, threats = [], onDiagram
   return (
     <div className="flex" style={{ height: 'calc(100vh - 48px)' }}>
       {/* ── Components Sidebar ── */}
-      {editable && (
-        <div className="w-52 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
-          <div className="px-3 py-2 border-b border-gray-800">
-            <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Components</span>
-          </div>
-          <div className="flex-1 overflow-y-auto px-2 py-2">
-            <div className="mb-3">
-              <button
-                onClick={addTrustBoundary}
-                className="w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded border border-dashed border-amber-700 text-amber-400 hover:bg-amber-900/20 hover:border-amber-500 transition-colors text-xs font-medium"
-              >
-                + Trust Boundary
-              </button>
-            </div>
-            {Object.entries(grouped).map(([category, items]) => (
-              <div key={category} className="mb-3">
-                <p className="text-gray-600 text-[10px] uppercase tracking-widest px-1 mb-1">{category}</p>
-                {items.map(asset => (
-                  <div
-                    key={asset.id}
-                    draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('application/json', JSON.stringify(asset));
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    onClick={() => addNode(asset)}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
-                    title={`${asset.name} - (Drag & Drop or Click to add)`}
-                  >
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
-                    <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
-                    <span className="text-gray-600 group-hover:text-gray-400 text-[10px]">+</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-            {assets.length === 0 && (
-              <p className="text-gray-600 text-xs px-2 py-4">No components. Add assets in the Asset Library.</p>
-            )}
-          </div>
+      <div className={`w-52 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0 transition-opacity duration-300 ${!editable ? 'opacity-40 pointer-events-none select-none filter grayscale' : ''}`}>
+        <div className="px-3 py-2 border-b border-gray-800">
+          <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Components</span>
         </div>
-      )}
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          <div className="mb-3">
+            <button
+              onClick={addTrustBoundary}
+              className="w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded border border-dashed border-amber-700 text-amber-400 hover:bg-amber-900/20 hover:border-amber-500 transition-colors text-xs font-medium"
+            >
+              + Trust Boundary
+            </button>
+          </div>
+          {Object.entries(grouped).map(([category, items]) => (
+            <div key={category} className="mb-3">
+              <p className="text-gray-600 text-[10px] uppercase tracking-widest px-1 mb-1">{category}</p>
+              {items.map(asset => (
+                <div
+                  key={asset.id}
+                  draggable={true}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify(asset));
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
+                  onClick={() => addNode(asset)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-800 active:bg-gray-700 transition-colors mb-0.5 group"
+                  title={`${asset.name} - (Drag & Drop or Click to add)`}
+                >
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CAT_COLORS[asset.category]?.stroke || '#6b7280' }} />
+                  <span className="text-gray-300 text-xs truncate flex-1">{asset.name}</span>
+                  <span className="text-gray-600 group-hover:text-gray-400 text-[10px]">+</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          {assets.length === 0 && (
+            <p className="text-gray-600 text-xs px-2 py-4">No components. Add assets in the Asset Library.</p>
+          )}
+        </div>
+      </div>
 
       {/* ── Canvas ── */}
       <div className="flex-1 flex flex-col min-w-0">

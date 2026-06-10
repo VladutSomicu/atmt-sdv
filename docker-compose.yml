@@ -1,17 +1,21 @@
-name: atmt-sdv
-
 services:
-  postgres_db:
-    image: postgres:16
-    container_name: atmt-sdv-postgres_db-1
-    environment:
-      POSTGRES_USER: atmt_admin
-      POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: atmt_db
+  backend:
+    build: ./backend
+    container_name: atmt_backend
+    restart: always
+    env_file:
+      - ./backend/.env
     ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      - "5000:5000"
 
-volumes:
-  pgdata:
+  frontend:
+    build: ./frontend
+    container_name: atmt_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend

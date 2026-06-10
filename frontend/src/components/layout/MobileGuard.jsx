@@ -27,10 +27,10 @@ export default function MobileGuard({ children }) {
           </div>
           <h2 className="text-white text-xl font-bold mb-2">Desktop Required</h2>
           <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            ATMT-SDV is a complex threat modeling tool that requires a larger screen and a landscape layout for the canvas editor.
+            ATMT-SDV is a complex threat modeling tool that requires a larger screen.
           </p>
           <p className="text-blue-400 text-xs font-mono uppercase tracking-widest">
-            Please use a desktop device or rotate your screen.
+            Please use a desktop device.
           </p>
         </div>
       </div>
