@@ -5,6 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    // Schimbăm directorul unde Vite își pune scripturile de sistem din 'assets' în 'static' 
+    // pentru a nu se bate cap în cap cu pagina de React care are ruta '/assets' (Asset Library)
+    assetsDir: 'static',
     // Ne asigurăm că sursele originale NU sunt livrate în producție
     sourcemap: false,
     
