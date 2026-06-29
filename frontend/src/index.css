@@ -3,12 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+      color-scheme: dark;
+  }
   body {
       font-family: 'Inter', sans-serif;
   }
 }
 
-/* Custom Scrollbar Global (Forțat pe toate elementele) */
+/* Custom Scrollbar Global */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
 *::-webkit-scrollbar {
     width: 8px;
     height: 8px;

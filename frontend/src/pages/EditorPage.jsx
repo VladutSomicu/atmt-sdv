@@ -98,32 +98,32 @@ export default function EditorPage() {
           <span className="text-white font-bold text-sm tracking-wide">ATMT-SDV</span>
         </div>
 
-        <nav className="flex-1 px-2 py-3 overflow-y-auto">
-          <p className="text-gray-600 text-xs uppercase tracking-widest px-2 mb-2">Project</p>
+        <nav className="flex-1 px-2 py-4 overflow-y-auto">
+          <p className="text-gray-600 text-xs font-medium uppercase tracking-widest px-2 mb-2">Project</p>
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm mb-0.5 transition-colors text-left ${
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm mb-0.5 transition-colors text-left ${
                 activeTab === tab.id
-                  ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-gray-800 text-gray-200 border-l-2 border-blue-500'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 border-l-2 border-transparent'
               }`}
             >
               {tab.label}
             </button>
           ))}
 
-          <p className="text-gray-600 text-xs uppercase tracking-widest px-2 mb-2 mt-4">Context</p>
+          <p className="text-gray-600 text-xs font-medium uppercase tracking-widest px-2 mb-2 mt-6">Context</p>
           {user?.is_admin && (
-            <a href="/assets" className="flex items-center gap-2 px-2 py-2 rounded-none text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">Asset library</a>
+            <a href="/assets" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 border-l-2 border-transparent transition-colors text-left">Asset library</a>
           )}
           <button
             onClick={() => setActiveTab('audit')}
-            className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm mb-0.5 transition-colors text-left ${
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm mb-0.5 transition-colors text-left ${
               activeTab === 'audit'
-                ? 'bg-blue-600/20 text-blue-400'
-                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                ? 'bg-gray-800 text-gray-200 border-l-2 border-blue-500'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 border-l-2 border-transparent'
             }`}
           >
             Audit log
@@ -131,10 +131,10 @@ export default function EditorPage() {
           {['admin', 'manager'].includes(myRole) && (
             <button
               onClick={() => setActiveTab('members')}
-              className={`w-full flex items-center gap-2 px-2 py-2 rounded-none text-sm transition-colors text-left ${
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm mb-0.5 transition-colors text-left ${
                 activeTab === 'members'
-                  ? 'bg-blue-600/20 text-blue-400'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-gray-800 text-gray-200 border-l-2 border-blue-500'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200 border-l-2 border-transparent'
               }`}
             >
               Members

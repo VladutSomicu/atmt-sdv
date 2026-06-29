@@ -124,7 +124,7 @@ export default function GlobalReportsPage() {
           <div className="p-5 border-b border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-950/50">
             <div>
               <h2 className="text-base font-semibold text-white">Fleet Security</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Real-time audit monitoring and UNECE R155 compliance readiness tracking.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Aggregated fleet risk metrics and global regulatory compliance status.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -147,6 +147,7 @@ export default function GlobalReportsPage() {
                 <option value="ICE">ICE</option>
                 <option value="EV">EV</option>
                 <option value="Hybrid">Hybrid</option>
+                <option value="None">None</option>
               </select>
             </div>
           </div>
@@ -191,18 +192,18 @@ export default function GlobalReportsPage() {
                     </td>
                     <td className="p-4 text-center font-mono text-gray-300">{p.total_threats}</td>
                     <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="mx-auto w-[84px] flex items-center justify-start gap-2">
                         {p.compliance_score === 'N/A' ? (
-                          <span className="font-mono font-medium text-gray-500">N/A</span>
+                          <span className="font-mono font-medium text-gray-500 w-full text-center">N/A</span>
                         ) : (
                           <>
-                            <div className="w-12 bg-gray-800 h-1.5 rounded-none overflow-hidden">
+                            <div className="w-12 shrink-0 bg-gray-800 h-1.5 rounded-none overflow-hidden">
                               <div
                                 className={`h-full rounded-none ${p.compliance_score >= 80 ? 'bg-emerald-500' : p.compliance_score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
                                 style={{ width: `${p.compliance_score}%` }}
                               />
                             </div>
-                            <span className="font-mono font-medium text-gray-300">{p.compliance_score}%</span>
+                            <span className="font-mono font-medium text-gray-300 min-w-[4ch] text-left">{p.compliance_score}%</span>
                           </>
                         )}
                       </div>

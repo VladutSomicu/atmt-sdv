@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import Modal from '../components/shared/Modal';
 import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
+import TablePagination from '../components/shared/TablePagination';
+import { formatDateTime } from '../utils/date';
 
 /* ── Helpers ─────────────────────────────────────────── */
 const riskBadge = (score) => {
@@ -88,7 +90,7 @@ function ProjectContextMenu({ menu, onRename, onDelete, onClose, canManage }) {
 }
 
 /* ── Projects Table (shared) ──────────────────────────── */
-function ProjectsTable({ projects, showAllColumns = false }) {
+function ProjectsTable({ projects, showAllColumns = false, limit = 25 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [contextMenu, setContextMenu] = useState(null);
@@ -97,6 +99,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
   const [newName, setNewName] = useState('');
   const [projects_, setProjects] = useState(projects);
   const { items: sortedProjects, requestSort, sortConfig } = useSortableData(projects_);
+  const displayedProjects = sortedProjects.slice(0, limit);
 
   useEffect(() => setProjects(projects), [projects]);
 
@@ -160,7 +163,7 @@ function ProjectsTable({ projects, showAllColumns = false }) {
           </tr>
         </thead>
         <tbody>
-          {sortedProjects.map((p) => {
+          {displayedProjects.map((p) => {
             const vp = p.vehicle_profile || {};
             return (
               <tr
@@ -210,8 +213,8 @@ function ProjectsTable({ projects, showAllColumns = false }) {
                   </span>
                 </td>
 
-                <td className="px-5 py-3.5 text-left text-gray-500 text-xs">
-                  {new Date(p.updated_at).toLocaleDateString()}
+                <td className="px-5 py-3.5 text-left text-gray-500 text-xs font-mono">
+                  {formatDateTime(p.updated_at)}
                 </td>
               </tr>
             );
@@ -272,6 +275,8 @@ function ProjectsTable({ projects, showAllColumns = false }) {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(25);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -309,9 +314,36 @@ export default function ProjectsPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
             <h2 className="text-white text-sm font-medium">All projects</h2>
-            <span className="text-gray-600 text-xs">{projects.length} total</span>
+            <div className="w-64">
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-gray-950 border border-gray-700 text-white rounded-none px-3 py-1 text-sm focus:outline-none focus:border-blue-500"
+              />
+            </div>
           </div>
-          <ProjectsTable projects={projects} showAllColumns={user?.is_admin} />
+          <ProjectsTable 
+            projects={projects.filter(p => 
+              p.name.toLowerCase().includes(search.toLowerCase()) ||
+              (p.description && p.description.toLowerCase().includes(search.toLowerCase())) ||
+              (p.vehicle_profile?.category && p.vehicle_profile.category.toLowerCase().includes(search.toLowerCase()))
+            )} 
+            showAllColumns={user?.is_admin} 
+            limit={limit} 
+          />
+          {projects.filter(p => 
+            p.name.toLowerCase().includes(search.toLowerCase()) ||
+            (p.description && p.description.toLowerCase().includes(search.toLowerCase())) ||
+            (p.vehicle_profile?.category && p.vehicle_profile.category.toLowerCase().includes(search.toLowerCase()))
+          ).length > 25 && (
+            <TablePagination limit={limit} setLimit={setLimit} total={projects.filter(p => 
+              p.name.toLowerCase().includes(search.toLowerCase()) ||
+              (p.description && p.description.toLowerCase().includes(search.toLowerCase())) ||
+              (p.vehicle_profile?.category && p.vehicle_profile.category.toLowerCase().includes(search.toLowerCase()))
+            ).length} />
+          )}
         </div>
       )}
     </AppLayout>

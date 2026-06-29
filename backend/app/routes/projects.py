@@ -270,11 +270,12 @@ def lock_project(project_id):
         project.locked_by = user_id
         project.locked_at = datetime.now(timezone.utc)
 
-        log_action(
-            user_id=user_id,
-            action='project_locked',
-            project_id=str(project_id)
-        )
+        # Lock/unlock events are not logged to keep the audit log clean
+        # log_action(
+        #     user_id=user_id,
+        #     action='project_locked',
+        #     project_id=str(project_id)
+        # )
         db.session.commit()
         return jsonify({"message": "Project locked successfully"}), 200
 
@@ -307,11 +308,12 @@ def unlock_project(project_id):
     project.locked_by = None
     project.locked_at = None
 
-    log_action(
-        user_id=user_id,
-        action='project_unlocked',
-        project_id=str(project_id)
-    )
+    # Lock/unlock events are not logged to keep the audit log clean
+    # log_action(
+    #     user_id=user_id,
+    #     action='project_unlocked',
+    #     project_id=str(project_id)
+    # )
     db.session.commit()
 
     return jsonify({"message": "Project unlocked successfully"}), 200
@@ -322,8 +324,9 @@ def unlock_project(project_id):
 @requires_project_role('engineer', 'manager', 'auditor', 'architect')
 def get_audit_log(project_id):
     """Return the audit log for a project."""
-    logs = AuditLog.query.filter_by(
-        project_id=str(project_id)
+    logs = AuditLog.query.filter(
+        AuditLog.project_id == str(project_id),
+        ~AuditLog.action.in_(['project_locked', 'project_unlocked'])
     ).order_by(AuditLog.created_at.desc()).all()
 
     result = []

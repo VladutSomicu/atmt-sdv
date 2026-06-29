@@ -6,12 +6,14 @@ import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import TablePagination from '../components/shared/TablePagination';
 
 export default function SecurityControlsPage() {
   const { user } = useAuth();
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(25);
 
   const { items: sortedControls, requestSort, sortConfig } = useSortableData(controls);
   
@@ -125,6 +127,7 @@ export default function SecurityControlsPage() {
     c.title.toLowerCase().includes(search.toLowerCase()) ||
     (c.source_ref && c.source_ref.toLowerCase().includes(search.toLowerCase()))
   );
+  const displayedControls = filteredControls.slice(0, limit);
 
   return (
     <AppLayout breadcrumb={[{ label: 'Security Controls' }]}>
@@ -200,7 +203,7 @@ export default function SecurityControlsPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredControls.map((c) => (
+                    displayedControls.map((c) => (
                       <tr key={c.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-5 py-4">
                           <p className="text-gray-300 text-sm font-medium">{c.title}</p>
@@ -244,6 +247,9 @@ export default function SecurityControlsPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && filteredControls.length > 25 && (
+            <TablePagination limit={limit} setLimit={setLimit} total={filteredControls.length} />
           )}
         </div>
       </div>

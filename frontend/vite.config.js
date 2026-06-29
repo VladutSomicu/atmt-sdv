@@ -16,7 +16,7 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true, // Elimină toate console.log-urile
-        drop_debugger: false, // Lăsăm debugger-ul nostru activ pentru capcană!
+        drop_debugger: true, // Acum eliminăm automat eventualele debuggere rămase
         passes: 2 // O compresie mai profundă
       },
       format: {

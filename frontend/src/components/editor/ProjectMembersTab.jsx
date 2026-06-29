@@ -5,6 +5,7 @@ import Modal from '../shared/Modal';
 import UserSelect from '../shared/UserSelect';
 import useSortableData from '../../hooks/useSortableData';
 import SortableHeader from '../shared/SortableHeader';
+import { formatDateTime } from '../../utils/date';
 
 export default function ProjectMembersTab({ projectId, user }) {
   const [members, setMembers] = useState([]);
@@ -107,8 +108,8 @@ export default function ProjectMembersTab({ projectId, user }) {
                       {m.role}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-gray-500 text-xs">
-                    {new Date(m.joined_at).toLocaleDateString()}
+                  <td className="px-5 py-3 text-gray-500 text-xs font-mono">
+                    {formatDateTime(m.joined_at)}
                   </td>
                   {canManageMembers && (
                     <td className="px-5 py-3 text-right">

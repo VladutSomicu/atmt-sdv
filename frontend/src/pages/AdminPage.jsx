@@ -8,6 +8,8 @@ import { Navigate } from 'react-router-dom';
 import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
 import AuditPayload from '../components/shared/AuditPayload';
+import TablePagination from '../components/shared/TablePagination';
+import { formatDateTime } from '../utils/date';
 
 /* ── Create User Modal ────────────────────────────────── */
 function CreateUserModal({ isOpen, onClose, onCreated }) {
@@ -314,13 +316,17 @@ export default function AdminPage() {
   const [deactivateTarget, setDeactivateTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [search, setSearch] = useState('');
+  const [userLimit, setUserLimit] = useState(25);
 
   // Audit log state
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const [auditLimit, setAuditLimit] = useState(25);
 
-  const { items: sortedUsers, requestSort: sortUsers, sortConfig: userSortConfig } = useSortableData(users);
-  const { items: sortedAudit, requestSort: sortAudit, sortConfig: auditSortConfig } = useSortableData(auditLogs, { key: 'created_at', direction: 'descending' });
+  const { items: sortedUsersFull, requestSort: sortUsers, sortConfig: userSortConfig } = useSortableData(users);
+  const { items: sortedAuditFull, requestSort: sortAudit, sortConfig: auditSortConfig } = useSortableData(auditLogs, { key: 'created_at', direction: 'descending' });
+  
+  const displayedAudit = sortedAuditFull.slice(0, auditLimit);
 
   // Guard: only admin can access this page
   if (!currentUser?.is_admin) return <Navigate to="/dashboard" replace />;
@@ -376,10 +382,11 @@ export default function AdminPage() {
     }
   };
 
-  const filtered = sortedUsers.filter(u =>
+  const filtered = sortedUsersFull.filter(u =>
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
+  const displayedUsers = filtered.slice(0, userLimit);
 
   const stats = {
     total: users.length,
@@ -395,7 +402,6 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-white text-2xl font-bold">Platform Administration</h1>
-            <span className="bg-purple-900/50 border border-purple-700 text-purple-300 text-xs px-2 py-0.5 rounded font-medium">ADMIN</span>
           </div>
           <p className="text-gray-500 text-sm">Manage users, view global logs, and configure the platform</p>
         </div>
@@ -449,22 +455,17 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* Search */}
-          <div className="mb-4">
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or email..."
-              className="w-full max-w-xs bg-gray-900 border border-gray-800 text-gray-300 rounded-none px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
           {/* Users table */}
           <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between">
-              <h2 className="text-white text-sm font-medium">All users</h2>
-              <span className="text-gray-600 text-xs">{filtered.length} shown</span>
+            <div className="px-5 py-3 border-b border-gray-800 flex items-center justify-between gap-4">
+              <h2 className="text-white text-sm font-medium whitespace-nowrap">All users</h2>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name or email..."
+                className="w-64 bg-gray-950 border border-gray-800 text-gray-300 rounded-none px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 transition-colors"
+              />
             </div>
 
             {loading ? (
@@ -489,7 +490,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(u => (
+                  {displayedUsers.map(u => (
                     <tr key={u.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
@@ -524,8 +525,10 @@ export default function AdminPage() {
                           {u.is_active ? '● Active' : '○ Inactive'}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-gray-500 text-xs">
-                        {new Date(u.created_at).toLocaleDateString()}
+                      <td className="px-5 py-3.5">
+                        <span className="text-gray-400 text-xs font-mono">
+                          {formatDateTime(u.created_at)}
+                        </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
@@ -559,6 +562,9 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            )}
+            {!loading && filtered.length > 25 && (
+              <TablePagination limit={userLimit} setLimit={setUserLimit} total={filtered.length} />
             )}
           </div>
 
@@ -606,6 +612,9 @@ export default function AdminPage() {
               This action cannot be undone. All project memberships associated with this user will also be removed.
             </p>
           </Modal>
+          {!loading && sortedUsersFull.length > 25 && (
+            <TablePagination limit={userLimit} setLimit={setUserLimit} total={sortedUsersFull.length} />
+          )}
         </>
       )}
 
@@ -640,11 +649,11 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {sortedAudit.map(log => (
+                  {displayedAudit.map(log => (
                     <tr key={log.id} className="hover:bg-gray-800/30 transition-colors align-top">
                       <td className="px-5 py-4">
-                        <span className="text-gray-400 text-xs whitespace-nowrap">
-                          {new Date(log.created_at).toLocaleString()}
+                        <span className="text-gray-400 text-xs font-mono whitespace-nowrap">
+                          {formatDateTime(log.created_at)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -677,6 +686,9 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loadingAudit && sortedAuditFull.length > 25 && (
+            <TablePagination limit={auditLimit} setLimit={setAuditLimit} total={sortedAuditFull.length} baseLimit={25} />
           )}
         </div>
       )}

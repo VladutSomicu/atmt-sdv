@@ -5,9 +5,10 @@ export default function MobileGuard({ children }) {
 
   useEffect(() => {
     const checkScreenSize = () => {
-      const isPortrait = window.innerHeight > window.innerWidth;
-      const isTooNarrow = window.innerWidth < 1024;
-      setIsMobile(isTooNarrow || isPortrait);
+      // 640px blocks actual mobile phones. 
+      // Desktop windows will be handled by horizontal scrolling.
+      const isTooNarrow = window.innerWidth < 640;
+      setIsMobile(isTooNarrow);
     };
 
     checkScreenSize();

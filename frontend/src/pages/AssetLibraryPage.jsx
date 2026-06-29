@@ -6,6 +6,7 @@ import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import TablePagination from '../components/shared/TablePagination';
 
 const scoreLabel = (n) => {
   if (n === 1) return '1 – Negligible';
@@ -60,6 +61,7 @@ export default function AssetLibraryPage() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(25);
 
   const { items: sortedAssets, requestSort, sortConfig } = useSortableData(assets);
 
@@ -177,6 +179,7 @@ export default function AssetLibraryPage() {
     a.name.toLowerCase().includes(search.toLowerCase()) ||
     a.category.toLowerCase().includes(search.toLowerCase())
   );
+  const displayedAssets = filteredAssets.slice(0, limit);
 
   return (
     <AppLayout breadcrumb={[{ label: 'Asset Library' }]}>
@@ -256,7 +259,7 @@ export default function AssetLibraryPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredAssets.map((a) => (
+                    displayedAssets.map((a) => (
                       <tr key={a.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-5 py-3">
                           <div className="flex flex-col gap-1">
@@ -317,6 +320,9 @@ export default function AssetLibraryPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && filteredAssets.length > 25 && (
+            <TablePagination limit={limit} setLimit={setLimit} total={filteredAssets.length} />
           )}
         </div>
       </div>

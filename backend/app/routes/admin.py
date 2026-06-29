@@ -521,7 +521,9 @@ def get_public_controls():
 @admin_required
 def get_global_audit_log():
     """Return the global audit log across the platform."""
-    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(500).all()
+    logs = AuditLog.query.filter(
+        ~AuditLog.action.in_(['project_locked', 'project_unlocked'])
+    ).order_by(AuditLog.created_at.desc()).limit(500).all()
 
     result = []
     for log in logs:

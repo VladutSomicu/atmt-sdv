@@ -57,9 +57,6 @@ export default function LoginPage() {
 
         {/* Headline */}
         <div>
-          <p className="text-blue-400 text-xs font-mono tracking-widest uppercase mb-4">
-            // Automotive Threat Modeling Tool
-          </p>
           <h1 className="text-white text-4xl font-bold leading-tight mb-4">
             Security engineering for software-defined vehicles.
           </h1>
@@ -233,7 +230,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-gray-600 text-xs">
-          © 2026 ATMT · ISO/SAE 21434:2021 · UNECE R155 / R156
+          © 2026 ATMT-SDV. All rights reserved. · Developed by Andrei Vladut Somicu
         </p>
       </div>
 

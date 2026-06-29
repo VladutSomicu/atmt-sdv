@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import useSortableData from '../../hooks/useSortableData';
 import SortableHeader from '../shared/SortableHeader';
 import AuditPayload from '../shared/AuditPayload';
+import TablePagination from '../shared/TablePagination';
+import { formatDateTime } from '../../utils/date';
 
 const actionLabels = {
   project_created: 'Project Created',
@@ -26,8 +28,10 @@ const actionColors = {
 export default function ProjectAuditLogTab({ projectId }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [limit, setLimit] = useState(25);
 
   const { items: sortedLogs, requestSort, sortConfig } = useSortableData(logs, { key: 'created_at', direction: 'descending' });
+  const displayedLogs = sortedLogs.slice(0, limit);
 
   useEffect(() => {
     // Load audit logs
@@ -64,11 +68,11 @@ export default function ProjectAuditLogTab({ projectId }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {sortedLogs.map(log => (
+                  {displayedLogs.map(log => (
                     <tr key={log.id} className="hover:bg-gray-800/30 transition-colors align-top">
                       <td className="px-5 py-4">
-                        <span className="text-gray-400 text-xs whitespace-nowrap">
-                          {new Date(log.created_at).toLocaleString()}
+                        <span className="text-gray-400 text-xs font-mono whitespace-nowrap">
+                          {formatDateTime(log.created_at)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -103,6 +107,9 @@ export default function ProjectAuditLogTab({ projectId }) {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && sortedLogs.length > 25 && (
+            <TablePagination limit={limit} setLimit={setLimit} total={sortedLogs.length} baseLimit={25} />
           )}
         </div>
       </div>

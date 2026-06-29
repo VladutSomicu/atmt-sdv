@@ -6,6 +6,7 @@ import useSortableData from '../hooks/useSortableData';
 import SortableHeader from '../components/shared/SortableHeader';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import TablePagination from '../components/shared/TablePagination';
 
 const scoreLabel = (n) => {
   if (n === 1) return '1 – Negligible';
@@ -80,6 +81,7 @@ export default function ThreatCatalogPage() {
   const [threats, setThreats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(25);
 
   const { items: sortedThreats, requestSort, sortConfig } = useSortableData(threats);
 
@@ -189,6 +191,7 @@ export default function ThreatCatalogPage() {
     t.stride_category.toLowerCase().includes(search.toLowerCase()) ||
     (t.source_ref && t.source_ref.toLowerCase().includes(search.toLowerCase()))
   );
+  const displayedThreats = filteredThreats.slice(0, limit);
 
   return (
     <AppLayout breadcrumb={[{ label: 'Threat Catalog' }]}>
@@ -197,7 +200,7 @@ export default function ThreatCatalogPage() {
           <div>
             <h1 className="text-white text-2xl font-bold mb-2">Global Threat Catalog</h1>
             <p className="text-gray-400 text-sm">
-              The platform integrates a hybrid security model (STRIDE, LINDDUN) with automatic mapping to automotive regulations and industry standards.
+              Defines the global threat taxonomy and baseline impact parameters required for risk assessments.
             </p>
           </div>
           {user?.is_admin && (
@@ -226,7 +229,7 @@ export default function ThreatCatalogPage() {
         <div className="bg-gray-900 border border-gray-800 rounded-none overflow-hidden mb-12">
           <div className="px-5 py-4 border-b border-gray-800 bg-gray-900/50">
             <h2 className="text-white text-lg font-medium">Sources</h2>
-            <p className="text-gray-500 text-xs mt-1">How ATMT-SDV leverages external sources to generate the TARA diagnosis</p>
+            <p className="text-gray-500 text-xs mt-1">How ATMT-SDV correlates vehicle profiles with STRIDE vectors for dynamic risk assessment.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -306,7 +309,7 @@ export default function ThreatCatalogPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredThreats.map((t) => (
+                    displayedThreats.map((t) => (
                       <tr key={t.id} className="hover:bg-gray-800/30 transition-colors">
                         <td className="px-5 py-3">
                           <span className="px-2 py-0.5 rounded border border-gray-700 bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">
@@ -366,6 +369,9 @@ export default function ThreatCatalogPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && filteredThreats.length > 25 && (
+            <TablePagination limit={limit} setLimit={setLimit} total={filteredThreats.length} />
           )}
         </div>
       </div>
@@ -454,7 +460,7 @@ export default function ThreatCatalogPage() {
                 onChange={(e) => setForm({ ...form, default_impact_safety: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -464,7 +470,7 @@ export default function ThreatCatalogPage() {
                 onChange={(e) => setForm({ ...form, default_impact_financial: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -474,7 +480,7 @@ export default function ThreatCatalogPage() {
                 onChange={(e) => setForm({ ...form, default_impact_operational: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
@@ -484,11 +490,11 @@ export default function ThreatCatalogPage() {
                 onChange={(e) => setForm({ ...form, default_impact_privacy: parseInt(e.target.value) })}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-none px-2 py-2 text-sm focus:outline-none focus:border-blue-500"
               >
-                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 text-xs uppercase tracking-wider mb-1">Default Feasibility (1-5)</label>

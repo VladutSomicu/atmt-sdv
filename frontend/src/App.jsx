@@ -11,7 +11,6 @@ import SecurityControlsPage from './pages/SecurityControlsPage';
 import GlobalReportsPage from './pages/GlobalReportsPage';
 import { useAuth } from './store/AuthContext';
 import MobileGuard from './components/layout/MobileGuard';
-import InspectGuard from './components/layout/InspectGuard';
 
 // Protected route — redirects to login if no token
 function ProtectedRoute({ children }) {
@@ -24,9 +23,8 @@ function ProtectedRoute({ children }) {
 
 function App() {
   return (
-    <InspectGuard>
-      <MobileGuard>
-        <BrowserRouter>
+    <MobileGuard>
+      <BrowserRouter>
         <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={
@@ -79,7 +77,6 @@ function App() {
         </Routes>
         </BrowserRouter>
       </MobileGuard>
-    </InspectGuard>
   );
 }
 
